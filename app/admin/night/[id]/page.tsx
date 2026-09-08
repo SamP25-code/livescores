@@ -179,15 +179,15 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
       )}
 
       {isFinals ? (
-        <AddExtraFinalsPlayer nightId={nightId} onAdded={withErrorHandling(async () => {})} />
+        <AddExtraFinalsPlayer onAdd={withErrorHandling((name: string) => addPlayer(nightId, name))} />
       ) : (
         <PlayerSection
-          nightId={nightId}
           players={orderedPlayers}
           bracketExists={bracketExists}
+          onAdd={withErrorHandling((name: string) => addPlayer(nightId, name))}
           onReorder={withErrorHandling((ids: string[]) => reorderPlayers(ids))}
           onRename={withErrorHandling((id: string, name: string) => renamePlayer(id, name))}
-          onChange={withErrorHandling(async () => {})}
+          onRemove={withErrorHandling((id: string) => deletePlayer(id))}
         />
       )}
 
@@ -255,19 +255,19 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
 }
 
 function PlayerSection({
-  nightId,
   players,
   bracketExists,
+  onAdd,
   onReorder,
   onRename,
-  onChange,
+  onRemove,
 }: {
-  nightId: string;
   players: Player[];
   bracketExists: boolean;
+  onAdd: (name: string) => Promise<void>;
   onReorder: (orderedIds: string[]) => Promise<void>;
   onRename: (playerId: string, name: string) => Promise<void>;
-  onChange: () => Promise<void>;
+  onRemove: (playerId: string) => Promise<void>;
 }) {
   const [name, setName] = useState("");
   const [order, setOrder] = useState<string[]>(() => players.map((p) => p.id));
@@ -293,9 +293,8 @@ function PlayerSection({
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    await addPlayer(nightId, name.trim());
+    await onAdd(name.trim());
     setName("");
-    await onChange();
   }
 
   function handleDragEnd(event: DragEndEvent) {
@@ -334,14 +333,7 @@ function PlayerSection({
                   index={i}
                   draggable={!bracketExists}
                   onRename={(name) => onRename(p.id, name)}
-                  onRemove={
-                    bracketExists
-                      ? undefined
-                      : async () => {
-                          await deletePlayer(p.id);
-                          await onChange();
-                        }
-                  }
+                  onRemove={bracketExists ? undefined : () => onRemove(p.id)}
                 />
               ))}
             </div>
@@ -439,7 +431,7 @@ function SortablePlayerRow({
  * a replacement, a bye - and deliberately stays out of the way so it isn't
  * mistaken for a required step.
  */
-function AddExtraFinalsPlayer({ nightId, onAdded }: { nightId: string; onAdded: () => Promise<void> }) {
+function AddExtraFinalsPlayer({ onAdd }: { onAdd: (name: string) => Promise<void> }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
 
@@ -459,10 +451,9 @@ function AddExtraFinalsPlayer({ nightId, onAdded }: { nightId: string; onAdded: 
       onSubmit={async (e) => {
         e.preventDefault();
         if (!name.trim()) return;
-        await addPlayer(nightId, name.trim());
+        await onAdd(name.trim());
         setName("");
         setOpen(false);
-        await onAdded();
       }}
       style={{ display: "flex", gap: 8, marginBottom: 20 }}
     >
