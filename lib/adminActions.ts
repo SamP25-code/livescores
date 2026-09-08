@@ -232,17 +232,13 @@ export async function completeMatch(match: MatchRow) {
   if (error) throw error;
 
   if (match.next_match_id && match.next_match_slot && winnerId) {
+    // Just fill the seat - leave status alone. It stays "upcoming" even once
+    // both players are known, and only becomes "live" (see adjustScore) once
+    // someone actually scores a point in it.
     const field = match.next_match_slot === "a" ? "player_a_id" : "player_b_id";
-    const { data: nextMatch } = await supabase
-      .from("matches")
-      .select("*")
-      .eq("id", match.next_match_id)
-      .single();
-    const otherField = match.next_match_slot === "a" ? "player_b_id" : "player_a_id";
-    const bothFilled = nextMatch && (nextMatch as MatchRow)[otherField as keyof MatchRow];
     await supabase
       .from("matches")
-      .update({ [field]: winnerId, status: bothFilled ? "live" : "upcoming" })
+      .update({ [field]: winnerId })
       .eq("id", match.next_match_id);
   }
 }
@@ -268,9 +264,9 @@ export async function reopenMatch(match: MatchRow) {
       .eq("id", match.next_match_id)
       .single();
     const nm = nextMatch as MatchRow | null;
-    // The next match flips to "live" the instant both its slots fill, even
-    // at 0-0 (see completeMatch above) - that alone isn't real progress, so
-    // only block on an actual score or a result, not just the eager status.
+    // Block only on real progress (a score, or a result) - both slots being
+    // filled isn't "started" on its own, since status stays "upcoming" until
+    // a point's actually scored (see adjustScore).
     if (nm && (nm.status === "complete" || nm.score_a > 0 || nm.score_b > 0)) {
       throw new Error(
         "Can't reopen - the winner has already started their next match. Reset the bracket if you need to redo this far back."
