@@ -132,14 +132,12 @@ export default function NightPage({ params }: { params: { id: string } }) {
           <div className="round-heading">
             <h2>Advancing to finals day</h2>
           </div>
-          <div className="card">
-            {qualifiers.map((p) => (
-              <div key={p.id} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
-                <span>{p.name}</span>
-                <span style={{ color: "var(--ink-soft)" }}>{p.finals_number != null ? `Finals #${p.finals_number}` : ""}</span>
-              </div>
-            ))}
-          </div>
+          {qualifiers.map((p) => (
+            <div key={p.id} className="card" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
+              <span>{p.name}</span>
+              <span style={{ color: "var(--ink-soft)" }}>{p.finals_number != null ? `Finals ${p.finals_number}` : ""}</span>
+            </div>
+          ))}
         </section>
       )}
     </div>
