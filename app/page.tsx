@@ -19,8 +19,10 @@ export default function HomePage() {
         </nav>
       </div>
 
-      <h1>Results</h1>
-      <p className="hint">Pick a night below to see its live scores.</p>
+      <div className="home-hero">
+        <h1>Results</h1>
+        <p className="hint">Pick a night below to see its live scores.</p>
+      </div>
       <NightNav variant="home" />
     </div>
   );

@@ -331,35 +331,49 @@ label {
   color: #fff;
 }
 
+.home-hero {
+  text-align: center;
+  margin: 12px 0 32px;
+}
+
+.home-hero h1 {
+  font-size: 2.4rem;
+}
+
+.home-hero .hint {
+  font-size: 1rem;
+}
+
 .night-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: 18px;
+  max-width: 480px;
+  margin: 0 auto 20px;
 }
 
 .night-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 22px 22px;
-  border-radius: 18px;
+  gap: 14px;
+  padding: 28px 26px;
+  border-radius: 20px;
   border: 2px solid var(--green-deep);
   background: #fff;
   text-decoration: none;
-  box-shadow: 0 2px 0 var(--line);
+  box-shadow: 0 3px 0 var(--line);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .night-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(31, 61, 43, 0.18);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 10px 20px rgba(31, 61, 43, 0.2);
 }
 
 .night-card-name {
   font-family: var(--font-display), Georgia, serif;
-  font-size: 1.35rem;
+  font-size: 1.55rem;
   font-weight: 700;
   color: var(--green-deep);
 }
@@ -371,6 +385,11 @@ label {
 
 .night-card-finals .night-card-name {
   color: var(--gold-deep);
+}
+
+.night-card .status-pill {
+  font-size: 0.8rem;
+  padding: 4px 12px;
 }
 
 .hint {
