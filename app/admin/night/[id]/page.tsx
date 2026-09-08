@@ -112,7 +112,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
       <h1>{night?.name ?? "Loading\u2026"}</h1>
       {error && <p className="error">{error}</p>}
 
-      {isFinals && !bracketExists && (
+      {isFinals && (
         <FinalsLineup
           slots={finalsSlots}
           occupancy={finalsOccupancy}
@@ -120,7 +120,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
         />
       )}
 
-      {isFinals && !bracketExists && (
+      {isFinals && (
         <UnplacedSection
           players={orderedPlayers.filter((p) => p.seed == null)}
           occupancy={finalsOccupancy}
@@ -129,12 +129,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
       )}
 
       {isFinals ? (
-        !bracketExists && (
-          <AddExtraFinalsPlayer
-            nightId={nightId}
-            onAdded={withErrorHandling(async () => {})}
-          />
-        )
+        <AddExtraFinalsPlayer nightId={nightId} onAdded={withErrorHandling(async () => {})} />
       ) : (
         <PlayerSection
           nightId={nightId}
@@ -144,15 +139,16 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
         />
       )}
 
-      {!bracketExists ? (
+      {!isFinals && !bracketExists && (
         <BracketSetup
           players={orderedPlayers}
-          nightKind={night?.kind ?? "qualifier"}
           onGenerate={withErrorHandling(async () => {
-            await generateBracket(nightId, orderedPlayers, night?.kind ?? "qualifier");
+            await generateBracket(nightId, orderedPlayers, "qualifier");
           })}
         />
-      ) : (
+      )}
+
+      {bracketExists && (
         <>
           <div style={{ margin: "20px 0" }}>
             <button
@@ -330,7 +326,8 @@ function FinalsLineup({
       </div>
       <p className="hint">
         Fills in on its own as qualifiers are confirmed on each qualifying night &mdash; nothing to add here
-        normally. Click a name to move them to a different number if needed.
+        normally. The draw is generated as soon as the first number is given out, and each slot below fills in
+        live from there. Click a name to move them to a different number if needed.
       </p>
       <div className="card">
         {slots.map((player, i) => (
@@ -389,38 +386,27 @@ function UnplacedSection({
 
 function BracketSetup({
   players,
-  nightKind,
   onGenerate,
 }: {
   players: Player[];
-  nightKind: "qualifier" | "finals";
   onGenerate: () => Promise<void>;
 }) {
   const count = players.length;
-  const unplacedCount = nightKind === "finals" ? players.filter((p) => p.seed == null).length : 0;
   const isPowerOfTwo = count >= 2 && (count & (count - 1)) === 0;
-  const canGenerate = isPowerOfTwo && unplacedCount === 0;
 
   return (
     <section className="card">
       <h2>Set up the draw</h2>
       <p className="hint">
-        {nightKind === "finals"
-          ? "Round 1 pairs number 1 v 2, 3 v 4, and so on. Every slot needs a number before you can generate it."
-          : "Round 1 is built from the player list above, paired in the order shown. Add all the players first (a power of two \u2014 8, 16, 32\u2026), then generate the draw."}
+        Round 1 is built from the player list above, paired in the order shown. Add all the players first (a power
+        of two &mdash; 8, 16, 32&hellip;), then generate the draw.
       </p>
-      <button onClick={onGenerate} disabled={!canGenerate}>
+      <button onClick={onGenerate} disabled={!isPowerOfTwo}>
         Generate draw
       </button>
       {!isPowerOfTwo && (
         <p className="hint">
           {count < 2 ? "Add at least two players first." : `${count} isn't a power of two \u2014 add or remove a player.`}
-        </p>
-      )}
-      {isPowerOfTwo && unplacedCount > 0 && (
-        <p className="hint">
-          {unplacedCount} player{unplacedCount === 1 ? "" : "s"} {unplacedCount === 1 ? "doesn't" : "don't"} have a
-          number yet &mdash; assign {unplacedCount === 1 ? "them" : "them all"} above first.
         </p>
       )}
     </section>
@@ -442,7 +428,9 @@ function MatchEditor({
     return (
       <div className="card">
         <p className="hint" style={{ margin: 0 }}>
-          Waiting for the winners of earlier matches.
+          {match.round === 1
+            ? "Waiting for this slot's draw number to be given out."
+            : "Waiting for the winners of earlier matches."}
         </p>
       </div>
     );

@@ -122,3 +122,14 @@ export function buildFinalsSlots<T extends SeededPlayer>(
   }
   return Array.from({ length: size }, (_, i) => bySeed.get(i + 1) ?? null);
 }
+
+/**
+ * Which round-1 match a finals-day draw number feeds into, and which side of
+ * it - mirrors how firstRoundPairs pairs consecutive draw positions
+ * (1 v 2, 3 v 4, ...). Used to drop a player straight into their match slot
+ * the moment they're given a number, without regenerating the bracket.
+ */
+export function roundOneSlotForSeed(seed: number): { slot: number; side: "a" | "b" } {
+  const index = seed - 1;
+  return { slot: Math.floor(index / 2), side: index % 2 === 0 ? "a" : "b" };
+}

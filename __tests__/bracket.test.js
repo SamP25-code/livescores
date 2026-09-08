@@ -7,6 +7,7 @@ const {
   totalRounds,
   firstRoundPairs,
   buildFinalsSlots,
+  roundOneSlotForSeed,
 } = require("../lib/bracket.ts");
 
 describe("roundName", () => {
@@ -139,5 +140,23 @@ describe("buildFinalsSlots", () => {
 
   it("defaults to a 16-slot draw", () => {
     expect(buildFinalsSlots([])).toHaveLength(16);
+  });
+});
+
+describe("roundOneSlotForSeed", () => {
+  it("pairs consecutive draw numbers into the same match, a then b", () => {
+    expect(roundOneSlotForSeed(1)).toEqual({ slot: 0, side: "a" });
+    expect(roundOneSlotForSeed(2)).toEqual({ slot: 0, side: "b" });
+    expect(roundOneSlotForSeed(3)).toEqual({ slot: 1, side: "a" });
+    expect(roundOneSlotForSeed(4)).toEqual({ slot: 1, side: "b" });
+  });
+
+  it("matches firstRoundPairs' pairing for a full 16-slot draw", () => {
+    const pairs = firstRoundPairs(16);
+    for (let seed = 1; seed <= 16; seed++) {
+      const { slot, side } = roundOneSlotForSeed(seed);
+      const expectedIndex = side === "a" ? pairs[slot][0] : pairs[slot][1];
+      expect(seed - 1).toBe(expectedIndex);
+    }
   });
 });
