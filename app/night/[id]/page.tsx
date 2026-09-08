@@ -12,17 +12,29 @@ export default function NightPage({ params }: { params: { id: string } }) {
   const [night, setNight] = useState<Night | null>(null);
   const [players, setPlayers] = useState<Record<string, Player>>({});
   const [matches, setMatches] = useState<MatchRow[]>([]);
+  const [viewerCount, setViewerCount] = useState(0);
+  const [loadError, setLoadError] = useState(false);
+  const [connectionLost, setConnectionLost] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
-      const [{ data: nightData }, { data: playerData }, { data: matchData }] = await Promise.all([
+      const [
+        { data: nightData, error: nightErr },
+        { data: playerData, error: playersErr },
+        { data: matchData, error: matchesErr },
+      ] = await Promise.all([
         supabase.from("nights").select("*").eq("id", nightId).single(),
         supabase.from("players").select("*").eq("night_id", nightId),
         supabase.from("matches").select("*").eq("night_id", nightId).order("round").order("slot"),
       ]);
       if (cancelled) return;
+      if (nightErr || playersErr || matchesErr) {
+        setLoadError(true);
+        return;
+      }
+      setLoadError(false);
       setNight(nightData ?? null);
       setPlayers(Object.fromEntries((playerData ?? []).map((p) => [p.id, p])));
       setMatches(matchData ?? []);
@@ -31,8 +43,13 @@ export default function NightPage({ params }: { params: { id: string } }) {
     load();
 
     // Live updates: re-fetch the affected match whenever anything changes.
+    // The same channel also tracks presence, so "N watching now" is free -
+    // no extra connection, no database writes.
     const channel = supabase
-      .channel(`night-${nightId}`)
+      .channel(`night-${nightId}`, { config: { presence: { key: crypto.randomUUID() } } })
+      .on("presence", { event: "sync" }, () => {
+        setViewerCount(Object.keys(channel.presenceState()).length);
+      })
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "matches", filter: `night_id=eq.${nightId}` },
@@ -62,7 +79,14 @@ export default function NightPage({ params }: { params: { id: string } }) {
           });
         }
       )
-      .subscribe();
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          setConnectionLost(false);
+          await channel.track({ online_at: new Date().toISOString() });
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          setConnectionLost(true);
+        }
+      });
 
     return () => {
       cancelled = true;
@@ -100,6 +124,19 @@ export default function NightPage({ params }: { params: { id: string } }) {
     return buildFinalsSlots(Object.values(players));
   }, [players, night, rounds]);
 
+  // Finals day plays down to a single deciding match - once it's complete,
+  // that's the competition won. Qualifying nights never reach a single
+  // match (their last round always narrows to several winners advancing,
+  // not one overall champion), so this only ever fires for finals day.
+  const champion = useMemo(() => {
+    if (!night || night.kind !== "finals" || rounds.length === 0) return null;
+    const [, lastRoundMatches] = rounds[rounds.length - 1];
+    if (lastRoundMatches.length !== 1) return null;
+    const finalMatch = lastRoundMatches[0];
+    if (finalMatch.status !== "complete" || !finalMatch.winner_id) return null;
+    return players[finalMatch.winner_id] ?? null;
+  }, [night, rounds, players]);
+
   return (
     <div className="page">
       <div className="top-bar">
@@ -110,15 +147,47 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
       <NightNav currentId={nightId} />
 
-      <h1>{night?.name ?? "Loading\u2026"}</h1>
+      <h1 style={{ textAlign: "center" }}>{night?.name ?? "Loading\u2026"}</h1>
 
-      {rounds.length === 0 && finalsSlots.length === 0 && (
-        <p className="empty">The draw hasn&rsquo;t been entered for this night yet.</p>
+      {loadError && (
+        <p className="empty" style={{ textAlign: "center" }}>
+          Having trouble loading this page &mdash; check your connection and try refreshing.
+        </p>
       )}
 
-      {rounds.length === 0 && finalsSlots.length > 0 && (
+      {!loadError && connectionLost && (
+        <p className="hint" style={{ textAlign: "center" }}>
+          Live updates paused &mdash; reconnecting&hellip;
+        </p>
+      )}
+
+      {!loadError && viewerCount > 0 && (
+        <p style={{ textAlign: "center", margin: "0 0 20px" }}>
+          <span className="count">
+            {viewerCount} watching now
+          </span>
+        </p>
+      )}
+
+      {!loadError && champion && (
+        <div className="champion-banner">
+          <span className="trophy">\ud83c\udfc6</span>
+          <span className="name">{champion.name}</span>
+          <span className="hint">wins the competition!</span>
+        </div>
+      )}
+
+      {!loadError && rounds.length === 0 && finalsSlots.length === 0 && (
+        <p className="empty" style={{ textAlign: "center" }}>
+          The draw hasn&rsquo;t been entered for this night yet.
+        </p>
+      )}
+
+      {!loadError && rounds.length === 0 && finalsSlots.length > 0 && (
         <>
-          <p className="hint">Qualifiers confirmed so far &mdash; the lineup fills in as each qualifying night finishes.</p>
+          <p className="hint" style={{ textAlign: "center" }}>
+            Qualifiers confirmed so far &mdash; the lineup fills in as each qualifying night finishes.
+          </p>
           {finalsSlots.map((p, i) => (
             <div key={i} className="card" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
               <span>{i + 1}.</span>
@@ -128,7 +197,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
         </>
       )}
 
-      {rounds.map(([round, roundMatches]) => (
+      {!loadError && rounds.map(([round, roundMatches]) => (
         <section key={round}>
           <div className="round-heading">
             <h2>{roundLabel(night?.kind ?? "qualifier", round, roundMatches.length)}</h2>
@@ -145,12 +214,14 @@ export default function NightPage({ params }: { params: { id: string } }) {
         </section>
       ))}
 
-      {qualifiers.length > 0 && (
+      {!loadError && qualifiers.length > 0 && (
         <section>
           <div className="round-heading">
             <h2>Advancing to finals day</h2>
           </div>
-          <p className="hint">Tap a name to highlight their results from tonight.</p>
+          <p className="hint" style={{ textAlign: "center" }}>
+            Tap a name to highlight their results from tonight.
+          </p>
           {qualifiers.map((p) => (
             <button
               key={p.id}
@@ -177,8 +248,9 @@ function MatchCard({
   players: Record<string, Player>;
   highlighted?: boolean;
 }) {
+  const isBye = Boolean(match.player_a_id) && !match.player_b_id && match.status === "complete";
   const nameA = match.player_a_id ? players[match.player_a_id]?.name ?? "TBC" : "TBC";
-  const nameB = match.player_b_id ? players[match.player_b_id]?.name ?? "TBC" : "TBC";
+  const nameB = match.player_b_id ? players[match.player_b_id]?.name ?? "TBC" : isBye ? "BYE" : "TBC";
   const winnerA = Boolean(match.winner_id) && match.winner_id === match.player_a_id;
   const winnerB = Boolean(match.winner_id) && match.winner_id === match.player_b_id;
 
@@ -197,7 +269,7 @@ function MatchCard({
       </div>
       <span className={`status-pill ${match.status}`}>
         {match.status === "live" && <span className="live-dot" />}
-        {match.status}
+        {isBye ? "bye" : match.status}
       </span>
     </div>
   );

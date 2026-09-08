@@ -26,14 +26,17 @@ import {
   adjustScore,
   completeMatch,
   deletePlayer,
+  ensureFinalsBracketGenerated,
   generateBracket,
   getFinalsRoster,
+  renamePlayer,
+  reopenMatch,
   reorderPlayers,
   resetBracket,
   setFinalsNumber,
   setFinalsPlayerSeed,
 } from "@/lib/adminActions";
-import { buildFinalsSlots, isMatchComplete, roundLabel } from "@/lib/bracket";
+import { buildFinalsSlots, isMatchComplete, nextPowerOfTwo, roundLabel } from "@/lib/bracket";
 import FinalsSlotBoard from "@/components/FinalsSlotBoard";
 import type { MatchRow, Night, Player } from "@/lib/types";
 
@@ -48,14 +51,34 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
   async function refresh() {
     const [{ data: nightData }, { data: playerData }, { data: matchData }, roster] = await Promise.all([
       supabase.from("nights").select("*").eq("id", nightId).single(),
-      supabase.from("players").select("*").eq("night_id", nightId).order("sort_order"),
+      supabase.from("players").select("*").eq("night_id", nightId).order("sort_order").order("created_at"),
       supabase.from("matches").select("*").eq("night_id", nightId).order("round").order("slot"),
       getFinalsRoster(),
     ]);
     setNight(nightData ?? null);
     setPlayers(playerData ?? []);
-    setMatches(matchData ?? []);
     setFinalsRoster(roster?.players ?? []);
+
+    // A finals night created before its bracket generated up front (see
+    // createNight) won't have one yet - backfill it once, here, rather than
+    // making every visitor wait on a manual step.
+    if (nightData?.kind === "finals" && (matchData ?? []).length === 0) {
+      try {
+        await ensureFinalsBracketGenerated(nightData.id);
+        const { data: freshMatches } = await supabase
+          .from("matches")
+          .select("*")
+          .eq("night_id", nightId)
+          .order("round")
+          .order("slot");
+        setMatches(freshMatches ?? []);
+        return;
+      } catch {
+        // Someone else generated it in the meantime - fall through to what we already fetched.
+      }
+    }
+
+    setMatches(matchData ?? []);
   }
 
   useEffect(() => {
@@ -163,6 +186,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
           players={orderedPlayers}
           bracketExists={bracketExists}
           onReorder={withErrorHandling((ids: string[]) => reorderPlayers(ids))}
+          onRename={withErrorHandling((id: string, name: string) => renamePlayer(id, name))}
           onChange={withErrorHandling(async () => {})}
         />
       )}
@@ -203,6 +227,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
                   playerNames={playerNames}
                   onAdjust={withErrorHandling((side, delta) => adjustScore(m, side, delta))}
                   onComplete={withErrorHandling(() => completeMatch(m))}
+                  onReopen={withErrorHandling(() => reopenMatch(m))}
                 />
               ))}
             </section>
@@ -234,12 +259,14 @@ function PlayerSection({
   players,
   bracketExists,
   onReorder,
+  onRename,
   onChange,
 }: {
   nightId: string;
   players: Player[];
   bracketExists: boolean;
   onReorder: (orderedIds: string[]) => Promise<void>;
+  onRename: (playerId: string, name: string) => Promise<void>;
   onChange: () => Promise<void>;
 }) {
   const [name, setName] = useState("");
@@ -306,6 +333,7 @@ function PlayerSection({
                   player={p}
                   index={i}
                   draggable={!bracketExists}
+                  onRename={(name) => onRename(p.id, name)}
                   onRemove={
                     bracketExists
                       ? undefined
@@ -328,11 +356,13 @@ function SortablePlayerRow({
   player,
   index,
   draggable,
+  onRename,
   onRemove,
 }: {
   player: Player;
   index: number;
   draggable: boolean;
+  onRename: (name: string) => Promise<void>;
   onRemove?: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -344,19 +374,55 @@ function SortablePlayerRow({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+  const [editing, setEditing] = useState(false);
+  const [draftName, setDraftName] = useState(player.name);
+
+  async function save() {
+    const trimmed = draftName.trim();
+    setEditing(false);
+    if (trimmed && trimmed !== player.name) await onRename(trimmed);
+    else setDraftName(player.name);
+  }
 
   return (
     <div
       ref={setNodeRef}
       style={{ ...style, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" }}
     >
-      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <span style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
         {draggable && (
           <span {...attributes} {...listeners} className="drag-handle" aria-label="Drag to reorder">
             &#10021;
           </span>
         )}
-        {index + 1}. {player.name}
+        <span style={{ flex: "none" }}>{index + 1}.</span>
+        {editing ? (
+          <input
+            autoFocus
+            value={draftName}
+            onChange={(e) => setDraftName(e.target.value)}
+            onBlur={save}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") save();
+              if (e.key === "Escape") {
+                setDraftName(player.name);
+                setEditing(false);
+              }
+            }}
+            style={{ padding: "2px 6px" }}
+          />
+        ) : (
+          <button
+            type="button"
+            className="rename-trigger"
+            onClick={() => {
+              setDraftName(player.name);
+              setEditing(true);
+            }}
+          >
+            {player.name}
+          </button>
+        )}
       </span>
       {onRemove && (
         <button className="secondary" onClick={onRemove}>
@@ -423,20 +489,24 @@ function BracketSetup({
 }) {
   const count = players.length;
   const isPowerOfTwo = count >= 2 && (count & (count - 1)) === 0;
+  const canGenerate = count >= 2;
 
   return (
     <section className="card">
       <h2>Set up the draw</h2>
       <p className="hint">
-        Round 1 is built from the player list above, paired in the order shown. Add all the players first (a power
-        of two &mdash; 8, 16, 32&hellip;), then generate the draw.
+        Round 1 is built from the player list above, paired in the order shown. Doesn&rsquo;t need to be an exact
+        power of two (8, 16, 32&hellip;) &mdash; if it isn&rsquo;t, the odd one(s) out get a bye and advance
+        automatically.
       </p>
-      <button onClick={onGenerate} disabled={!isPowerOfTwo}>
+      <button onClick={onGenerate} disabled={!canGenerate}>
         Generate draw
       </button>
-      {!isPowerOfTwo && (
+      {!canGenerate && <p className="hint">Add at least two players first.</p>}
+      {canGenerate && !isPowerOfTwo && (
         <p className="hint">
-          {count < 2 ? "Add at least two players first." : `${count} isn't a power of two — add or remove a player.`}
+          {count} players &mdash; {nextPowerOfTwo(count) - count} bye
+          {nextPowerOfTwo(count) - count === 1 ? "" : "s"} will fill out round 1.
         </p>
       )}
     </section>
@@ -448,17 +518,22 @@ function MatchEditor({
   playerNames,
   onAdjust,
   onComplete,
+  onReopen,
 }: {
   match: MatchRow;
   playerNames: Record<string, string>;
   onAdjust: (side: "a" | "b", delta: number) => Promise<void>;
   onComplete: () => Promise<void>;
+  onReopen: () => Promise<void>;
 }) {
   if (!match.player_a_id || !match.player_b_id) {
+    const isBye = Boolean(match.player_a_id) && !match.player_b_id && match.status === "complete";
     return (
       <div className="card">
         <p className="hint" style={{ margin: 0 }}>
-          {match.round === 1
+          {isBye
+            ? `${playerNames[match.player_a_id!] ?? "This player"} gets a bye and advances automatically.`
+            : match.round === 1
             ? "Waiting for this slot's draw number to be given out."
             : "Waiting for the winners of earlier matches."}
         </p>
@@ -496,6 +571,16 @@ function MatchEditor({
         {!complete && (
           <button onClick={onComplete} disabled={!canComplete}>
             Mark complete
+          </button>
+        )}
+        {complete && (
+          <button
+            className="secondary"
+            onClick={() => {
+              if (confirm("Reopen this match to fix a mistake?")) onReopen();
+            }}
+          >
+            Reopen
           </button>
         )}
       </div>

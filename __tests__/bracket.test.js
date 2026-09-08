@@ -9,6 +9,8 @@ const {
   buildFinalsSlots,
   roundOneSlotForSeed,
   computeNightStatus,
+  nextPowerOfTwo,
+  buildByeSlots,
 } = require("../lib/bracket.ts");
 
 describe("roundName", () => {
@@ -200,5 +202,47 @@ describe("computeNightStatus", () => {
       { round: 2, status: "complete" },
     ];
     expect(computeNightStatus(matches)).toBe("complete");
+  });
+});
+
+describe("nextPowerOfTwo", () => {
+  it("returns the value itself when already a power of two", () => {
+    expect(nextPowerOfTwo(16)).toBe(16);
+    expect(nextPowerOfTwo(2)).toBe(2);
+  });
+
+  it("rounds up to the next power of two otherwise", () => {
+    expect(nextPowerOfTwo(15)).toBe(16);
+    expect(nextPowerOfTwo(9)).toBe(16);
+    expect(nextPowerOfTwo(1)).toBe(2);
+  });
+});
+
+describe("buildByeSlots", () => {
+  const players = (n) => Array.from({ length: n }, (_, i) => ({ id: `p${i + 1}` }));
+
+  it("behaves exactly like a normal pairing when the count is already a power of two", () => {
+    const slots = buildByeSlots(players(4));
+    expect(slots.map((p) => p?.id)).toEqual(["p1", "p2", "p3", "p4"]);
+  });
+
+  it("pads a single bye onto the last pair", () => {
+    const slots = buildByeSlots(players(3));
+    expect(slots.map((p) => p?.id ?? null)).toEqual(["p1", "p2", "p3", null]);
+  });
+
+  it("never puts two byes in the same match", () => {
+    const slots = buildByeSlots(players(9)); // pads to 16 - 7 byes across 8 pairs
+    for (let i = 0; i < slots.length; i += 2) {
+      const bothByes = slots[i] == null && slots[i + 1] == null;
+      expect(bothByes).toBe(false);
+    }
+  });
+
+  it("uses every real player exactly once regardless of how many byes are needed", () => {
+    const input = players(13);
+    const slots = buildByeSlots(input);
+    const realIds = slots.filter(Boolean).map((p) => p.id);
+    expect(realIds.sort()).toEqual(input.map((p) => p.id).sort());
   });
 });

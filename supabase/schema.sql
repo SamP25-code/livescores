@@ -58,6 +58,12 @@ create table matches (
   updated_at timestamptz not null default now()
 );
 
+-- Belt-and-suspenders against ever generating a bracket twice for the same
+-- night (e.g. two near-simultaneous page loads both finding no matches yet
+-- and both generating one) - the second attempt's insert fails outright
+-- instead of leaving duplicate/corrupted rounds.
+alter table matches add constraint matches_night_round_slot_unique unique (night_id, round, slot);
+
 create index on players (night_id);
 create index on matches (night_id);
 create index on matches (next_match_id);
@@ -120,3 +126,7 @@ alter publication supabase_realtime add table nights;
 -- update players set sort_order = ordered.rn
 -- from ordered
 -- where players.id = ordered.id;
+
+-- If you already ran this schema before `matches_night_round_slot_unique`
+-- was added above, run this once instead of the whole file:
+-- alter table matches add constraint matches_night_round_slot_unique unique (night_id, round, slot);

@@ -12,6 +12,7 @@
   --gold: #c9972c;
   --gold-deep: #8a6a12;
   --gold-pale: #fbf1d6;
+  --blue-deep: #1f4e79;
 }
 
 * {
@@ -96,6 +97,7 @@ a {
 .round-heading {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   margin: 28px 0 10px;
 }
@@ -242,8 +244,8 @@ button,
   font-family: var(--font-body), sans-serif;
   font-size: 0.95rem;
   border-radius: var(--radius);
-  border: 1px solid var(--green-deep);
-  background: var(--green-deep);
+  border: 1px solid var(--blue-deep);
+  background: var(--blue-deep);
   color: #fff;
   padding: 10px 16px;
   cursor: pointer;
@@ -251,7 +253,7 @@ button,
 
 button.secondary {
   background: #fff;
-  color: var(--green-deep);
+  color: var(--blue-deep);
 }
 
 button:disabled {
@@ -311,6 +313,7 @@ label {
 .night-nav {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   margin-bottom: 20px;
 }
@@ -392,6 +395,33 @@ label {
   padding: 4px 12px;
 }
 
+.champion-banner {
+  text-align: center;
+  background: linear-gradient(135deg, var(--gold-pale), #fff);
+  border: 2px solid var(--gold);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.champion-banner .trophy {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 4px;
+}
+
+.champion-banner .name {
+  display: block;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--gold-deep);
+}
+
+.champion-banner .hint {
+  margin-top: 2px;
+}
+
 .hint {
   color: var(--ink-soft);
   font-size: 0.85rem;
@@ -407,6 +437,25 @@ label {
 
 .drag-handle:active {
   cursor: grabbing;
+}
+
+.rename-trigger {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  border-bottom: 1px dashed var(--line);
+}
+
+.rename-trigger:hover {
+  border-bottom-color: var(--ink-soft);
 }
 
 .finals-board {

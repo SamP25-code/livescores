@@ -1,8 +1,8 @@
 import { supabase } from "@/lib/supabaseClient";
 import {
+  buildByeSlots,
   buildFinalsSlots,
   firstRoundPairs,
-  FINALS_DRAW_SIZE,
   getWinnerSide,
   isMatchComplete,
   roundOneSlotForSeed,
@@ -10,13 +10,31 @@ import {
 } from "@/lib/bracket";
 import type { MatchRow, Player } from "@/lib/types";
 
+/** New nights go to the back of the display order - they default to 0 otherwise, jumping ahead of every existing night. */
 export async function createNight(name: string, kind: "qualifier" | "finals") {
+  const { data: last } = await supabase
+    .from("nights")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const nextSortOrder = (last?.sort_order ?? -1) + 1;
+
   const { data, error } = await supabase
     .from("nights")
-    .insert({ name, kind })
+    .insert({ name, kind, sort_order: nextSortOrder })
     .select()
     .single();
   if (error) throw error;
+
+  // Finals day's draw size is fixed (16) regardless of who's qualified so
+  // far, so its bracket can exist from the start - every slot blank until a
+  // qualifier is given that number. See ensureFinalsBracketGenerated for the
+  // equivalent backfill on a finals night that already existed before this.
+  if (kind === "finals") {
+    await generateBracket(data.id, [], "finals");
+  }
+
   return data;
 }
 
@@ -46,9 +64,11 @@ export async function addPlayer(nightId: string, name: string) {
  * should be paired (1 v 2, 3 v 4, ...).
  */
 export async function reorderPlayers(orderedPlayerIds: string[]) {
-  await Promise.all(
+  const results = await Promise.all(
     orderedPlayerIds.map((id, index) => supabase.from("players").update({ sort_order: index }).eq("id", id))
   );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) throw failed.error;
 }
 
 export async function deletePlayer(playerId: string) {
@@ -57,17 +77,30 @@ export async function deletePlayer(playerId: string) {
 }
 
 /**
+ * Fixes a typo'd name. If this player has already qualified for finals day,
+ * their mirror row there is renamed too, so the two don't drift apart.
+ */
+export async function renamePlayer(playerId: string, name: string) {
+  const { error } = await supabase.from("players").update({ name }).eq("id", playerId);
+  if (error) throw error;
+
+  await supabase.from("players").update({ name }).eq("qualified_from_player_id", playerId);
+}
+
+/**
  * Builds the bracket for a night, pairing round 1 straight from the order
  * players were added in (player 1 v player 2, player 3 v player 4, ...) -
- * that order IS the draw, so get the names in the right order first.
+ * that order IS the draw, so get the names in the right order first. A
+ * qualifying night doesn't need an exact power of two: any leftover slot(s)
+ * get a bye (an automatic walkover) rather than blocking the draw.
  *
  * Qualifying nights always play exactly 2 rounds (e.g. 16 -> 8 -> 4 winners,
  * who then advance to finals day - see the "qualifiers" section on the admin
  * page). Finals day plays a full knockout down to a single winner, and its
  * draw is always the full 16 slots regardless of how many are filled yet -
- * see ensureFinalsBracketGenerated, which calls this as soon as the first
- * draw number is given out, leaving the rest of round 1 blank until each
- * slot's player is confirmed.
+ * createNight generates it empty as soon as the night itself is created (see
+ * ensureFinalsBracketGenerated for backfilling one created before that
+ * existed), leaving every slot blank until that draw number is given out.
  *
  * Only call this once per night (it throws if matches already exist).
  */
@@ -77,9 +110,8 @@ export async function generateBracket(
   kind: "qualifier" | "finals",
   targetScore = 21
 ) {
-  const drawSize = kind === "finals" ? FINALS_DRAW_SIZE : players.length;
-  if (kind === "qualifier" && (drawSize < 2 || (drawSize & (drawSize - 1)) !== 0)) {
-    throw new Error("Number of players must be a power of two (2, 4, 8, 16, 32...).");
+  if (kind === "qualifier" && players.length < 2) {
+    throw new Error("Add at least two players first.");
   }
 
   const { count } = await supabase
@@ -90,23 +122,36 @@ export async function generateBracket(
     throw new Error("This night already has a bracket. Reset it first if you need to redo it.");
   }
 
-  const slots: Array<Player | null> = kind === "finals" ? buildFinalsSlots(players) : players;
+  // For a qualifying night, a blank slot after pairing means a bye - there's
+  // no one left to play, so the other side wins automatically. For finals
+  // day, a blank slot just means nobody's been given that number yet, and
+  // stays open until they are - never treated as a bye.
+  const slots: Array<Player | null> = kind === "finals" ? buildFinalsSlots(players) : buildByeSlots(players);
+  const drawSize = slots.length;
   const rounds = kind === "qualifier" ? 2 : totalRounds(drawSize);
   let previousRoundIds: string[] = [];
+  let previousRoundByeWinners: Array<string | null> = [];
 
   for (let round = 1; round <= rounds; round++) {
     const numMatches = drawSize / Math.pow(2, round);
 
     const rows =
       round === 1
-        ? firstRoundPairs(drawSize).map(([i, j], slot) => ({
-            night_id: nightId,
-            round,
-            slot,
-            target_score: targetScore,
-            player_a_id: slots[i]?.id ?? null,
-            player_b_id: slots[j]?.id ?? null,
-          }))
+        ? firstRoundPairs(drawSize).map(([i, j], slot) => {
+            const playerA = slots[i];
+            const playerB = slots[j];
+            const isBye = kind === "qualifier" && playerA != null && playerB == null;
+            return {
+              night_id: nightId,
+              round,
+              slot,
+              target_score: targetScore,
+              player_a_id: playerA?.id ?? null,
+              player_b_id: playerB?.id ?? null,
+              status: isBye ? "complete" : "upcoming",
+              winner_id: isBye ? playerA!.id : null,
+            };
+          })
         : Array.from({ length: numMatches }, (_, slot) => ({
             night_id: nightId,
             round,
@@ -135,9 +180,23 @@ export async function generateBracket(
             .eq("id", matchId)
         )
       );
+
+      // Byes from the previous round already have a winner decided - drop
+      // them straight into this round's match now that we know where it is.
+      await Promise.all(
+        previousRoundByeWinners.map((winnerId, slot) => {
+          if (!winnerId) return null;
+          const field = slot % 2 === 0 ? "player_a_id" : "player_b_id";
+          return supabase
+            .from("matches")
+            .update({ [field]: winnerId })
+            .eq("id", currentIds[Math.floor(slot / 2)]);
+        })
+      );
     }
 
     previousRoundIds = currentIds;
+    previousRoundByeWinners = round === 1 ? sorted.map((m) => (m.status === "complete" ? m.winner_id : null)) : [];
   }
 }
 
@@ -186,6 +245,44 @@ export async function completeMatch(match: MatchRow) {
       .update({ [field]: winnerId, status: bothFilled ? "live" : "upcoming" })
       .eq("id", match.next_match_id);
   }
+}
+
+/**
+ * Undoes "Mark complete" on a single match, for fixing a mistake without
+ * resetting the whole night's bracket. Refuses if the winner has already
+ * started their next match (nothing to retract cleanly to), or if the match
+ * doesn't have two real players to begin with (a bye, or a still-blank
+ * slot) - there's no "un-bye", since there was never a second player to
+ * reopen a match against.
+ */
+export async function reopenMatch(match: MatchRow) {
+  if (match.status !== "complete") return;
+  if (!match.player_a_id || !match.player_b_id) {
+    throw new Error("This match doesn't have two players to reopen.");
+  }
+
+  if (match.next_match_id) {
+    const { data: nextMatch } = await supabase
+      .from("matches")
+      .select("*")
+      .eq("id", match.next_match_id)
+      .single();
+    const nm = nextMatch as MatchRow | null;
+    // The next match flips to "live" the instant both its slots fill, even
+    // at 0-0 (see completeMatch above) - that alone isn't real progress, so
+    // only block on an actual score or a result, not just the eager status.
+    if (nm && (nm.status === "complete" || nm.score_a > 0 || nm.score_b > 0)) {
+      throw new Error(
+        "Can't reopen - the winner has already started their next match. Reset the bracket if you need to redo this far back."
+      );
+    }
+
+    const field = match.next_match_slot === "a" ? "player_a_id" : "player_b_id";
+    await supabase.from("matches").update({ [field]: null, status: "upcoming" }).eq("id", match.next_match_id);
+  }
+
+  const { error } = await supabase.from("matches").update({ status: "live", winner_id: null }).eq("id", match.id);
+  if (error) throw error;
 }
 
 /**
@@ -302,13 +399,13 @@ async function setFinalsRoundOneSlot(nightId: string, seed: number, playerId: st
 }
 
 /**
- * Generates finals day's bracket the moment the first draw number is handed
- * out, rather than waiting for all 16 - every other slot starts blank and
- * fills in via setFinalsRoundOneSlot as each player gets their number.
- * Returns true if it just generated the bracket, false if one already
- * existed (or nobody has a number yet, so there's nothing to generate).
+ * Backfills the blank finals-day bracket for a finals night that was
+ * created before this existed (createNight now generates it up front - see
+ * above). Whoever already has a number gets dropped straight into their
+ * slot; everyone else stays blank until they're given one. Returns true if
+ * it just generated the bracket, false if one already existed.
  */
-async function ensureFinalsBracketGenerated(nightId: string): Promise<boolean> {
+export async function ensureFinalsBracketGenerated(nightId: string): Promise<boolean> {
   const { count } = await supabase
     .from("matches")
     .select("id", { count: "exact", head: true })
@@ -316,9 +413,7 @@ async function ensureFinalsBracketGenerated(nightId: string): Promise<boolean> {
   if (count && count > 0) return false;
 
   const { data: finalsPlayers } = await supabase.from("players").select("*").eq("night_id", nightId);
-  if (!finalsPlayers || finalsPlayers.every((p) => p.seed == null)) return false;
-
-  await generateBracket(nightId, finalsPlayers, "finals");
+  await generateBracket(nightId, finalsPlayers ?? [], "finals");
   return true;
 }
 

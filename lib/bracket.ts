@@ -101,6 +101,39 @@ export function firstRoundPairs(playerCount: number): Array<[number, number]> {
   return pairs;
 }
 
+/** Smallest power of two that is >= n (minimum 2). */
+export function nextPowerOfTwo(n: number): number {
+  let p = 2;
+  while (p < n) p *= 2;
+  return p;
+}
+
+/**
+ * Pads a player list up to the next power-of-two draw size with byes so a
+ * qualifying night doesn't have to have an exact 8/16/32 to run - whoever's
+ * paired against a bye (null) is considered to have won that match without
+ * playing.
+ *
+ * Byes are placed in the *last* pairs (each pair gets at most one, since
+ * there are always fewer byes than pairs - a draw is only ever padded up to
+ * the next power of two, so byes < half the draw), which guarantees no two
+ * byes ever land in the same match.
+ */
+export function buildByeSlots<T extends { id: string }>(players: T[]): Array<T | null> {
+  const drawSize = nextPowerOfTwo(players.length);
+  const numPairs = drawSize / 2;
+  const byeCount = drawSize - players.length;
+
+  const slots: Array<T | null> = [];
+  let next = 0;
+  for (let pair = 0; pair < numPairs; pair++) {
+    const isByePair = pair >= numPairs - byeCount;
+    slots.push(players[next++]);
+    slots.push(isByePair ? null : players[next++]);
+  }
+  return slots;
+}
+
 /** Total finals-day draw size: 4 qualifying nights x 4 winners each. */
 export const FINALS_DRAW_SIZE = 16;
 
