@@ -37,6 +37,7 @@ import {
   setFinalsPlayerSeed,
 } from "@/lib/adminActions";
 import { buildFinalsSlots, isMatchComplete, nextPowerOfTwo, roundLabel } from "@/lib/bracket";
+import { errorMessage } from "@/lib/errors";
 import FinalsSlotBoard from "@/components/FinalsSlotBoard";
 import type { MatchRow, Night, Player } from "@/lib/types";
 
@@ -93,7 +94,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
         await fn(...args);
         await refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong.");
+        setError(errorMessage(err));
       }
     };
   }

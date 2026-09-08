@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { createNight } from "@/lib/adminActions";
+import { errorMessage } from "@/lib/errors";
 import { fetchNightStatuses } from "@/lib/nightStatus";
 import type { NightStatus } from "@/lib/bracket";
 import type { Night } from "@/lib/types";
@@ -37,7 +38,7 @@ export default function AdminDashboard() {
       setName("");
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(errorMessage(err));
     }
   }
 
