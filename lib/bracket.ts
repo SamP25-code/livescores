@@ -133,3 +133,19 @@ export function roundOneSlotForSeed(seed: number): { slot: number; side: "a" | "
   const index = seed - 1;
   return { slot: Math.floor(index / 2), side: index % 2 === 0 ? "a" : "b" };
 }
+
+export type NightStatus = "upcoming" | "live" | "complete";
+
+/**
+ * A night's overall status, derived from its matches rather than a stored
+ * flag nobody ever sets: "upcoming" before the draw's been played, "live"
+ * once any match has started, "complete" once the last round is finished
+ * (a qualifying night's round 2, or finals day's final).
+ */
+export function computeNightStatus(matches: Array<{ round: number; status: string }>): NightStatus {
+  if (matches.length === 0) return "upcoming";
+  const lastRound = Math.max(...matches.map((m) => m.round));
+  const lastRoundMatches = matches.filter((m) => m.round === lastRound);
+  if (lastRoundMatches.every((m) => m.status === "complete")) return "complete";
+  return matches.some((m) => m.status !== "upcoming") ? "live" : "upcoming";
+}

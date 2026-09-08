@@ -20,14 +20,35 @@ export async function createNight(name: string, kind: "qualifier" | "finals") {
   return data;
 }
 
+/** New players go to the back of the draw order - drag them into position afterwards. */
 export async function addPlayer(nightId: string, name: string) {
+  const { data: last } = await supabase
+    .from("players")
+    .select("sort_order")
+    .eq("night_id", nightId)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const nextSortOrder = (last?.sort_order ?? -1) + 1;
+
   const { data, error } = await supabase
     .from("players")
-    .insert({ night_id: nightId, name })
+    .insert({ night_id: nightId, name, sort_order: nextSortOrder })
     .select()
     .single();
   if (error) throw error;
   return data;
+}
+
+/**
+ * Persists a new round-1 draw order after dragging players into position -
+ * `orderedPlayerIds` is the full list for the night, in the order they
+ * should be paired (1 v 2, 3 v 4, ...).
+ */
+export async function reorderPlayers(orderedPlayerIds: string[]) {
+  await Promise.all(
+    orderedPlayerIds.map((id, index) => supabase.from("players").update({ sort_order: index }).eq("id", id))
+  );
 }
 
 export async function deletePlayer(playerId: string) {

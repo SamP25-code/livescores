@@ -4,17 +4,24 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { createNight } from "@/lib/adminActions";
+import { fetchNightStatuses } from "@/lib/nightStatus";
+import type { NightStatus } from "@/lib/bracket";
 import type { Night } from "@/lib/types";
 
 export default function AdminDashboard() {
   const [nights, setNights] = useState<Night[]>([]);
+  const [statuses, setStatuses] = useState<Record<string, NightStatus>>({});
   const [name, setName] = useState("");
   const [kind, setKind] = useState<"qualifier" | "finals">("qualifier");
   const [error, setError] = useState<string | null>(null);
 
   async function refresh() {
-    const { data } = await supabase.from("nights").select("*").order("created_at", { ascending: true });
+    const [{ data }, statusesByNight] = await Promise.all([
+      supabase.from("nights").select("*").order("created_at", { ascending: true }),
+      fetchNightStatuses(),
+    ]);
     setNights(data ?? []);
+    setStatuses(statusesByNight);
   }
 
   useEffect(() => {
@@ -70,16 +77,22 @@ export default function AdminDashboard() {
 
       <h1>All nights</h1>
       {nights.length === 0 && <p className="empty">Nothing set up yet &mdash; create your first night above.</p>}
-      {nights.map((night) => (
-        <Link key={night.id} href={`/admin/night/${night.id}`} style={{ textDecoration: "none" }}>
-          <div className="card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <strong style={{ color: "var(--ink)" }}>{night.name}</strong>
-              <span className={`status-pill ${night.status}`}>{night.status}</span>
+      {nights.map((night) => {
+        const status = statuses[night.id] ?? "upcoming";
+        return (
+          <Link key={night.id} href={`/admin/night/${night.id}`} style={{ textDecoration: "none" }}>
+            <div className="card">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <strong style={{ color: "var(--ink)" }}>{night.name}</strong>
+                <span className={`status-pill ${status}`}>
+                  {status === "live" && <span className="live-dot" />}
+                  {status}
+                </span>
+              </div>
             </div>
-          </div>
-        </Link>
-      ))}
+          </Link>
+        );
+      })}
     </div>
   );
 }

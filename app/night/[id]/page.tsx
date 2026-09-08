@@ -70,6 +70,8 @@ export default function NightPage({ params }: { params: { id: string } }) {
     };
   }, [nightId]);
 
+  const [highlightPlayerId, setHighlightPlayerId] = useState<string | null>(null);
+
   const rounds = useMemo(() => {
     const byRound = new Map<number, MatchRow[]>();
     for (const m of matches) {
@@ -133,7 +135,12 @@ export default function NightPage({ params }: { params: { id: string } }) {
             <span className="count">{roundMatches.length} match{roundMatches.length === 1 ? "" : "es"}</span>
           </div>
           {roundMatches.map((m) => (
-            <MatchCard key={m.id} match={m} players={players} />
+            <MatchCard
+              key={m.id}
+              match={m}
+              players={players}
+              highlighted={highlightPlayerId != null && (m.player_a_id === highlightPlayerId || m.player_b_id === highlightPlayerId)}
+            />
           ))}
         </section>
       ))}
@@ -143,11 +150,17 @@ export default function NightPage({ params }: { params: { id: string } }) {
           <div className="round-heading">
             <h2>Advancing to finals day</h2>
           </div>
+          <p className="hint">Tap a name to highlight their results from tonight.</p>
           {qualifiers.map((p) => (
-            <div key={p.id} className="card" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
+            <button
+              key={p.id}
+              type="button"
+              className={`card qualifier-row ${highlightPlayerId === p.id ? "selected" : ""}`}
+              onClick={() => setHighlightPlayerId((current) => (current === p.id ? null : p.id))}
+            >
               <span>{p.name}</span>
               <strong>{p.finals_number ?? ""}</strong>
-            </div>
+            </button>
           ))}
         </section>
       )}
@@ -155,19 +168,29 @@ export default function NightPage({ params }: { params: { id: string } }) {
   );
 }
 
-function MatchCard({ match, players }: { match: MatchRow; players: Record<string, Player> }) {
+function MatchCard({
+  match,
+  players,
+  highlighted,
+}: {
+  match: MatchRow;
+  players: Record<string, Player>;
+  highlighted?: boolean;
+}) {
   const nameA = match.player_a_id ? players[match.player_a_id]?.name ?? "TBC" : "TBC";
   const nameB = match.player_b_id ? players[match.player_b_id]?.name ?? "TBC" : "TBC";
+  const winnerA = Boolean(match.winner_id) && match.winner_id === match.player_a_id;
+  const winnerB = Boolean(match.winner_id) && match.winner_id === match.player_b_id;
 
   return (
-    <div className="card match">
+    <div className={`card match ${match.status === "complete" ? "complete" : ""} ${highlighted ? "highlighted" : ""}`}>
       <div className="players">
-        <div className={`player-row ${match.winner_id === match.player_a_id ? "winner" : ""}`}>
+        <div className={`player-row ${winnerA ? "winner" : ""}`}>
           <span className="name">{nameA}</span>
           <span className="score">{match.player_a_id ? match.score_a : "\u2013"}</span>
         </div>
         <hr className="divider" />
-        <div className={`player-row ${match.winner_id === match.player_b_id ? "winner" : ""}`}>
+        <div className={`player-row ${winnerB ? "winner" : ""}`}>
           <span className="name">{nameB}</span>
           <span className="score">{match.player_b_id ? match.score_b : "\u2013"}</span>
         </div>

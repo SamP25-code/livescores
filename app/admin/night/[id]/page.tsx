@@ -2,6 +2,24 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import {
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { supabase } from "@/lib/supabaseClient";
 import {
   addPlayer,
@@ -10,11 +28,13 @@ import {
   deletePlayer,
   generateBracket,
   getFinalsRoster,
+  reorderPlayers,
   resetBracket,
   setFinalsNumber,
   setFinalsPlayerSeed,
 } from "@/lib/adminActions";
-import { buildFinalsSlots, FINALS_DRAW_SIZE, isMatchComplete, roundLabel } from "@/lib/bracket";
+import { buildFinalsSlots, isMatchComplete, roundLabel } from "@/lib/bracket";
+import FinalsSlotBoard from "@/components/FinalsSlotBoard";
 import type { MatchRow, Night, Player } from "@/lib/types";
 
 export default function AdminNightPage({ params }: { params: { id: string } }) {
@@ -28,7 +48,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
   async function refresh() {
     const [{ data: nightData }, { data: playerData }, { data: matchData }, roster] = await Promise.all([
       supabase.from("nights").select("*").eq("id", nightId).single(),
-      supabase.from("players").select("*").eq("night_id", nightId).order("created_at"),
+      supabase.from("players").select("*").eq("night_id", nightId).order("sort_order"),
       supabase.from("matches").select("*").eq("night_id", nightId).order("round").order("slot"),
       getFinalsRoster(),
     ]);
@@ -67,10 +87,11 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1][0] : 0;
   const isFinals = night?.kind === "finals";
 
-  // On a qualifying night, players are paired in the order they were added.
-  // On finals day, players arrive from different qualifying nights at
-  // different times, so their draw position is their seed (the number they
-  // drew), not when they happened to be added here.
+  // On a qualifying night, players are paired in round-1 draw order (drag to
+  // set it - see PlayerSection). On finals day, players arrive from
+  // different qualifying nights at different times, so their draw position
+  // is their seed (the number they drew), not when they happened to be
+  // added here.
   const orderedPlayers = useMemo(() => {
     if (!isFinals) return players;
     return [...players].sort((a, b) => {
@@ -93,12 +114,12 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
       .filter((p): p is Player => Boolean(p));
   }, [matches, players, night, lastRound]);
 
-  // Which finals-day slot each occupant holds, for labelling the picker -
-  // sourced from finals day's own player list when we're on finals day
-  // itself, or the separately-fetched roster when we're on a qualifying
-  // night looking ahead at finals day.
+  // Which finals-day slot each occupant holds - sourced from finals day's
+  // own player list when we're on finals day itself, or the
+  // separately-fetched roster when we're on a qualifying night looking
+  // ahead at finals day.
   const finalsOccupancy = isFinals ? players : finalsRoster;
-  const finalsSlots = useMemo(() => buildFinalsSlots(orderedPlayers), [orderedPlayers]);
+  const finalsSlots = useMemo(() => buildFinalsSlots(finalsOccupancy), [finalsOccupancy]);
   const bracketExists = matches.length > 0;
 
   return (
@@ -109,23 +130,29 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
         </Link>
       </div>
 
-      <h1>{night?.name ?? "Loading\u2026"}</h1>
+      <h1>{night?.name ?? "Loading…"}</h1>
       {error && <p className="error">{error}</p>}
 
       {isFinals && (
-        <FinalsLineup
-          slots={finalsSlots}
-          occupancy={finalsOccupancy}
-          onMove={withErrorHandling((player, seed) => setFinalsPlayerSeed(player, seed))}
-        />
-      )}
-
-      {isFinals && (
-        <UnplacedSection
-          players={orderedPlayers.filter((p) => p.seed == null)}
-          occupancy={finalsOccupancy}
-          onMove={withErrorHandling((player, seed) => setFinalsPlayerSeed(player, seed))}
-        />
+        <section>
+          <div className="round-heading">
+            <h2>Finals lineup</h2>
+            <span className="count">
+              {finalsSlots.filter(Boolean).length} of {finalsSlots.length} filled
+            </span>
+          </div>
+          <p className="hint">
+            Fills in on its own as qualifiers are confirmed on each qualifying night &mdash; nothing to add here
+            normally. Drag a name onto a number to place them, or back down to &ldquo;Not yet placed&rdquo; to
+            clear it.
+          </p>
+          <FinalsSlotBoard
+            slots={finalsSlots}
+            pool={orderedPlayers}
+            currentSeedOf={(p) => p.seed}
+            onAssign={withErrorHandling((player, seed) => setFinalsPlayerSeed(player, seed))}
+          />
+        </section>
       )}
 
       {isFinals ? (
@@ -135,6 +162,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
           nightId={nightId}
           players={orderedPlayers}
           bracketExists={bracketExists}
+          onReorder={withErrorHandling((ids: string[]) => reorderPlayers(ids))}
           onChange={withErrorHandling(async () => {})}
         />
       )}
@@ -180,12 +208,20 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
             </section>
           ))}
 
-          {night?.kind === "qualifier" && (
-            <QualifiersSection
-              qualifiers={qualifiers}
-              occupancy={finalsOccupancy}
-              onSave={withErrorHandling((player, number) => setFinalsNumber(player, number))}
-            />
+          {night?.kind === "qualifier" && qualifiers.length > 0 && (
+            <section>
+              <div className="round-heading">
+                <h2>Advancing to finals day</h2>
+              </div>
+              <p className="hint">Drag a name onto the number they drew for finals day.</p>
+              <FinalsSlotBoard
+                slots={finalsSlots}
+                pool={qualifiers}
+                currentSeedOf={(p) => p.finals_number}
+                occupantIdentity={(p) => p.qualified_from_player_id ?? p.id}
+                onAssign={withErrorHandling((player, number) => setFinalsNumber(player, number))}
+              />
+            </section>
           )}
         </>
       )}
@@ -197,14 +233,35 @@ function PlayerSection({
   nightId,
   players,
   bracketExists,
+  onReorder,
   onChange,
 }: {
   nightId: string;
   players: Player[];
   bracketExists: boolean;
+  onReorder: (orderedIds: string[]) => Promise<void>;
   onChange: () => Promise<void>;
 }) {
   const [name, setName] = useState("");
+  const [order, setOrder] = useState<string[]>(() => players.map((p) => p.id));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  useEffect(() => {
+    const serverIds = players.map((p) => p.id);
+    setOrder((current) => {
+      const sameSet = current.length === serverIds.length && current.every((id) => serverIds.includes(id));
+      return sameSet ? current : serverIds;
+    });
+  }, [players]);
+
+  const orderedForDisplay = useMemo(() => {
+    const byId = new Map(players.map((p) => [p.id, p]));
+    return order.map((id) => byId.get(id)).filter((p): p is Player => Boolean(p));
+  }, [order, players]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -214,14 +271,24 @@ function PlayerSection({
     await onChange();
   }
 
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = order.indexOf(String(active.id));
+    const newIndex = order.indexOf(String(over.id));
+    const next = arrayMove(order, oldIndex, newIndex);
+    setOrder(next);
+    onReorder(next);
+  }
+
   return (
     <section>
       <h2>Players ({players.length})</h2>
       {!bracketExists && (
         <>
           <p className="hint">
-            Add players in the order you want them paired for round 1 &mdash; player 1 plays player 2, player 3
-            plays player 4, and so on.
+            Add players in any order, then drag them into position for round 1 pairing &mdash; player 1 plays
+            player 2, player 3 plays player 4, and so on.
           </p>
           <form onSubmit={handleAdd} style={{ display: "flex", gap: 8, marginBottom: 14 }}>
             <input placeholder="Player name" value={name} onChange={(e) => setName(e.target.value)} />
@@ -229,29 +296,74 @@ function PlayerSection({
           </form>
         </>
       )}
-      {players.length > 0 && (
-        <div className="card">
-          {players.map((p, i) => (
-            <div key={p.id} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
-              <span>
-                {i + 1}. {p.name}
-              </span>
-              {!bracketExists && (
-                <button
-                  className="secondary"
-                  onClick={async () => {
-                    await deletePlayer(p.id);
-                    await onChange();
-                  }}
-                >
-                  Remove
-                </button>
-              )}
+      {orderedForDisplay.length > 0 && (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={order} strategy={verticalListSortingStrategy}>
+            <div className="card">
+              {orderedForDisplay.map((p, i) => (
+                <SortablePlayerRow
+                  key={p.id}
+                  player={p}
+                  index={i}
+                  draggable={!bracketExists}
+                  onRemove={
+                    bracketExists
+                      ? undefined
+                      : async () => {
+                          await deletePlayer(p.id);
+                          await onChange();
+                        }
+                  }
+                />
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
       )}
     </section>
+  );
+}
+
+function SortablePlayerRow({
+  player,
+  index,
+  draggable,
+  onRemove,
+}: {
+  player: Player;
+  index: number;
+  draggable: boolean;
+  onRemove?: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: player.id,
+    disabled: !draggable,
+  });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ ...style, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" }}
+    >
+      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {draggable && (
+          <span {...attributes} {...listeners} className="drag-handle" aria-label="Drag to reorder">
+            &#10021;
+          </span>
+        )}
+        {index + 1}. {player.name}
+      </span>
+      {onRemove && (
+        <button className="secondary" onClick={onRemove}>
+          Remove
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -302,88 +414,6 @@ function AddExtraFinalsPlayer({ nightId, onAdded }: { nightId: string; onAdded: 
   );
 }
 
-/**
- * The full 16-slot finals-day lineup, filled in as far as numbers have been
- * assigned. Click a filled slot's name to move them somewhere else - handy
- * for correcting a mistake without resetting anything.
- */
-function FinalsLineup({
-  slots,
-  occupancy,
-  onMove,
-}: {
-  slots: Array<Player | null>;
-  occupancy: Player[];
-  onMove: (player: Player, seed: number | null) => Promise<void>;
-}) {
-  const filledCount = slots.filter(Boolean).length;
-
-  return (
-    <section>
-      <div className="round-heading">
-        <h2>Finals lineup</h2>
-        <span className="count">{filledCount} of {slots.length} filled</span>
-      </div>
-      <p className="hint">
-        Fills in on its own as qualifiers are confirmed on each qualifying night &mdash; nothing to add here
-        normally. The draw is generated as soon as the first number is given out, and each slot below fills in
-        live from there. Click a name to move them to a different number if needed.
-      </p>
-      <div className="card">
-        {slots.map((player, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", padding: "4px 0", minHeight: 32 }}>
-            <span style={{ width: 28, color: "var(--ink-soft)" }}>{i + 1}.</span>
-            {player ? (
-              <SlotPickerTrigger
-                label={player.name}
-                currentSeed={player.seed}
-                occupancy={occupancy}
-                showSeedBadge={false}
-                onChoose={(seed) => onMove(player, seed)}
-              />
-            ) : (
-              <span>&nbsp;</span>
-            )}
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/**
- * Players who exist on finals day but don't have a number yet - either just
- * arrived from a qualifying night mid-save, or added manually here.
- */
-function UnplacedSection({
-  players,
-  occupancy,
-  onMove,
-}: {
-  players: Player[];
-  occupancy: Player[];
-  onMove: (player: Player, seed: number | null) => Promise<void>;
-}) {
-  if (players.length === 0) return null;
-  return (
-    <section>
-      <h2>Not yet placed</h2>
-      <div className="card">
-        {players.map((p) => (
-          <div key={p.id} style={{ display: "flex", alignItems: "center", padding: "4px 0" }}>
-            <SlotPickerTrigger
-              label={p.name}
-              currentSeed={p.seed}
-              occupancy={occupancy}
-              onChoose={(seed) => onMove(p, seed)}
-            />
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function BracketSetup({
   players,
   onGenerate,
@@ -406,7 +436,7 @@ function BracketSetup({
       </button>
       {!isPowerOfTwo && (
         <p className="hint">
-          {count < 2 ? "Add at least two players first." : `${count} isn't a power of two \u2014 add or remove a player.`}
+          {count < 2 ? "Add at least two players first." : `${count} isn't a power of two — add or remove a player.`}
         </p>
       )}
     </section>
@@ -440,23 +470,25 @@ function MatchEditor({
   const canComplete = !complete && isMatchComplete(match);
 
   return (
-    <div className="card">
-      <ScoreLine
-        name={playerNames[match.player_a_id] ?? "\u2014"}
-        score={match.score_a}
-        isWinner={match.winner_id === match.player_a_id}
-        disabled={complete}
-        onAdjust={(delta) => onAdjust("a", delta)}
-      />
-      <hr className="divider" />
-      <ScoreLine
-        name={playerNames[match.player_b_id] ?? "\u2014"}
-        score={match.score_b}
-        isWinner={match.winner_id === match.player_b_id}
-        disabled={complete}
-        onAdjust={(delta) => onAdjust("b", delta)}
-      />
-      <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div className={`card match ${complete ? "complete" : ""}`}>
+      <div className="players">
+        <ScoreLine
+          name={playerNames[match.player_a_id] ?? "—"}
+          score={match.score_a}
+          isWinner={Boolean(match.winner_id) && match.winner_id === match.player_a_id}
+          disabled={complete}
+          onAdjust={(delta) => onAdjust("a", delta)}
+        />
+        <hr className="divider" />
+        <ScoreLine
+          name={playerNames[match.player_b_id] ?? "—"}
+          score={match.score_b}
+          isWinner={Boolean(match.winner_id) && match.winner_id === match.player_b_id}
+          disabled={complete}
+          onAdjust={(delta) => onAdjust("b", delta)}
+        />
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", gap: 8 }}>
         <span className={`status-pill ${match.status}`}>
           {match.status === "live" && <span className="live-dot" />}
           {match.status}
@@ -496,127 +528,6 @@ function ScoreLine({
           +
         </button>
       </div>
-    </div>
-  );
-}
-
-function QualifiersSection({
-  qualifiers,
-  occupancy,
-  onSave,
-}: {
-  qualifiers: Player[];
-  occupancy: Player[];
-  onSave: (player: Player, finalsNumber: number | null) => Promise<void>;
-}) {
-  if (qualifiers.length === 0) return null;
-
-  return (
-    <section>
-      <div className="round-heading">
-        <h2>Advancing to finals day</h2>
-      </div>
-      <p className="hint">Tap a name to choose their finals-day number. Tap again any time to move them.</p>
-      <div className="card">
-        {qualifiers.map((p) => (
-          <div key={p.id} style={{ padding: "6px 0" }}>
-            <SlotPickerTrigger
-              label={p.name}
-              currentSeed={p.finals_number}
-              occupancy={occupancy}
-              onChoose={(seed) => onSave(p, seed)}
-            />
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/**
- * Shared control: shows a name (with its finals number, if any) as a
- * clickable label. Clicking opens a dropdown of every finals-day slot,
- * showing who else is in each one, so you can place - or move - this
- * person with one choice.
- */
-function SlotPickerTrigger({
-  label,
-  currentSeed,
-  occupancy,
-  showSeedBadge = true,
-  onChoose,
-}: {
-  label: string;
-  currentSeed: number | null;
-  occupancy: Player[];
-  showSeedBadge?: boolean;
-  onChoose: (seed: number | null) => Promise<void>;
-}) {
-  const [open, setOpen] = useState(false);
-
-  const occupantAt = (seed: number) => occupancy.find((p) => p.seed === seed && p.name !== label);
-
-  if (!open) {
-    return (
-      <button
-        type="button"
-        className="player-row"
-        style={{
-          border: "none",
-          background: "none",
-          width: "100%",
-          padding: "2px 0",
-          cursor: "pointer",
-          font: "inherit",
-          color: "var(--ink)",
-        }}
-        onClick={() => setOpen(true)}
-      >
-        <span className="name">{label}</span>
-        {showSeedBadge &&
-          (currentSeed != null ? (
-            <span className="score">{currentSeed}</span>
-          ) : (
-            <span className="hint" style={{ margin: 0 }}>
-              Choose number
-            </span>
-          ))}
-      </button>
-    );
-  }
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-      <span>{label}</span>
-      <select
-        defaultValue={currentSeed ?? ""}
-        onChange={async (e) => {
-          const value = e.target.value;
-          const seed = value === "" ? null : Number(value);
-          if (seed != null) {
-            const occupant = occupantAt(seed);
-            if (occupant && !confirm(`${occupant.name} is currently #${seed}. Move ${label} there instead?`)) {
-              return;
-            }
-          }
-          setOpen(false);
-          await onChoose(seed);
-        }}
-      >
-        <option value="">Choose a number&hellip;</option>
-        {Array.from({ length: FINALS_DRAW_SIZE }, (_, i) => i + 1).map((n) => {
-          const occupant = occupantAt(n);
-          return (
-            <option key={n} value={n}>
-              {n}
-              {occupant ? ` \u2014 ${occupant.name}` : ""}
-            </option>
-          );
-        })}
-      </select>
-      <button className="secondary" onClick={() => setOpen(false)}>
-        Cancel
-      </button>
     </div>
   );
 }

@@ -8,6 +8,7 @@ const {
   firstRoundPairs,
   buildFinalsSlots,
   roundOneSlotForSeed,
+  computeNightStatus,
 } = require("../lib/bracket.ts");
 
 describe("roundName", () => {
@@ -158,5 +159,46 @@ describe("roundOneSlotForSeed", () => {
       const expectedIndex = side === "a" ? pairs[slot][0] : pairs[slot][1];
       expect(seed - 1).toBe(expectedIndex);
     }
+  });
+});
+
+describe("computeNightStatus", () => {
+  it("is upcoming before any bracket exists", () => {
+    expect(computeNightStatus([])).toBe("upcoming");
+  });
+
+  it("is upcoming when the bracket exists but nothing has started", () => {
+    const matches = [
+      { round: 1, status: "upcoming" },
+      { round: 1, status: "upcoming" },
+    ];
+    expect(computeNightStatus(matches)).toBe("upcoming");
+  });
+
+  it("is live once any match has started", () => {
+    const matches = [
+      { round: 1, status: "live" },
+      { round: 1, status: "upcoming" },
+    ];
+    expect(computeNightStatus(matches)).toBe("live");
+  });
+
+  it("is live while the last round isn't fully complete, even if earlier rounds are", () => {
+    const matches = [
+      { round: 1, status: "complete" },
+      { round: 1, status: "complete" },
+      { round: 2, status: "complete" },
+      { round: 2, status: "upcoming" },
+    ];
+    expect(computeNightStatus(matches)).toBe("live");
+  });
+
+  it("is complete once every match in the last round is complete", () => {
+    const matches = [
+      { round: 1, status: "complete" },
+      { round: 1, status: "complete" },
+      { round: 2, status: "complete" },
+    ];
+    expect(computeNightStatus(matches)).toBe("complete");
   });
 });

@@ -29,6 +29,8 @@ create table players (
                                         -- for a finals-day player row: which qualifying-night player
                                         -- row they came from, so re-saving their number or clearing
                                         -- it can find and update/remove the right finals-day row
+  sort_order int not null default 0,   -- round-1 pairing order on a qualifying night (1 v 2, 3 v 4, ...),
+                                        -- set by dragging players into position on the admin page
   created_at timestamptz not null default now()
 );
 
@@ -104,3 +106,17 @@ alter publication supabase_realtime add table nights;
 -- alter table nights add column sort_order int not null default 0;
 -- alter table players add column qualified_from_player_id uuid references players(id) on delete set null;
 -- alter table players add constraint players_night_seed_unique unique (night_id, seed);
+
+-- If you already ran this schema before `players.sort_order` (round-1 drag
+-- order) was added above, run this once instead of the whole file - it adds
+-- the column AND backfills it from each player's created_at, so any players
+-- already entered on an in-progress night keep their current round-1
+-- pairing order instead of all landing on the same default value:
+-- alter table players add column sort_order int not null default 0;
+-- with ordered as (
+--   select id, row_number() over (partition by night_id order by created_at) - 1 as rn
+--   from players
+-- )
+-- update players set sort_order = ordered.rn
+-- from ordered
+-- where players.id = ordered.id;
