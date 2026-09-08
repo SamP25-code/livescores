@@ -469,7 +469,10 @@ function MatchEditor({
         onAdjust={(delta) => onAdjust("b", delta)}
       />
       <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span className={`status-pill ${match.status}`}>{match.status}</span>
+        <span className={`status-pill ${match.status}`}>
+          {match.status === "live" && <span className="live-dot" />}
+          {match.status}
+        </span>
         {!complete && (
           <button onClick={onComplete} disabled={!canComplete}>
             Mark complete

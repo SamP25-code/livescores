@@ -48,6 +48,20 @@ export default function NightPage({ params }: { params: { id: string } }) {
           });
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "players", filter: `night_id=eq.${nightId}` },
+        (payload) => {
+          setPlayers((prev) => {
+            if (payload.eventType === "DELETE") {
+              const { [(payload.old as Player).id]: _removed, ...rest } = prev;
+              return rest;
+            }
+            const row = payload.new as Player;
+            return { ...prev, [row.id]: row };
+          });
+        }
+      )
       .subscribe();
 
     return () => {
@@ -103,15 +117,12 @@ export default function NightPage({ params }: { params: { id: string } }) {
       {rounds.length === 0 && finalsSlots.length > 0 && (
         <>
           <p className="hint">Qualifiers confirmed so far &mdash; the lineup fills in as each qualifying night finishes.</p>
-          <div className="card">
-            {finalsSlots.map((p, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
-                <span>
-                  {i + 1}. {p ? p.name : ""}
-                </span>
-              </div>
-            ))}
-          </div>
+          {finalsSlots.map((p, i) => (
+            <div key={i} className="card" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
+              <span>{i + 1}.</span>
+              <span>{p ? p.name : ""}</span>
+            </div>
+          ))}
         </>
       )}
 
@@ -135,7 +146,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
           {qualifiers.map((p) => (
             <div key={p.id} className="card" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
               <span>{p.name}</span>
-              <span style={{ color: "var(--ink-soft)" }}>{p.finals_number != null ? `Finals ${p.finals_number}` : ""}</span>
+              <strong>{p.finals_number ?? ""}</strong>
             </div>
           ))}
         </section>
@@ -161,7 +172,10 @@ function MatchCard({ match, players }: { match: MatchRow; players: Record<string
           <span className="score">{match.player_b_id ? match.score_b : "\u2013"}</span>
         </div>
       </div>
-      <span className={`status-pill ${match.status}`}>{match.status}</span>
+      <span className={`status-pill ${match.status}`}>
+        {match.status === "live" && <span className="live-dot" />}
+        {match.status}
+      </span>
     </div>
   );
 }

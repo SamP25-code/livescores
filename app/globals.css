@@ -152,6 +152,9 @@ a {
 }
 
 .status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 0.7rem;
   text-transform: none;
   padding: 2px 8px;
@@ -163,6 +166,24 @@ a {
 .status-pill.live {
   background: var(--maroon);
   color: #fff;
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff3b30;
+  animation: live-dot-flash 1.1s ease-in-out infinite;
+}
+
+@keyframes live-dot-flash {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
 }
 
 .status-pill.upcoming {
