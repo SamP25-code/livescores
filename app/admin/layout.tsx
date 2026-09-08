@@ -5,6 +5,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import type { Session } from "@supabase/supabase-js";
 
+// Every /admin page is entirely client-rendered and needs a signed-in
+// session to mean anything, so there's nothing worth statically prerendering
+// at build time - and prerendering would run the Supabase client during the
+// build, which fails the whole build if env vars aren't configured for that
+// environment.
+export const dynamic = "force-dynamic";
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
