@@ -1,0 +1,281 @@
+:root {
+  --green-deep: #1f3d2b;
+  --green-mid: #3d6b4a;
+  --green-pale: #e4ecdf;
+  --cream: #efebdd;
+  --wood: #7a5230;
+  --maroon: #7a2e2e;
+  --ink: #1b211c;
+  --ink-soft: #4a5148;
+  --line: #cfc8b3;
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body), -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.4em;
+  color: var(--green-deep);
+}
+
+h1 {
+  font-size: 1.9rem;
+}
+
+h2 {
+  font-size: 1.3rem;
+}
+
+a {
+  color: var(--green-deep);
+}
+
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px 64px;
+}
+
+.top-bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 3px solid var(--green-deep);
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+}
+
+.top-bar .brand {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: var(--green-deep);
+  text-decoration: none;
+}
+
+.top-bar nav a {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  margin-left: 14px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.round-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 28px 0 10px;
+}
+
+.round-heading h2 {
+  margin: 0;
+}
+
+.round-heading .count {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  background: var(--green-pale);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.match {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.match .players {
+  flex: 1;
+  min-width: 0;
+}
+
+.player-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.player-row.winner .name {
+  font-weight: 700;
+}
+
+.player-row .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-row .score {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.15rem;
+  font-weight: 600;
+  min-width: 2ch;
+  text-align: right;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 2px 0;
+}
+
+.status-pill {
+  font-size: 0.7rem;
+  text-transform: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  align-self: center;
+}
+
+.status-pill.live {
+  background: var(--maroon);
+  color: #fff;
+}
+
+.status-pill.upcoming {
+  background: var(--green-pale);
+  color: var(--ink-soft);
+}
+
+.status-pill.complete {
+  background: var(--green-deep);
+  color: #fff;
+}
+
+.empty {
+  color: var(--ink-soft);
+  font-style: italic;
+  padding: 20px 0;
+}
+
+button,
+.button {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.95rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--green-deep);
+  background: var(--green-deep);
+  color: #fff;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: #fff;
+  color: var(--green-deep);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input,
+select {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1rem;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  width: 100%;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+
+.field {
+  margin-bottom: 14px;
+}
+
+.score-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.score-stepper button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.score-stepper .value {
+  min-width: 2.5ch;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.error {
+  color: var(--maroon);
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+
+.night-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.night-pill {
+  display: inline-block;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--green-deep);
+  color: var(--green-deep);
+  text-decoration: none;
+  font-size: 0.85rem;
+  background: #fff;
+}
+
+.night-pill.active {
+  background: var(--green-deep);
+  color: #fff;
+}
+
+.hint {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
