@@ -205,7 +205,6 @@ export default function NightPage({ params }: { params: { id: string } }) {
         <section key={round}>
           <div className="round-heading">
             <h2>{roundLabel(night?.kind ?? "qualifier", round, roundMatches.length)}</h2>
-            <span className="count">{roundMatches.length} match{roundMatches.length === 1 ? "" : "es"}</span>
           </div>
           {roundMatches.map((m) => (
             <MatchCard
