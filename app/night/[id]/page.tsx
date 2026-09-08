@@ -17,6 +17,10 @@ export default function NightPage({ params }: { params: { id: string } }) {
   const [connectionLost, setConnectionLost] = useState(false);
 
   useEffect(() => {
+    document.title = night ? `${night.name} — Bowls Live` : "Bowls Live";
+  }, [night]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function load() {

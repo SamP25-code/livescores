@@ -26,6 +26,10 @@ export default function AdminDashboard() {
   }
 
   useEffect(() => {
+    document.title = "Admin — Bowls Live";
+  }, []);
+
+  useEffect(() => {
     refresh();
   }, []);
 

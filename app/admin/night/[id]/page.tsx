@@ -49,6 +49,10 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
   const [finalsRoster, setFinalsRoster] = useState<Player[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    document.title = night ? `${night.name} — Admin — Bowls Live` : "Admin — Bowls Live";
+  }, [night]);
+
   async function refresh() {
     const [{ data: nightData }, { data: playerData }, { data: matchData }, roster] = await Promise.all([
       supabase.from("nights").select("*").eq("id", nightId).single(),

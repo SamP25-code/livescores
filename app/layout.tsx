@@ -16,14 +16,21 @@ const body = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(`https://${process.env.VERCEL_URL ?? "localhost:3000"}`),
   title: "Bowls Live",
   description: "Live knockout results",
+  openGraph: {
+    title: "Bowls Live",
+    description: "Live knockout results",
+    images: ["/bowls-background.jpg"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body>
+        <div className="site-background" aria-hidden="true" />
         {!isSupabaseConfigured && (
           <div
             style={{

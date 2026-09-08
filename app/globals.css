@@ -26,12 +26,29 @@ body {
 }
 
 body {
-  background: var(--cream);
   color: var(--ink);
   font-family: var(--font-body), -apple-system, sans-serif;
   font-size: 16px;
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Full-page background photo, fixed behind everything. A tinted scrim
+ * (same weight as the old solid --cream) sits over it so text and cards
+ * stay exactly as readable as before - the photo shows through as a
+ * subtle backdrop rather than competing with the content.
+ */
+.site-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--cream);
+  background-image: linear-gradient(rgba(239, 235, 221, 0.88), rgba(239, 235, 221, 0.88)),
+    url("/bowls-background.jpg");
+  background-size: cover;
+  background-position: center 20%;
+  background-repeat: no-repeat;
 }
 
 h1,
