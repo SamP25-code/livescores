@@ -193,10 +193,17 @@ a {
   font-size: 0.6rem;
 }
 
-.match.highlighted {
-  border-color: var(--green-mid);
-  border-width: 2px;
-  box-shadow: 0 0 0 2px var(--green-pale);
+.player-row.spotlight {
+  background: var(--green-pale);
+  border-radius: 8px;
+  margin: 0 -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.player-row.spotlight .name {
+  color: var(--green-deep);
+  font-weight: 700;
 }
 
 .qualifier-row {

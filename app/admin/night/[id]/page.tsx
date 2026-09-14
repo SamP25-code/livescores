@@ -602,10 +602,7 @@ function ScoreLine({
 }) {
   return (
     <div className={`player-row ${isWinner ? "winner" : ""}`}>
-      <span className="name-cell">
-        <Avatar name={name} />
-        <span className="name">{name}</span>
-      </span>
+      <span className="name">{name}</span>
       <div className="score-stepper">
         <button className="secondary" disabled={disabled} onClick={() => onAdjust(-1)}>
           &minus;

@@ -209,12 +209,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
             <h2>{roundLabel(night?.kind ?? "qualifier", round, roundMatches.length)}</h2>
           </div>
           {roundMatches.map((m) => (
-            <MatchCard
-              key={m.id}
-              match={m}
-              players={players}
-              highlighted={highlightPlayerId != null && (m.player_a_id === highlightPlayerId || m.player_b_id === highlightPlayerId)}
-            />
+            <MatchCard key={m.id} match={m} players={players} highlightPlayerId={highlightPlayerId} />
           ))}
         </section>
       ))}
@@ -250,11 +245,11 @@ export default function NightPage({ params }: { params: { id: string } }) {
 function MatchCard({
   match,
   players,
-  highlighted,
+  highlightPlayerId,
 }: {
   match: MatchRow;
   players: Record<string, Player>;
-  highlighted?: boolean;
+  highlightPlayerId?: string | null;
 }) {
   const isBye = Boolean(match.player_a_id) && !match.player_b_id && match.status === "complete";
   const playerA = match.player_a_id ? players[match.player_a_id] : undefined;
@@ -263,23 +258,19 @@ function MatchCard({
   const nameB = match.player_b_id ? playerB?.name ?? "TBC" : isBye ? "BYE" : "TBC";
   const winnerA = Boolean(match.winner_id) && match.winner_id === match.player_a_id;
   const winnerB = Boolean(match.winner_id) && match.winner_id === match.player_b_id;
+  const spotlightA = highlightPlayerId != null && match.player_a_id === highlightPlayerId;
+  const spotlightB = highlightPlayerId != null && match.player_b_id === highlightPlayerId;
 
   return (
-    <div className={`card match ${match.status === "complete" ? "complete" : ""} ${highlighted ? "highlighted" : ""}`}>
+    <div className={`card match ${match.status === "complete" ? "complete" : ""}`}>
       <div className="players">
-        <div className={`player-row ${winnerA ? "winner" : ""}`}>
-          <span className="name-cell">
-            {playerA && <Avatar name={playerA.name} />}
-            <span className="name">{nameA}</span>
-          </span>
+        <div className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""}`}>
+          <span className="name">{nameA}</span>
           <FlashingScore value={match.player_a_id ? match.score_a : "\u2013"} />
         </div>
         <hr className="divider" />
-        <div className={`player-row ${winnerB ? "winner" : ""}`}>
-          <span className="name-cell">
-            {playerB && <Avatar name={playerB.name} />}
-            <span className="name">{nameB}</span>
-          </span>
+        <div className={`player-row ${winnerB ? "winner" : ""} ${spotlightB ? "spotlight" : ""}`}>
+          <span className="name">{nameB}</span>
           <FlashingScore value={match.player_b_id ? match.score_b : "\u2013"} />
         </div>
       </div>
