@@ -265,12 +265,18 @@ function MatchCard({
     <div className={`card match ${match.status === "complete" ? "complete" : ""}`}>
       <div className="players">
         <div className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""}`}>
-          <span className="name">{nameA}</span>
+          <span className="name-cell">
+            {playerA && <Avatar name={playerA.name} />}
+            <span className="name">{nameA}</span>
+          </span>
           <FlashingScore value={match.player_a_id ? match.score_a : "\u2013"} />
         </div>
         <hr className="divider" />
         <div className={`player-row ${winnerB ? "winner" : ""} ${spotlightB ? "spotlight" : ""}`}>
-          <span className="name">{nameB}</span>
+          <span className="name-cell">
+            {playerB && <Avatar name={playerB.name} />}
+            <span className="name">{nameB}</span>
+          </span>
           <FlashingScore value={match.player_b_id ? match.score_b : "\u2013"} />
         </div>
       </div>

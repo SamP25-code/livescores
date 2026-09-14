@@ -38,7 +38,6 @@ import {
 } from "@/lib/adminActions";
 import { buildFinalsSlots, isMatchComplete, nextPowerOfTwo, roundLabel } from "@/lib/bracket";
 import { errorMessage } from "@/lib/errors";
-import Avatar from "@/components/Avatar";
 import FinalsSlotBoard from "@/components/FinalsSlotBoard";
 import FlashingScore from "@/components/FlashingScore";
 import type { MatchRow, Night, Player } from "@/lib/types";
@@ -395,7 +394,6 @@ function SortablePlayerRow({
           </span>
         )}
         <span style={{ flex: "none" }}>{index + 1}.</span>
-        <Avatar name={player.name} size="sm" />
         {editing ? (
           <input
             autoFocus
