@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import NightNav from "@/components/NightNav";
 import Brand from "@/components/Brand";
 
@@ -14,6 +15,9 @@ export default function HomePage() {
     <div className="page">
       <div className="top-bar">
         <Brand />
+        <nav>
+          <Link href="/admin">Log in</Link>
+        </nav>
       </div>
 
       <div className="home-hero">
