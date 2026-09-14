@@ -15,6 +15,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import Avatar from "@/components/Avatar";
 import type { Player } from "@/lib/types";
 
 /**
@@ -95,7 +96,10 @@ export default function FinalsSlotBoard({
                 poolPlayer ? (
                   <DraggableChip player={poolPlayer} />
                 ) : (
-                  <span className="finals-chip finals-chip-readonly">{occupant.name}</span>
+                  <span className="finals-chip finals-chip-readonly">
+                    <Avatar name={occupant.name} size="sm" />
+                    {occupant.name}
+                  </span>
                 )
               ) : (
                 <span className="finals-chip-empty">Drop here</span>
@@ -114,7 +118,12 @@ export default function FinalsSlotBoard({
       )}
 
       <DragOverlay>
-        {activePlayer ? <span className="finals-chip finals-chip-overlay">{activePlayer.name}</span> : null}
+        {activePlayer ? (
+          <span className="finals-chip finals-chip-overlay">
+            <Avatar name={activePlayer.name} size="sm" />
+            {activePlayer.name}
+          </span>
+        ) : null}
       </DragOverlay>
     </DndContext>
   );
@@ -150,6 +159,7 @@ function DraggableChip({ player }: { player: Player }) {
       className={`finals-chip ${isDragging ? "dragging" : ""}`}
       style={{ transform: CSS.Translate.toString(transform) }}
     >
+      <Avatar name={player.name} size="sm" />
       {player.name}
     </span>
   );

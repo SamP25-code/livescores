@@ -38,7 +38,9 @@ import {
 } from "@/lib/adminActions";
 import { buildFinalsSlots, isMatchComplete, nextPowerOfTwo, roundLabel } from "@/lib/bracket";
 import { errorMessage } from "@/lib/errors";
+import Avatar from "@/components/Avatar";
 import FinalsSlotBoard from "@/components/FinalsSlotBoard";
+import FlashingScore from "@/components/FlashingScore";
 import type { MatchRow, Night, Player } from "@/lib/types";
 
 export default function AdminNightPage({ params }: { params: { id: string } }) {
@@ -393,6 +395,7 @@ function SortablePlayerRow({
           </span>
         )}
         <span style={{ flex: "none" }}>{index + 1}.</span>
+        <Avatar name={player.name} size="sm" />
         {editing ? (
           <input
             autoFocus
@@ -599,12 +602,15 @@ function ScoreLine({
 }) {
   return (
     <div className={`player-row ${isWinner ? "winner" : ""}`}>
-      <span className="name">{name}</span>
+      <span className="name-cell">
+        <Avatar name={name} />
+        <span className="name">{name}</span>
+      </span>
       <div className="score-stepper">
         <button className="secondary" disabled={disabled} onClick={() => onAdjust(-1)}>
           &minus;
         </button>
-        <span className="value">{score}</span>
+        <FlashingScore value={score} className="value" />
         <button className="secondary" disabled={disabled} onClick={() => onAdjust(1)}>
           +
         </button>

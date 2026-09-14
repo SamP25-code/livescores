@@ -5,6 +5,8 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, roundLabel } from "@/lib/bracket";
 import NightNav from "@/components/NightNav";
+import Avatar from "@/components/Avatar";
+import FlashingScore from "@/components/FlashingScore";
 import type { MatchRow, Night, Player } from "@/lib/types";
 
 export default function NightPage({ params }: { params: { id: string } }) {
@@ -232,7 +234,10 @@ export default function NightPage({ params }: { params: { id: string } }) {
               className={`card qualifier-row ${highlightPlayerId === p.id ? "selected" : ""}`}
               onClick={() => setHighlightPlayerId((current) => (current === p.id ? null : p.id))}
             >
-              <span>{p.name}</span>
+              <span className="name-cell">
+                <Avatar name={p.name} />
+                <span className="name">{p.name}</span>
+              </span>
               <strong>{p.finals_number ?? ""}</strong>
             </button>
           ))}
@@ -252,8 +257,10 @@ function MatchCard({
   highlighted?: boolean;
 }) {
   const isBye = Boolean(match.player_a_id) && !match.player_b_id && match.status === "complete";
-  const nameA = match.player_a_id ? players[match.player_a_id]?.name ?? "TBC" : "TBC";
-  const nameB = match.player_b_id ? players[match.player_b_id]?.name ?? "TBC" : isBye ? "BYE" : "TBC";
+  const playerA = match.player_a_id ? players[match.player_a_id] : undefined;
+  const playerB = match.player_b_id ? players[match.player_b_id] : undefined;
+  const nameA = playerA?.name ?? "TBC";
+  const nameB = match.player_b_id ? playerB?.name ?? "TBC" : isBye ? "BYE" : "TBC";
   const winnerA = Boolean(match.winner_id) && match.winner_id === match.player_a_id;
   const winnerB = Boolean(match.winner_id) && match.winner_id === match.player_b_id;
 
@@ -261,13 +268,19 @@ function MatchCard({
     <div className={`card match ${match.status === "complete" ? "complete" : ""} ${highlighted ? "highlighted" : ""}`}>
       <div className="players">
         <div className={`player-row ${winnerA ? "winner" : ""}`}>
-          <span className="name">{nameA}</span>
-          <span className="score">{match.player_a_id ? match.score_a : "\u2013"}</span>
+          <span className="name-cell">
+            {playerA && <Avatar name={playerA.name} />}
+            <span className="name">{nameA}</span>
+          </span>
+          <FlashingScore value={match.player_a_id ? match.score_a : "\u2013"} />
         </div>
         <hr className="divider" />
         <div className={`player-row ${winnerB ? "winner" : ""}`}>
-          <span className="name">{nameB}</span>
-          <span className="score">{match.player_b_id ? match.score_b : "\u2013"}</span>
+          <span className="name-cell">
+            {playerB && <Avatar name={playerB.name} />}
+            <span className="name">{nameB}</span>
+          </span>
+          <FlashingScore value={match.player_b_id ? match.score_b : "\u2013"} />
         </div>
       </div>
       <span className={`status-pill ${match.status}`}>
