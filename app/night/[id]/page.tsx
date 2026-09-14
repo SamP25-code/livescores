@@ -5,6 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, roundLabel } from "@/lib/bracket";
 import NightNav from "@/components/NightNav";
+import Brand from "@/components/Brand";
 import Avatar from "@/components/Avatar";
 import FlashingScore from "@/components/FlashingScore";
 import type { MatchRow, Night, Player } from "@/lib/types";
@@ -146,9 +147,10 @@ export default function NightPage({ params }: { params: { id: string } }) {
   return (
     <div className="page">
       <div className="top-bar">
-        <Link href="/" className="brand">
-          Bowls Live
-        </Link>
+        <Brand />
+        <nav>
+          <Link href="/">Home</Link>
+        </nav>
       </div>
 
       <NightNav currentId={nightId} />

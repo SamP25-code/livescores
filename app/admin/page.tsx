@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { createNight } from "@/lib/adminActions";
 import { errorMessage } from "@/lib/errors";
 import { fetchNightStatuses } from "@/lib/nightStatus";
+import Brand from "@/components/Brand";
 import type { NightStatus } from "@/lib/bracket";
 import type { Night } from "@/lib/types";
 
@@ -49,7 +50,7 @@ export default function AdminDashboard() {
   return (
     <div className="page">
       <div className="top-bar">
-        <span className="brand">Bowls Live &middot; Admin</span>
+        <Brand suffix=" · Admin" />
         <nav>
           <Link href="/">Public site</Link>
           <a href="#" onClick={() => supabase.auth.signOut()}>

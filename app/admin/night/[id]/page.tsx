@@ -153,8 +153,8 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="page">
-      <div className="top-bar">
-        <Link href="/admin" className="brand">
+      <div className="top-bar top-bar-plain">
+        <Link href="/admin" className="back-link">
           &larr; All nights
         </Link>
       </div>

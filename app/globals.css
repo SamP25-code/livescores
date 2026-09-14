@@ -80,20 +80,33 @@ a {
 }
 
 .top-bar {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  position: relative;
+  text-align: center;
   border-bottom: 3px solid var(--green-deep);
-  padding-bottom: 12px;
+  padding: 4px 80px 18px;
   margin-bottom: 20px;
 }
 
 .top-bar .brand {
-  font-family: var(--font-display), Georgia, serif;
+  display: block;
+  font-family: var(--font-body), sans-serif;
   font-weight: 600;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.top-bar .brand a {
   color: var(--green-deep);
-  text-decoration: none;
+  font-weight: 800;
+}
+
+.top-bar nav {
+  position: absolute;
+  top: 4px;
+  right: 0;
 }
 
 .top-bar nav a {
@@ -101,6 +114,20 @@ a {
   color: var(--ink-soft);
   text-decoration: none;
   margin-left: 14px;
+}
+
+/* A plain compact header (e.g. the admin editor's "back" link) rather than the centered sponsor banner. */
+.top-bar-plain {
+  text-align: left;
+  padding: 0 0 12px;
+}
+
+.back-link {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: var(--green-deep);
+  text-decoration: none;
 }
 
 .card {

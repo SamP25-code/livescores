@@ -1,12 +1,14 @@
 import Link from "next/link";
+import Brand from "@/components/Brand";
 
 export default function NotFound() {
   return (
     <div className="page">
       <div className="top-bar">
-        <Link href="/" className="brand">
-          Bowls Live
-        </Link>
+        <Brand />
+        <nav>
+          <Link href="/">Home</Link>
+        </nav>
       </div>
 
       <div className="home-hero">

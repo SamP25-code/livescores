@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import NightNav from "@/components/NightNav";
+import Brand from "@/components/Brand";
 
 // This page is entirely client-rendered (it fetches from Supabase in the
 // browser), so there's nothing worth statically prerendering at build time -
@@ -13,10 +13,7 @@ export default function HomePage() {
   return (
     <div className="page">
       <div className="top-bar">
-        <span className="brand">Bowls Live</span>
-        <nav>
-          <Link href="/admin">Admin</Link>
-        </nav>
+        <Brand />
       </div>
 
       <div className="home-hero">
