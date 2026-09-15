@@ -3,6 +3,7 @@
 import Link from "next/link";
 import NightNav from "@/components/NightNav";
 import Brand from "@/components/Brand";
+import LiveNowBanner from "@/components/LiveNowBanner";
 
 // This page is entirely client-rendered (it fetches from Supabase in the
 // browser), so there's nothing worth statically prerendering at build time -
@@ -24,6 +25,7 @@ export default function HomePage() {
         <h1>Results</h1>
         <p className="hint">Pick a night below to see its live scores.</p>
       </div>
+      <LiveNowBanner />
       <NightNav variant="home" />
 
       <details className="how-it-works">

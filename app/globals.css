@@ -366,6 +366,12 @@ button.secondary {
   color: var(--blue-deep);
 }
 
+button.danger {
+  background: var(--maroon);
+  border-color: var(--maroon);
+  color: #fff;
+}
+
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -467,6 +473,46 @@ label {
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
 }
 
+.live-now-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--maroon);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+
+.live-now-banner .live-dot {
+  margin-top: 7px;
+  background: #fff;
+  flex: none;
+}
+
+.live-now-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.live-now-item {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.live-now-item:hover {
+  text-decoration: underline;
+}
+
+.live-now-count {
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+}
+
 .night-list {
   display: flex;
   flex-direction: column;
@@ -540,6 +586,197 @@ label {
 
 .champion-banner .hint {
   margin-top: 2px;
+}
+
+.name-cell-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.view-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+/* Finals-day bracket tree */
+.round-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.round-tab {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--green-deep);
+  background: #fff;
+  color: var(--green-deep);
+  cursor: pointer;
+}
+
+.bracket-scroll {
+  overflow-x: auto;
+  padding-bottom: 14px;
+  margin: 0 -16px 20px;
+  padding-left: 16px;
+  padding-right: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bracket {
+  display: flex;
+  align-items: stretch;
+  gap: 36px;
+  min-width: max-content;
+}
+
+.round-col {
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  flex: none;
+}
+
+.round-col .round-title {
+  text-align: center;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.round-col .round {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  flex: 1;
+  gap: 16px;
+}
+
+.round-col .pair {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.round-col .pair::after {
+  content: "";
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  right: -18px;
+  width: 1px;
+  background: var(--line);
+}
+
+.match.compact {
+  display: block;
+  position: relative;
+  padding: 10px 12px;
+}
+
+.match.compact::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -18px;
+  width: 18px;
+  height: 1px;
+  background: var(--line);
+}
+
+.match.compact .status-pill {
+  position: absolute;
+  top: -9px;
+  right: 8px;
+}
+
+.match.compact .name-cell {
+  gap: 6px;
+}
+
+.match.compact .avatar {
+  width: 20px;
+  height: 20px;
+  font-size: 0.55rem;
+}
+
+.match.compact .name {
+  font-size: 0.8rem;
+}
+
+.match.compact .score {
+  font-size: 1.05rem;
+}
+
+.champion-col {
+  display: flex;
+  flex-direction: column;
+  width: 150px;
+  flex: none;
+}
+
+.champion-col .round-title {
+  text-align: center;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gold-deep);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.champion-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  padding: 16px 10px;
+  color: var(--ink-soft);
+  background: #fff;
+}
+
+.champion-box .trophy {
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+  opacity: 0.5;
+}
+
+.champion-box .label {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.champion-box-decided {
+  border: 2px solid var(--gold);
+  background: linear-gradient(135deg, #fff, var(--gold-pale));
+  color: var(--gold-deep);
+}
+
+.champion-box-decided .trophy {
+  opacity: 1;
 }
 
 .hint {

@@ -274,8 +274,16 @@ export async function completeMatch(match: MatchRow) {
  * credited the win and advances, and any scores already entered are
  * cleared, since officially no game was played. Only valid before the
  * match has already been completed for real - reopen it first if needed.
+ *
+ * Round 1 only (the first round of a qualifying night, or the last 16 on
+ * finals day) - anyone in a later round has already won a match, so a
+ * no-show there is a different, much rarer situation than not turning up
+ * at the start of the night.
  */
 export async function markNoShow(match: MatchRow, side: "a" | "b") {
+  if (match.round !== 1) {
+    throw new Error("A no-show can only be marked in the first round.");
+  }
   if (match.status === "complete") {
     throw new Error("This match is already complete - reopen it first if you need to change the result.");
   }

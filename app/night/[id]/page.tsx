@@ -7,7 +7,8 @@ import { buildFinalsSlots, roundLabel } from "@/lib/bracket";
 import NightNav from "@/components/NightNav";
 import Brand from "@/components/Brand";
 import Avatar from "@/components/Avatar";
-import FlashingScore from "@/components/FlashingScore";
+import MatchCard from "@/components/MatchCard";
+import BracketTree from "@/components/BracketTree";
 import type { MatchRow, Night, Player } from "@/lib/types";
 
 export default function NightPage({ params }: { params: { id: string } }) {
@@ -102,6 +103,11 @@ export default function NightPage({ params }: { params: { id: string } }) {
   }, [nightId]);
 
   const [highlightPlayerId, setHighlightPlayerId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "bracket">("list");
+
+  function toggleHighlight(playerId: string) {
+    setHighlightPlayerId((current) => (current === playerId ? null : playerId));
+  }
 
   const rounds = useMemo(() => {
     const byRound = new Map<number, MatchRow[]>();
@@ -205,16 +211,53 @@ export default function NightPage({ params }: { params: { id: string } }) {
         </>
       )}
 
-      {!loadError && rounds.map(([round, roundMatches]) => (
-        <section key={round}>
-          <div className="round-heading">
-            <h2>{roundLabel(night?.kind ?? "qualifier", round, roundMatches.length)}</h2>
-          </div>
-          {roundMatches.map((m) => (
-            <MatchCard key={m.id} match={m} players={players} highlightPlayerId={highlightPlayerId} />
-          ))}
-        </section>
-      ))}
+      {!loadError && night?.kind === "finals" && rounds.length > 0 && (
+        <div className="view-toggle">
+          <button
+            type="button"
+            className={viewMode === "list" ? "" : "secondary"}
+            onClick={() => setViewMode("list")}
+          >
+            List
+          </button>
+          <button
+            type="button"
+            className={viewMode === "bracket" ? "" : "secondary"}
+            onClick={() => setViewMode("bracket")}
+          >
+            Bracket
+          </button>
+        </div>
+      )}
+
+      {!loadError && night?.kind === "finals" && rounds.length > 0 && viewMode === "bracket" ? (
+        <BracketTree
+          rounds={rounds}
+          night={night}
+          players={players}
+          highlightPlayerId={highlightPlayerId}
+          onSelectPlayer={toggleHighlight}
+          champion={champion}
+        />
+      ) : (
+        !loadError &&
+        rounds.map(([round, roundMatches]) => (
+          <section key={round}>
+            <div className="round-heading">
+              <h2>{roundLabel(night?.kind ?? "qualifier", round, roundMatches.length)}</h2>
+            </div>
+            {roundMatches.map((m) => (
+              <MatchCard
+                key={m.id}
+                match={m}
+                players={players}
+                highlightPlayerId={highlightPlayerId}
+                onSelectPlayer={toggleHighlight}
+              />
+            ))}
+          </section>
+        ))
+      )}
 
       {!loadError && qualifiers.length > 0 && (
         <section>
@@ -229,7 +272,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
               key={p.id}
               type="button"
               className={`card qualifier-row ${highlightPlayerId === p.id ? "selected" : ""}`}
-              onClick={() => setHighlightPlayerId((current) => (current === p.id ? null : p.id))}
+              onClick={() => toggleHighlight(p.id)}
             >
               <span className="name-cell">
                 <Avatar name={p.name} />
@@ -240,56 +283,6 @@ export default function NightPage({ params }: { params: { id: string } }) {
           ))}
         </section>
       )}
-    </div>
-  );
-}
-
-function MatchCard({
-  match,
-  players,
-  highlightPlayerId,
-}: {
-  match: MatchRow;
-  players: Record<string, Player>;
-  highlightPlayerId?: string | null;
-}) {
-  // A bye can land on either side - the original padding algorithm always
-  // put it on B, but a no-show discovered mid-match (see markNoShow) clears
-  // whichever side didn't turn up, so this checks for exactly one blank
-  // side on an otherwise-decided match, not specifically which one.
-  const isBye = match.status === "complete" && Boolean(match.player_a_id) !== Boolean(match.player_b_id);
-  const playerA = match.player_a_id ? players[match.player_a_id] : undefined;
-  const playerB = match.player_b_id ? players[match.player_b_id] : undefined;
-  const nameA = match.player_a_id ? playerA?.name ?? "TBC" : isBye ? "BYE" : "TBC";
-  const nameB = match.player_b_id ? playerB?.name ?? "TBC" : isBye ? "BYE" : "TBC";
-  const winnerA = Boolean(match.winner_id) && match.winner_id === match.player_a_id;
-  const winnerB = Boolean(match.winner_id) && match.winner_id === match.player_b_id;
-  const spotlightA = highlightPlayerId != null && match.player_a_id === highlightPlayerId;
-  const spotlightB = highlightPlayerId != null && match.player_b_id === highlightPlayerId;
-
-  return (
-    <div className={`card match ${match.status === "complete" ? "complete" : ""}`}>
-      <div className="players">
-        <div className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""}`}>
-          <span className="name-cell">
-            {playerA && <Avatar name={playerA.name} />}
-            <span className="name">{nameA}</span>
-          </span>
-          <FlashingScore value={match.player_a_id ? match.score_a : "\u2013"} />
-        </div>
-        <hr className="divider" />
-        <div className={`player-row ${winnerB ? "winner" : ""} ${spotlightB ? "spotlight" : ""}`}>
-          <span className="name-cell">
-            {playerB && <Avatar name={playerB.name} />}
-            <span className="name">{nameB}</span>
-          </span>
-          <FlashingScore value={match.player_b_id ? match.score_b : "\u2013"} />
-        </div>
-      </div>
-      <span className={`status-pill ${match.status}`}>
-        {match.status === "live" && <span className="live-dot" />}
-        {isBye ? "bye" : match.status}
-      </span>
     </div>
   );
 }

@@ -212,16 +212,12 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
       {bracketExists && (
         <>
           <div style={{ margin: "20px 0" }}>
-            <button
-              className="secondary"
-              onClick={withErrorHandling(async () => {
-                if (confirm("Delete the whole bracket for this night? Scores will be lost.")) {
-                  await resetBracket(nightId);
-                }
+            <ResetBracketControl
+              nightName={night?.name ?? ""}
+              onReset={withErrorHandling(async () => {
+                await resetBracket(nightId);
               })}
-            >
-              Reset bracket
-            </button>
+            />
           </div>
 
           {rounds.map(([round, roundMatches]) => (
@@ -612,7 +608,73 @@ function MatchEditor({
           )}
         </div>
       </div>
-      {!complete && <NoShowControl nameA={nameA} nameB={nameB} onNoShow={onNoShow} />}
+      {/* Only round 1 - the first round of a qualifying night, or the last 16
+          on finals day. Anyone in a later round has already won a match, so
+          a no-show there is a different, much rarer situation than not
+          turning up at the start of the night. */}
+      {!complete && match.round === 1 && <NoShowControl nameA={nameA} nameB={nameB} onNoShow={onNoShow} />}
+    </div>
+  );
+}
+
+/**
+ * The one remaining fully destructive action on this page - unlike a bye,
+ * a rename, or a reopened match, there's no undo for wiping a night's
+ * scores. A plain confirm() is too easy to click through without reading,
+ * so this requires typing the night's name back before it'll do anything.
+ */
+function ResetBracketControl({ nightName, onReset }: { nightName: string; onReset: () => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const canConfirm = confirmText.trim().length > 0 && confirmText.trim() === nightName;
+
+  if (!open) {
+    return (
+      <button className="secondary" onClick={() => setOpen(true)}>
+        Reset bracket
+      </button>
+    );
+  }
+
+  return (
+    <div className="card" style={{ borderColor: "var(--maroon)" }}>
+      <p className="error" style={{ marginTop: 0 }}>
+        This deletes every match and score for this night. There&rsquo;s no way to undo it.
+      </p>
+      <p className="hint">
+        Type the night&rsquo;s name to confirm: <strong>{nightName}</strong>
+      </p>
+      <div className="field">
+        <input
+          value={confirmText}
+          onChange={(e) => setConfirmText(e.target.value)}
+          placeholder={nightName}
+          autoFocus
+        />
+      </div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button
+          className="danger"
+          disabled={!canConfirm}
+          onClick={async () => {
+            await onReset();
+            setOpen(false);
+            setConfirmText("");
+          }}
+        >
+          Delete everything
+        </button>
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => {
+            setOpen(false);
+            setConfirmText("");
+          }}
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
 }
