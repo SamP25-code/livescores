@@ -57,6 +57,13 @@ export default function NightPage({ params }: { params: { id: string } }) {
       })
       .on(
         "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "nights", filter: `id=eq.${nightId}` },
+        (payload) => {
+          setNight(payload.new as Night);
+        }
+      )
+      .on(
+        "postgres_changes",
         { event: "*", schema: "public", table: "matches", filter: `night_id=eq.${nightId}` },
         (payload) => {
           setMatches((prev) => {
