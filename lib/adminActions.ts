@@ -38,7 +38,7 @@ export async function createNight(name: string, kind: "qualifier" | "finals") {
 
   const { data, error } = await supabase
     .from("nights")
-    .insert({ name, kind, sort_order: nextSortOrder })
+    .insert({ name, kind, sort_order: nextSortOrder, draw_published: false })
     .select()
     .single();
   if (error) throw error;
@@ -413,5 +413,10 @@ export async function getFinalsRoster(): Promise<{ nightId: string; players: Pla
 
 export async function resetBracket(nightId: string) {
   const { error } = await supabase.from("matches").delete().eq("night_id", nightId);
+  if (error) throw error;
+}
+
+export async function setDrawPublished(nightId: string, published: boolean) {
+  const { error } = await supabase.from("nights").update({ draw_published: published }).eq("id", nightId);
   if (error) throw error;
 }

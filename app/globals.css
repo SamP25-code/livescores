@@ -92,6 +92,13 @@ a {
   margin: 0 auto;
 }
 
+.sponsor-logo {
+  display: block;
+  height: 100px;
+  width: auto;
+  margin: 0 auto 8px;
+}
+
 .top-bar .brand a {
   color: var(--green-deep);
   font-weight: 800;

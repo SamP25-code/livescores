@@ -4,6 +4,7 @@ export type Night = {
   kind: "qualifier" | "finals";
   status: "upcoming" | "live" | "complete";
   sort_order: number;
+  draw_published: boolean;
   created_at: string;
 };
 

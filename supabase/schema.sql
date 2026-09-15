@@ -10,6 +10,9 @@ create table nights (
   kind text not null default 'qualifier' check (kind in ('qualifier', 'finals')),
   status text not null default 'upcoming' check (status in ('upcoming', 'live', 'complete')),
   sort_order int not null default 0,  -- controls display order in the public nav, regardless of creation order
+  draw_published boolean not null default true,  -- while false, the public page shows only the roster,
+                                                  -- not the generated bracket/matches - lets the admin
+                                                  -- finish arranging the draw before revealing it
   created_at timestamptz not null default now()
 );
 
@@ -180,3 +183,9 @@ alter publication supabase_realtime add table match_events;
 -- create policy "auth write match_events" on match_events for all
 --   using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 -- alter publication supabase_realtime add table match_events;
+
+-- If you already ran this schema before `nights.draw_published` was added
+-- above, run this once instead of the whole file. Defaults every existing
+-- night to true (published) so nothing already live gets hidden by this -
+-- new nights created afterwards start unpublished automatically.
+-- alter table nights add column draw_published boolean not null default true;

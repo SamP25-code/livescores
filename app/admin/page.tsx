@@ -90,9 +90,16 @@ export default function AdminDashboard() {
             <div className="card">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <strong style={{ color: "var(--ink)" }}>{night.name}</strong>
-                <span className={`status-pill ${status}`}>
-                  {status === "live" && <span className="live-dot" />}
-                  {status}
+                <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  {!night.draw_published && (
+                    <span className="status-pill" style={{ background: "var(--gold-pale)", color: "var(--gold-deep)" }}>
+                      draw hidden
+                    </span>
+                  )}
+                  <span className={`status-pill ${status}`}>
+                    {status === "live" && <span className="live-dot" />}
+                    {status}
+                  </span>
                 </span>
               </div>
             </div>

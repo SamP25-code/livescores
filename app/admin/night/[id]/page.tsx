@@ -34,6 +34,7 @@ import {
   reopenMatch,
   reorderPlayers,
   resetBracket,
+  setDrawPublished,
   setFinalsNumber,
   setFinalsPlayerSeed,
   setPlayerBye,
@@ -168,6 +169,36 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
 
       <h1>{night?.name ?? "Loading…"}</h1>
       {error && <p className="error">{error}</p>}
+
+      {night && (
+        <div
+          className="card"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
+            borderColor: night.draw_published ? "var(--line)" : "var(--gold)",
+          }}
+        >
+          <div>
+            <strong>{night.draw_published ? "Draw is live" : "Draw is hidden"}</strong>
+            <p className="hint" style={{ margin: 0 }}>
+              {night.draw_published
+                ? "The public page shows the current bracket and scores."
+                : "The public page only shows the roster — the bracket stays private until you publish it."}
+            </p>
+          </div>
+          <button
+            className={night.draw_published ? "secondary" : ""}
+            onClick={withErrorHandling(async () => {
+              await setDrawPublished(nightId, !night.draw_published);
+            })}
+          >
+            {night.draw_published ? "Unpublish" : "Publish draw"}
+          </button>
+        </div>
+      )}
 
       {isFinals && (
         <section>

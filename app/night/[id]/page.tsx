@@ -116,36 +116,41 @@ export default function NightPage({ params }: { params: { id: string } }) {
   }, [matches]);
 
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1][0] : 0;
+  const drawPublished = night?.draw_published ?? true;
+  const showDraw = rounds.length > 0 && drawPublished;
 
   const qualifiers = useMemo(() => {
-    if (!night || night.kind !== "qualifier" || lastRound === 0) return [];
+    if (!night || night.kind !== "qualifier" || lastRound === 0 || !drawPublished) return [];
     return matches
       .filter((m) => m.round === lastRound && m.status === "complete" && m.winner_id)
       .sort((a, b) => a.slot - b.slot)
       .map((m) => (m.winner_id ? players[m.winner_id] : undefined))
       .filter((p): p is Player => Boolean(p));
-  }, [matches, players, night, lastRound]);
+  }, [matches, players, night, lastRound, drawPublished]);
 
+  // Doubles as the fallback view whenever the real bracket shouldn't show
+  // yet - either it hasn't been generated, or it has but the admin hasn't
+  // published it.
   const finalsSlots = useMemo(() => {
-    if (!night || night.kind !== "finals" || rounds.length > 0) return [];
+    if (!night || night.kind !== "finals" || showDraw) return [];
     return buildFinalsSlots(Object.values(players));
-  }, [players, night, rounds]);
+  }, [players, night, showDraw]);
 
   const qualifierPlayers = useMemo(() => {
-    if (!night || night.kind !== "qualifier" || rounds.length > 0) return [];
+    if (!night || night.kind !== "qualifier" || showDraw) return [];
     return Object.values(players)
       .filter((p) => !p.is_bye)
       .sort((a, b) => a.sort_order - b.sort_order);
-  }, [players, night, rounds]);
+  }, [players, night, showDraw]);
 
   const champion = useMemo(() => {
-    if (!night || night.kind !== "finals" || rounds.length === 0) return null;
+    if (!night || night.kind !== "finals" || !showDraw) return null;
     const [, lastRoundMatches] = rounds[rounds.length - 1];
     if (lastRoundMatches.length !== 1) return null;
     const finalMatch = lastRoundMatches[0];
     if (finalMatch.status !== "complete" || !finalMatch.winner_id) return null;
     return players[finalMatch.winner_id] ?? null;
-  }, [night, rounds, players]);
+  }, [night, rounds, players, showDraw]);
 
   return (
     <div className="page">
@@ -194,7 +199,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
         </p>
       )}
 
-      {!loadError && rounds.length === 0 && finalsSlots.length > 0 && (
+      {!loadError && finalsSlots.length > 0 && (
         <>
           <p className="hint" style={{ textAlign: "center" }}>
             Qualifiers confirmed so far &mdash; the lineup fills in as each qualifying night finishes.
@@ -211,11 +216,11 @@ export default function NightPage({ params }: { params: { id: string } }) {
         </>
       )}
 
-      {!loadError && rounds.length === 0 && qualifierPlayers.length > 0 && (
+      {!loadError && qualifierPlayers.length > 0 && (
         <>
           <p className="hint" style={{ textAlign: "center" }}>
             {qualifierPlayers.length} player{qualifierPlayers.length === 1 ? "" : "s"} entered &mdash; the draw will
-            appear here once it&rsquo;s made.
+            appear here once it&rsquo;s ready.
           </p>
           <div className="roster-list">
             {qualifierPlayers.map((p, i) => (
@@ -229,7 +234,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
         </>
       )}
 
-      {!loadError && night?.kind === "finals" && rounds.length > 0 && (
+      {!loadError && night?.kind === "finals" && showDraw && (
         <div className="view-toggle">
           <button
             type="button"
@@ -248,7 +253,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
         </div>
       )}
 
-      {!loadError && night?.kind === "finals" && rounds.length > 0 && viewMode === "bracket" ? (
+      {!loadError && night?.kind === "finals" && showDraw && viewMode === "bracket" ? (
         <BracketTree
           rounds={rounds}
           night={night}
@@ -259,6 +264,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
         />
       ) : (
         !loadError &&
+        showDraw &&
         rounds.map(([round, roundMatches]) => (
           <section key={round}>
             <div className="round-heading">
