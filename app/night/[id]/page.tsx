@@ -117,7 +117,10 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1][0] : 0;
   const drawPublished = night?.draw_published ?? true;
-  const showDraw = rounds.length > 0 && drawPublished;
+  // Finals day updates live as it happens, same as before this feature
+  // existed - only a qualifying night's draw waits on an explicit publish,
+  // since that's the one the admin privately rearranges beforehand.
+  const showDraw = rounds.length > 0 && (night?.kind === "finals" || drawPublished);
 
   const qualifiers = useMemo(() => {
     if (!night || night.kind !== "qualifier" || lastRound === 0 || !drawPublished) return [];
@@ -136,11 +139,16 @@ export default function NightPage({ params }: { params: { id: string } }) {
     return buildFinalsSlots(Object.values(players));
   }, [players, night, showDraw]);
 
+  // Deliberately alphabetical, not sort_order - sort_order is what the
+  // admin drags to set round-1 pairing, and showing that live would leak
+  // every drag while they're still arranging it. Alphabetical order never
+  // changes as they work, so nothing here hints at the pairing until the
+  // real draw is published.
   const qualifierPlayers = useMemo(() => {
     if (!night || night.kind !== "qualifier" || showDraw) return [];
     return Object.values(players)
       .filter((p) => !p.is_bye)
-      .sort((a, b) => a.sort_order - b.sort_order);
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [players, night, showDraw]);
 
   const champion = useMemo(() => {
@@ -223,9 +231,8 @@ export default function NightPage({ params }: { params: { id: string } }) {
             appear here once it&rsquo;s ready.
           </p>
           <div className="roster-list">
-            {qualifierPlayers.map((p, i) => (
+            {qualifierPlayers.map((p) => (
               <div key={p.id} className="roster-row">
-                <span className="roster-number">{i + 1}</span>
                 <Avatar name={p.name} />
                 <span className="roster-name">{p.name}</span>
               </div>

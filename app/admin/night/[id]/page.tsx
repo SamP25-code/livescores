@@ -170,7 +170,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
       <h1>{night?.name ?? "Loading…"}</h1>
       {error && <p className="error">{error}</p>}
 
-      {night && (
+      {night && !isFinals && (
         <div
           className="card"
           style={{

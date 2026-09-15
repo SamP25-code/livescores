@@ -38,7 +38,7 @@ export async function createNight(name: string, kind: "qualifier" | "finals") {
 
   const { data, error } = await supabase
     .from("nights")
-    .insert({ name, kind, sort_order: nextSortOrder, draw_published: false })
+    .insert({ name, kind, sort_order: nextSortOrder, draw_published: kind === "finals" })
     .select()
     .single();
   if (error) throw error;
