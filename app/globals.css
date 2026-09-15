@@ -663,16 +663,20 @@ label {
 .round-col .round {
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  /* Centering (rather than space-around) a block whose gap has been
+     precisely computed by BracketTree's layout effect is what actually
+     lines each match up with the midpoint of the two feeding it - see the
+     comment above that effect for the maths. */
+  justify-content: center;
   flex: 1;
-  gap: 16px;
+  gap: var(--group-gap, 16px);
 }
 
 .round-col .pair {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--pair-gap, 10px);
 }
 
 .round-col .pair::after {
@@ -689,6 +693,11 @@ label {
   display: block;
   position: relative;
   padding: 10px 12px;
+  /* .card sets margin-bottom: 12px for the stacked list view - spacing here
+     is handled entirely by .round/.pair's gap instead, so this must be
+     zeroed or every match ends up with extra untracked space beneath it
+     that the alignment maths below doesn't know about. */
+  margin-bottom: 0;
 }
 
 .match.compact::after {

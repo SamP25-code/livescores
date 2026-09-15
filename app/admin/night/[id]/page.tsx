@@ -51,6 +51,12 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [finalsRoster, setFinalsRoster] = useState<Player[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // Tracks which matches have an adjustScore call in flight, so the +/-
+  // buttons can be disabled for just that match while it's pending. Without
+  // this, two rapid taps both read the same not-yet-refreshed score and the
+  // second write silently overwrites the first instead of adding to it -
+  // exactly the "fast taps lose a point" behaviour reported from testing.
+  const [pendingMatchIds, setPendingMatchIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     document.title = night ? `${night.name} — Admin — Bowls Live` : "Admin — Bowls Live";
@@ -104,6 +110,26 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
         setError(errorMessage(err));
       }
     };
+  }
+
+  function handleAdjust(match: MatchRow, side: "a" | "b", delta: number) {
+    if (pendingMatchIds.has(match.id)) return;
+    setError(null);
+    setPendingMatchIds((prev) => new Set(prev).add(match.id));
+    (async () => {
+      try {
+        await adjustScore(match, side, delta);
+        await refresh();
+      } catch (err) {
+        setError(errorMessage(err));
+      } finally {
+        setPendingMatchIds((prev) => {
+          const next = new Set(prev);
+          next.delete(match.id);
+          return next;
+        });
+      }
+    })();
   }
 
   const rounds = useMemo(() => {
@@ -230,7 +256,8 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
                   key={m.id}
                   match={m}
                   playerNames={playerNames}
-                  onAdjust={withErrorHandling((side, delta) => adjustScore(m, side, delta))}
+                  pending={pendingMatchIds.has(m.id)}
+                  onAdjust={(side, delta) => handleAdjust(m, side, delta)}
                   onComplete={withErrorHandling(() => completeMatch(m))}
                   onReopen={withErrorHandling(() => reopenMatch(m))}
                   onNoShow={withErrorHandling((side: "a" | "b") => markNoShow(m, side))}
@@ -530,6 +557,7 @@ function BracketSetup({
 function MatchEditor({
   match,
   playerNames,
+  pending,
   onAdjust,
   onComplete,
   onReopen,
@@ -537,7 +565,8 @@ function MatchEditor({
 }: {
   match: MatchRow;
   playerNames: Record<string, string>;
-  onAdjust: (side: "a" | "b", delta: number) => Promise<void>;
+  pending: boolean;
+  onAdjust: (side: "a" | "b", delta: number) => void;
   onComplete: () => Promise<void>;
   onReopen: () => Promise<void>;
   onNoShow: (side: "a" | "b") => Promise<void>;
@@ -574,7 +603,7 @@ function MatchEditor({
             name={nameA}
             score={match.score_a}
             isWinner={Boolean(match.winner_id) && match.winner_id === match.player_a_id}
-            disabled={complete}
+            disabled={complete || pending}
             onAdjust={(delta) => onAdjust("a", delta)}
           />
           <hr className="divider" />
@@ -582,7 +611,7 @@ function MatchEditor({
             name={nameB}
             score={match.score_b}
             isWinner={Boolean(match.winner_id) && match.winner_id === match.player_b_id}
-            disabled={complete}
+            disabled={complete || pending}
             onAdjust={(delta) => onAdjust("b", delta)}
           />
         </div>
