@@ -17,10 +17,6 @@ function describeEvent(e: MatchEvent): string {
   }
 }
 
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-}
-
 export default function MatchHistory({ matchId }: { matchId: string }) {
   const [events, setEvents] = useState<MatchEvent[]>([]);
 
@@ -62,10 +58,7 @@ export default function MatchHistory({ matchId }: { matchId: string }) {
   return (
     <ul className="match-history">
       {events.map((e) => (
-        <li key={e.id}>
-          <span className="match-history-time">{formatTime(e.created_at)}</span>
-          <span className="match-history-desc">{describeEvent(e)}</span>
-        </li>
+        <li key={e.id}>{describeEvent(e)}</li>
       ))}
     </ul>
   );
