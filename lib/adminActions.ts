@@ -196,16 +196,30 @@ export async function adjustScore(match: MatchRow, side: "a" | "b", delta: numbe
   const current = side === "a" ? match.score_a : match.score_b;
   const nextValue = Math.min(match.target_score, Math.max(0, current + delta));
   if (nextValue === current) return;
-  const nextStatus = match.status === "upcoming" ? "live" : match.status;
-  const { error } = await supabase
-    .from("matches")
-    .update({ [field]: nextValue, status: nextStatus })
-    .eq("id", match.id);
-  if (error) throw error;
 
   const scoreA = side === "a" ? nextValue : match.score_a;
   const scoreB = side === "b" ? nextValue : match.score_b;
-  await logMatchEvent(match, "score", scoreA, scoreB, nextStatus);
+  const scored = { score_a: scoreA, score_b: scoreB, target_score: match.target_score };
+  const complete = isMatchComplete(scored);
+  const winnerSide = complete ? getWinnerSide(scored) : null;
+  const winnerId = winnerSide === "a" ? match.player_a_id : winnerSide === "b" ? match.player_b_id : null;
+  const nextStatus = complete ? "complete" : match.status === "upcoming" ? "live" : match.status;
+
+  const { error } = await supabase
+    .from("matches")
+    .update({ [field]: nextValue, status: nextStatus, winner_id: winnerId })
+    .eq("id", match.id);
+  if (error) throw error;
+
+  await logMatchEvent(match, complete ? "complete" : "score", scoreA, scoreB, nextStatus);
+
+  if (complete && match.next_match_id && match.next_match_slot && winnerId) {
+    const nextField = match.next_match_slot === "a" ? "player_a_id" : "player_b_id";
+    await supabase
+      .from("matches")
+      .update({ [nextField]: winnerId })
+      .eq("id", match.next_match_id);
+  }
 }
 
 export async function completeMatch(match: MatchRow) {
