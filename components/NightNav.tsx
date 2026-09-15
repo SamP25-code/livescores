@@ -26,9 +26,6 @@ export default function NightNav({
       .then(({ data }) => setNights(data ?? []));
   }, []);
 
-  // Status badges are only shown on the home variant, so only that one
-  // needs to know it - and needs to hear about every match changing, not
-  // just one night's, since they're all shown together.
   useEffect(() => {
     if (variant !== "home") return;
 

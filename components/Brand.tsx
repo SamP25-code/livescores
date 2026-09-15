@@ -1,8 +1,3 @@
-/**
- * The site's header line. Update the wording/sponsor here and it changes
- * everywhere at once - homepage, every night's page, admin, and the 404
- * page all render this same component.
- */
 export default function Brand({ suffix }: { suffix?: string }) {
   return (
     <span className="brand">

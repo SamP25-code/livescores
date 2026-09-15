@@ -233,7 +233,7 @@ describe("buildByeSlots", () => {
   });
 
   it("never puts two byes in the same match", () => {
-    const slots = buildByeSlots(players(9)); // pads to 16 - 7 byes across 8 pairs
+    const slots = buildByeSlots(players(9));
     for (let i = 0; i < slots.length; i += 2) {
       const bothByes = slots[i] == null && slots[i + 1] == null;
       expect(bothByes).toBe(false);
@@ -258,14 +258,14 @@ describe("buildQualifierSlots", () => {
 
   it("turns a marked no-show into a bye at their exact position, without touching anyone else's", () => {
     const input = players(4);
-    input[1].is_bye = true; // p2 didn't show up
+    input[1].is_bye = true;
     const slots = buildQualifierSlots(input);
     expect(slots.map((p) => p?.id ?? null)).toEqual(["p1", null, "p3", "p4"]);
   });
 
   it("still pads the remaining gap if the roster isn't a power of two even counting marked byes", () => {
     const input = players(3);
-    input[0].is_bye = true; // only 3 people signed up, and one of them is a no-show
+    input[0].is_bye = true;
     const slots = buildQualifierSlots(input);
     expect(slots).toHaveLength(4);
     expect(slots.map((p) => p?.id ?? null)).toEqual([null, "p2", "p3", null]);

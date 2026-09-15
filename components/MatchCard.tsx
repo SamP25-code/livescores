@@ -2,13 +2,6 @@ import Avatar from "@/components/Avatar";
 import FlashingScore from "@/components/FlashingScore";
 import type { MatchRow, Player } from "@/lib/types";
 
-/**
- * A single match, shared by the round-by-round list and the bracket tree
- * view - same avatars, same bold-winner/faded-loser treatment, same
- * flashing scores, same click-a-name-to-highlight-their-run behaviour,
- * just laid out differently by whichever parent renders it (`compact`
- * shrinks it to fit a narrow bracket column).
- */
 export default function MatchCard({
   match,
   players,
@@ -22,10 +15,6 @@ export default function MatchCard({
   onSelectPlayer?: (playerId: string) => void;
   compact?: boolean;
 }) {
-  // A bye can land on either side - the original padding algorithm always
-  // put it on B, but a no-show discovered mid-match (see markNoShow) clears
-  // whichever side didn't turn up, so this checks for exactly one blank
-  // side on an otherwise-decided match, not specifically which one.
   const isBye = match.status === "complete" && Boolean(match.player_a_id) !== Boolean(match.player_b_id);
   const playerA = match.player_a_id ? players[match.player_a_id] : undefined;
   const playerB = match.player_b_id ? players[match.player_b_id] : undefined;

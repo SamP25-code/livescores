@@ -17,14 +17,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { Player } from "@/lib/types";
 
-/**
- * Drag-and-drop board for assigning finals-day draw numbers: drag a player
- * chip onto one of the 16 numbered slots, or back down to "Not yet placed"
- * to clear their number. Used both on finals day itself (managing every
- * seat) and on a qualifying night (managing just that night's own
- * qualifiers against the shared finals-day lineup - other nights' occupants
- * show up read-only, for context, since this board can't move them).
- */
 export default function FinalsSlotBoard({
   slots,
   pool,
@@ -35,14 +27,6 @@ export default function FinalsSlotBoard({
   slots: Array<Player | null>;
   pool: Player[];
   currentSeedOf: (player: Player) => number | null;
-  /**
-   * How to read a slot occupant's identity for matching against `pool`.
-   * Defaults to the occupant's own id, which is correct when `pool` and
-   * `slots` are drawn from the same table (finals day managing its own
-   * players). On a qualifying night, `slots` comes from finals day's player
-   * rows while `pool` is this night's own rows for the same people, so the
-   * two only line up via `qualified_from_player_id`.
-   */
   occupantIdentity?: (occupant: Player) => string;
   onAssign: (player: Player, seed: number | null) => Promise<void>;
 }) {
@@ -71,7 +55,6 @@ export default function FinalsSlotBoard({
 
     const seed = Number(String(over.id).replace("slot-", ""));
     if (currentSeedOf(player) === seed) return;
-    // Seeds are unique per night, so if someone's here, it can only be someone else.
     const occupant = slots[seed - 1];
     if (occupant && !confirm(`${occupant.name} is currently #${seed}. Move ${player.name} there instead?`)) {
       return;

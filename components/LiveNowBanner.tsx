@@ -6,13 +6,6 @@ import { supabase } from "@/lib/supabaseClient";
 
 type LiveNight = { nightId: string; nightName: string; count: number };
 
-/**
- * Surfaces which night(s) have a match live right now, across the whole
- * competition, so viewers don't have to open each one just to find the
- * action. Grouped by night rather than listing every pairing, since a
- * qualifying night can easily have several round-1 games live at once.
- * Renders nothing when nothing's live.
- */
 export default function LiveNowBanner() {
   const [liveNights, setLiveNights] = useState<LiveNight[]>([]);
 

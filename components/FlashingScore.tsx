@@ -2,11 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-/**
- * A score number that briefly pops when its value changes, so a live
- * update actually reads as "live" instead of just silently re-rendering.
- * Never flashes on first mount - only on a genuine change afterwards.
- */
 export default function FlashingScore({
   value,
   className = "score",

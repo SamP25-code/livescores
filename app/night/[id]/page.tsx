@@ -50,9 +50,6 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
     load();
 
-    // Live updates: re-fetch the affected match whenever anything changes.
-    // The same channel also tracks presence, so "N watching now" is free -
-    // no extra connection, no database writes.
     const channel = supabase
       .channel(`night-${nightId}`, { config: { presence: { key: crypto.randomUUID() } } })
       .on("presence", { event: "sync" }, () => {
@@ -129,18 +126,18 @@ export default function NightPage({ params }: { params: { id: string } }) {
       .filter((p): p is Player => Boolean(p));
   }, [matches, players, night, lastRound]);
 
-  // Before finals day's bracket is generated, players still arrive one at a
-  // time as each qualifying night finishes - show the full 16-slot lineup,
-  // filled in as far as it's got, blank where a name isn't confirmed yet.
   const finalsSlots = useMemo(() => {
     if (!night || night.kind !== "finals" || rounds.length > 0) return [];
     return buildFinalsSlots(Object.values(players));
   }, [players, night, rounds]);
 
-  // Finals day plays down to a single deciding match - once it's complete,
-  // that's the competition won. Qualifying nights never reach a single
-  // match (their last round always narrows to several winners advancing,
-  // not one overall champion), so this only ever fires for finals day.
+  const qualifierPlayers = useMemo(() => {
+    if (!night || night.kind !== "qualifier" || rounds.length > 0) return [];
+    return Object.values(players)
+      .filter((p) => !p.is_bye)
+      .sort((a, b) => a.sort_order - b.sort_order);
+  }, [players, night, rounds]);
+
   const champion = useMemo(() => {
     if (!night || night.kind !== "finals" || rounds.length === 0) return null;
     const [, lastRoundMatches] = rounds[rounds.length - 1];
@@ -191,7 +188,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
         </div>
       )}
 
-      {!loadError && rounds.length === 0 && finalsSlots.length === 0 && (
+      {!loadError && rounds.length === 0 && finalsSlots.length === 0 && qualifierPlayers.length === 0 && (
         <p className="empty" style={{ textAlign: "center" }}>
           The draw hasn&rsquo;t been entered for this night yet.
         </p>
@@ -206,6 +203,21 @@ export default function NightPage({ params }: { params: { id: string } }) {
             <div key={i} className="card" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
               <span>{i + 1}.</span>
               <span>{p ? p.name : ""}</span>
+            </div>
+          ))}
+        </>
+      )}
+
+      {!loadError && rounds.length === 0 && qualifierPlayers.length > 0 && (
+        <>
+          <p className="hint" style={{ textAlign: "center" }}>
+            {qualifierPlayers.length} player{qualifierPlayers.length === 1 ? "" : "s"} entered &mdash; the draw will
+            appear here once it&rsquo;s made.
+          </p>
+          {qualifierPlayers.map((p, i) => (
+            <div key={p.id} className="card" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
+              <span>{i + 1}.</span>
+              <span>{p.name}</span>
             </div>
           ))}
         </>

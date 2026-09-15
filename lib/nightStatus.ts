@@ -1,11 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { computeNightStatus, type NightStatus } from "@/lib/bracket";
 
-/**
- * Every night's live status, derived from its matches - see
- * computeNightStatus. A night with no matches simply won't have an entry;
- * treat a missing id as "upcoming".
- */
 export async function fetchNightStatuses(): Promise<Record<string, NightStatus>> {
   const { data } = await supabase.from("matches").select("night_id, round, status");
 

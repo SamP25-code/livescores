@@ -33,12 +33,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/*
- * Full-page background photo, fixed behind everything. A tinted scrim
- * (same weight as the old solid --cream) sits over it so text and cards
- * stay exactly as readable as before - the photo shows through as a
- * subtle backdrop rather than competing with the content.
- */
 .site-background {
   position: fixed;
   inset: 0;
@@ -116,7 +110,6 @@ a {
   margin-left: 14px;
 }
 
-/* A plain compact header (e.g. the admin editor's "back" link) rather than the centered sponsor banner. */
 .top-bar-plain {
   text-align: left;
   padding: 0 0 12px;
@@ -605,7 +598,6 @@ label {
   margin: 20px 0;
 }
 
-/* Finals-day bracket tree */
 .round-tabs {
   display: flex;
   gap: 8px;
@@ -663,10 +655,6 @@ label {
 .round-col .round {
   display: flex;
   flex-direction: column;
-  /* Centering (rather than space-around) a block whose gap has been
-     precisely computed by BracketTree's layout effect is what actually
-     lines each match up with the midpoint of the two feeding it - see the
-     comment above that effect for the maths. */
   justify-content: center;
   flex: 1;
   gap: var(--group-gap, 16px);
@@ -693,10 +681,6 @@ label {
   display: block;
   position: relative;
   padding: 10px 12px;
-  /* .card sets margin-bottom: 12px for the stacked list view - spacing here
-     is handled entirely by .round/.pair's gap instead, so this must be
-     zeroed or every match ends up with extra untracked space beneath it
-     that the alignment maths below doesn't know about. */
   margin-bottom: 0;
 }
 

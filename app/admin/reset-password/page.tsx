@@ -4,11 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
-/**
- * Where the "reset password" email link lands. Supabase turns that link
- * into a temporary signed-in session automatically (via the token in the
- * URL), so this just needs to collect a new password and save it.
- */
 export default function ResetPasswordPage() {
   const router = useRouter();
   const [password, setPassword] = useState("");

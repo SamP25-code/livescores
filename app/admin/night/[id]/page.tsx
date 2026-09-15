@@ -51,11 +51,6 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [finalsRoster, setFinalsRoster] = useState<Player[]>([]);
   const [error, setError] = useState<string | null>(null);
-  // Tracks which matches have an adjustScore call in flight, so the +/-
-  // buttons can be disabled for just that match while it's pending. Without
-  // this, two rapid taps both read the same not-yet-refreshed score and the
-  // second write silently overwrites the first instead of adding to it -
-  // exactly the "fast taps lose a point" behaviour reported from testing.
   const [pendingMatchIds, setPendingMatchIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -73,9 +68,6 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
     setPlayers(playerData ?? []);
     setFinalsRoster(roster?.players ?? []);
 
-    // A finals night created before its bracket generated up front (see
-    // createNight) won't have one yet - backfill it once, here, rather than
-    // making every visitor wait on a manual step.
     if (nightData?.kind === "finals" && (matchData ?? []).length === 0) {
       try {
         await ensureFinalsBracketGenerated(nightData.id);
@@ -87,9 +79,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
           .order("slot");
         setMatches(freshMatches ?? []);
         return;
-      } catch {
-        // Someone else generated it in the meantime - fall through to what we already fetched.
-      }
+      } catch {}
     }
 
     setMatches(matchData ?? []);
@@ -97,7 +87,6 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nightId]);
 
   function withErrorHandling<Args extends unknown[]>(fn: (...args: Args) => Promise<void>) {
@@ -144,11 +133,6 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1][0] : 0;
   const isFinals = night?.kind === "finals";
 
-  // On a qualifying night, players are paired in round-1 draw order (drag to
-  // set it - see PlayerSection). On finals day, players arrive from
-  // different qualifying nights at different times, so their draw position
-  // is their seed (the number they drew), not when they happened to be
-  // added here.
   const orderedPlayers = useMemo(() => {
     if (!isFinals) return players;
     return [...players].sort((a, b) => {
@@ -160,8 +144,6 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
 
   const playerNames = useMemo(() => Object.fromEntries(players.map((p) => [p.id, p.name])), [players]);
 
-  // Winners of the final round of a qualifying night: these are the players
-  // advancing to finals day, in the order they finished their match.
   const qualifiers = useMemo(() => {
     if (!night || night.kind !== "qualifier" || lastRound === 0) return [];
     return matches
@@ -171,10 +153,6 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
       .filter((p): p is Player => Boolean(p));
   }, [matches, players, night, lastRound]);
 
-  // Which finals-day slot each occupant holds - sourced from finals day's
-  // own player list when we're on finals day itself, or the
-  // separately-fetched roster when we're on a qualifying night looking
-  // ahead at finals day.
   const finalsOccupancy = isFinals ? players : finalsRoster;
   const finalsSlots = useMemo(() => buildFinalsSlots(finalsOccupancy), [finalsOccupancy]);
   const bracketExists = matches.length > 0;
@@ -475,12 +453,6 @@ function SortablePlayerRow({
   );
 }
 
-/**
- * Finals day fills in automatically as qualifiers are confirmed, so there's
- * nothing to add in the normal case. This is only for the rare exception -
- * a replacement, a bye - and deliberately stays out of the way so it isn't
- * mistaken for a required step.
- */
 function AddExtraFinalsPlayer({ onAdd }: { onAdd: (name: string) => Promise<void> }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -572,9 +544,6 @@ function MatchEditor({
   onNoShow: (side: "a" | "b") => Promise<void>;
 }) {
   if (!match.player_a_id || !match.player_b_id) {
-    // A bye can land on either side - see markNoShow - so this checks for
-    // exactly one blank side on an otherwise-decided match, not specifically
-    // which one, and looks up whichever id is actually present.
     const isBye = match.status === "complete" && Boolean(match.player_a_id) !== Boolean(match.player_b_id);
     const advancingId = match.player_a_id ?? match.player_b_id;
     return (
@@ -637,21 +606,11 @@ function MatchEditor({
           )}
         </div>
       </div>
-      {/* Only round 1 - the first round of a qualifying night, or the last 16
-          on finals day. Anyone in a later round has already won a match, so
-          a no-show there is a different, much rarer situation than not
-          turning up at the start of the night. */}
       {!complete && match.round === 1 && <NoShowControl nameA={nameA} nameB={nameB} onNoShow={onNoShow} />}
     </div>
   );
 }
 
-/**
- * The one remaining fully destructive action on this page - unlike a bye,
- * a rename, or a reopened match, there's no undo for wiping a night's
- * scores. A plain confirm() is too easy to click through without reading,
- * so this requires typing the night's name back before it'll do anything.
- */
 function ResetBracketControl({ nightName, onReset }: { nightName: string; onReset: () => Promise<void> }) {
   const [open, setOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
@@ -708,11 +667,6 @@ function ResetBracketControl({ nightName, onReset }: { nightName: string; onRese
   );
 }
 
-/**
- * Handles the far more common bye scenario - someone who was supposed to
- * play doesn't turn up once the draw's already made, sometimes mid-game.
- * Collapsed by default so it doesn't clutter the normal scoring flow.
- */
 function NoShowControl({
   nameA,
   nameB,

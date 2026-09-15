@@ -1,8 +1,3 @@
-/**
- * A small colored circle with someone's initials. The color is derived from
- * their name, so the same person looks the same everywhere - rosters, match
- * cards, the finals board - making every list easier to scan at a glance.
- */
 export default function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" }) {
   return (
     <span className={`avatar ${size === "sm" ? "avatar-sm" : ""}`} style={{ background: `hsl(${hashHue(name)}, 40%, 32%)` }}>
@@ -18,7 +13,6 @@ function getInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-/** Same name always maps to the same hue, so it stays consistent across the site. */
 function hashHue(name: string): number {
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
