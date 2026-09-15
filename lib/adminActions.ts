@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import {
-  buildByeSlots,
   buildFinalsSlots,
+  buildQualifierSlots,
   firstRoundPairs,
   getWinnerSide,
   isMatchComplete,
@@ -88,6 +88,18 @@ export async function renamePlayer(playerId: string, name: string) {
 }
 
 /**
+ * Marks (or unmarks) a qualifying-night entry as a bye - for a confirmed
+ * no-show, at exactly the draw position they'd already been dragged to,
+ * rather than deleting them and letting everyone else's pairing shift.
+ * Their name is kept underneath so this is easy to undo if marked by
+ * mistake. Only meaningful before the bracket's been generated.
+ */
+export async function setPlayerBye(playerId: string, isBye: boolean) {
+  const { error } = await supabase.from("players").update({ is_bye: isBye }).eq("id", playerId);
+  if (error) throw error;
+}
+
+/**
  * Builds the bracket for a night, pairing round 1 straight from the order
  * players were added in (player 1 v player 2, player 3 v player 4, ...) -
  * that order IS the draw, so get the names in the right order first. A
@@ -126,8 +138,18 @@ export async function generateBracket(
   // no one left to play, so the other side wins automatically. For finals
   // day, a blank slot just means nobody's been given that number yet, and
   // stays open until they are - never treated as a bye.
-  const slots: Array<Player | null> = kind === "finals" ? buildFinalsSlots(players) : buildByeSlots(players);
+  const slots: Array<Player | null> = kind === "finals" ? buildFinalsSlots(players) : buildQualifierSlots(players);
   const drawSize = slots.length;
+
+  if (kind === "qualifier") {
+    for (let i = 0; i < slots.length; i += 2) {
+      if (slots[i] == null && slots[i + 1] == null) {
+        throw new Error(
+          "Two byes ended up paired against each other - move one to a different position (or add another player) and try again."
+        );
+      }
+    }
+  }
   const rounds = kind === "qualifier" ? 2 : totalRounds(drawSize);
   let previousRoundIds: string[] = [];
   let previousRoundByeWinners: Array<string | null> = [];

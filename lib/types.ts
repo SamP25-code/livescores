@@ -15,6 +15,7 @@ export type Player = {
   finals_number: number | null;
   qualified_from_player_id: string | null;
   sort_order: number;
+  is_bye: boolean;
   created_at: string;
 };
 

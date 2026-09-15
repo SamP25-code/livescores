@@ -11,6 +11,7 @@ const {
   computeNightStatus,
   nextPowerOfTwo,
   buildByeSlots,
+  buildQualifierSlots,
 } = require("../lib/bracket.ts");
 
 describe("roundName", () => {
@@ -244,5 +245,29 @@ describe("buildByeSlots", () => {
     const slots = buildByeSlots(input);
     const realIds = slots.filter(Boolean).map((p) => p.id);
     expect(realIds.sort()).toEqual(input.map((p) => p.id).sort());
+  });
+});
+
+describe("buildQualifierSlots", () => {
+  const players = (n) => Array.from({ length: n }, (_, i) => ({ id: `p${i + 1}` }));
+
+  it("leaves a fully real, power-of-two roster untouched", () => {
+    const slots = buildQualifierSlots(players(4));
+    expect(slots.map((p) => p?.id)).toEqual(["p1", "p2", "p3", "p4"]);
+  });
+
+  it("turns a marked no-show into a bye at their exact position, without touching anyone else's", () => {
+    const input = players(4);
+    input[1].is_bye = true; // p2 didn't show up
+    const slots = buildQualifierSlots(input);
+    expect(slots.map((p) => p?.id ?? null)).toEqual(["p1", null, "p3", "p4"]);
+  });
+
+  it("still pads the remaining gap if the roster isn't a power of two even counting marked byes", () => {
+    const input = players(3);
+    input[0].is_bye = true; // only 3 people signed up, and one of them is a no-show
+    const slots = buildQualifierSlots(input);
+    expect(slots).toHaveLength(4);
+    expect(slots.map((p) => p?.id ?? null)).toEqual([null, "p2", "p3", null]);
   });
 });

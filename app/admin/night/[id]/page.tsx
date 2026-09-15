@@ -35,6 +35,7 @@ import {
   resetBracket,
   setFinalsNumber,
   setFinalsPlayerSeed,
+  setPlayerBye,
 } from "@/lib/adminActions";
 import { buildFinalsSlots, isMatchComplete, nextPowerOfTwo, roundLabel } from "@/lib/bracket";
 import { errorMessage } from "@/lib/errors";
@@ -193,6 +194,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
           onAdd={withErrorHandling((name: string) => addPlayer(nightId, name))}
           onReorder={withErrorHandling((ids: string[]) => reorderPlayers(ids))}
           onRename={withErrorHandling((id: string, name: string) => renamePlayer(id, name))}
+          onToggleBye={withErrorHandling((id: string, isBye: boolean) => setPlayerBye(id, isBye))}
           onRemove={withErrorHandling((id: string) => deletePlayer(id))}
         />
       )}
@@ -266,6 +268,7 @@ function PlayerSection({
   onAdd,
   onReorder,
   onRename,
+  onToggleBye,
   onRemove,
 }: {
   players: Player[];
@@ -273,6 +276,7 @@ function PlayerSection({
   onAdd: (name: string) => Promise<void>;
   onReorder: (orderedIds: string[]) => Promise<void>;
   onRename: (playerId: string, name: string) => Promise<void>;
+  onToggleBye: (playerId: string, isBye: boolean) => Promise<void>;
   onRemove: (playerId: string) => Promise<void>;
 }) {
   const [name, setName] = useState("");
@@ -320,7 +324,8 @@ function PlayerSection({
         <>
           <p className="hint">
             Add players in any order, then drag them into position for round 1 pairing &mdash; player 1 plays
-            player 2, player 3 plays player 4, and so on.
+            player 2, player 3 plays player 4, and so on. Didn&rsquo;t show up on the night? Mark their spot as
+            a bye instead of removing them, so everyone else&rsquo;s position stays put.
           </p>
           <form onSubmit={handleAdd} style={{ display: "flex", gap: 8, marginBottom: 14 }}>
             <input placeholder="Player name" value={name} onChange={(e) => setName(e.target.value)} />
@@ -339,6 +344,7 @@ function PlayerSection({
                   index={i}
                   draggable={!bracketExists}
                   onRename={(name) => onRename(p.id, name)}
+                  onToggleBye={bracketExists ? undefined : () => onToggleBye(p.id, !p.is_bye)}
                   onRemove={bracketExists ? undefined : () => onRemove(p.id)}
                 />
               ))}
@@ -355,12 +361,14 @@ function SortablePlayerRow({
   index,
   draggable,
   onRename,
+  onToggleBye,
   onRemove,
 }: {
   player: Player;
   index: number;
   draggable: boolean;
   onRename: (name: string) => Promise<void>;
+  onToggleBye?: () => void;
   onRemove?: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -394,7 +402,11 @@ function SortablePlayerRow({
           </span>
         )}
         <span style={{ flex: "none" }}>{index + 1}.</span>
-        {editing ? (
+        {player.is_bye ? (
+          <span className="hint" style={{ margin: 0, fontStyle: "italic" }}>
+            BYE <span style={{ opacity: 0.7 }}>(was {player.name})</span>
+          </span>
+        ) : editing ? (
           <input
             autoFocus
             value={draftName}
@@ -422,11 +434,18 @@ function SortablePlayerRow({
           </button>
         )}
       </span>
-      {onRemove && (
-        <button className="secondary" onClick={onRemove}>
-          Remove
-        </button>
-      )}
+      <span style={{ display: "flex", gap: 8, flex: "none" }}>
+        {onToggleBye && (
+          <button className="secondary" onClick={onToggleBye}>
+            {player.is_bye ? "Undo bye" : "Bye"}
+          </button>
+        )}
+        {onRemove && (
+          <button className="secondary" onClick={onRemove}>
+            Remove
+          </button>
+        )}
+      </span>
     </div>
   );
 }

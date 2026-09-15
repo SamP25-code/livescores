@@ -134,6 +134,31 @@ export function buildByeSlots<T extends { id: string }>(players: T[]): Array<T |
   return slots;
 }
 
+/**
+ * Builds round-1 slots from a qualifying night's roster in draw order,
+ * treating anyone marked as a bye (a confirmed no-show, at whatever
+ * position the admin dragged them to) as an empty slot - their opponent
+ * wins without playing.
+ *
+ * If the roster still isn't a power of two even counting those marked byes
+ * as filled seats (e.g. only 15 people signed up in the first place,
+ * no-shows aside), the remaining gap is padded by appending more blanks -
+ * simpler than buildByeSlots' distribution, so it can (rarely) land two
+ * byes in the same match if a marked no-show is near the end of an
+ * already-odd roster. generateBracket checks for that and refuses with a
+ * clear error rather than silently producing a broken pairing; dragging
+ * the bye elsewhere resolves it.
+ */
+export function buildQualifierSlots<T extends { id: string; is_bye?: boolean }>(
+  players: T[]
+): Array<T | null> {
+  const slots: Array<T | null> = players.map((p) => (p.is_bye ? null : p));
+  const drawSize = nextPowerOfTwo(slots.length);
+  const extra = drawSize - slots.length;
+  if (extra > 0) slots.push(...(Array(extra).fill(null) as null[]));
+  return slots;
+}
+
 /** Total finals-day draw size: 4 qualifying nights x 4 winners each. */
 export const FINALS_DRAW_SIZE = 16;
 

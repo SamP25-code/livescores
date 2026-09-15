@@ -31,6 +31,9 @@ create table players (
                                         -- it can find and update/remove the right finals-day row
   sort_order int not null default 0,   -- round-1 pairing order on a qualifying night (1 v 2, 3 v 4, ...),
                                         -- set by dragging players into position on the admin page
+  is_bye boolean not null default false, -- marks a confirmed no-show at their exact draw position -
+                                          -- their opponent advances without playing. Name is kept so
+                                          -- this is easy to undo if toggled by mistake.
   created_at timestamptz not null default now()
 );
 
@@ -130,3 +133,7 @@ alter publication supabase_realtime add table nights;
 -- If you already ran this schema before `matches_night_round_slot_unique`
 -- was added above, run this once instead of the whole file:
 -- alter table matches add constraint matches_night_round_slot_unique unique (night_id, round, slot);
+
+-- If you already ran this schema before `players.is_bye` was added above,
+-- run this once instead of the whole file:
+-- alter table players add column is_bye boolean not null default false;
