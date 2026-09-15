@@ -193,7 +193,9 @@ export async function generateBracket(
 
 export async function adjustScore(match: MatchRow, side: "a" | "b", delta: number) {
   const field = side === "a" ? "score_a" : "score_b";
-  const nextValue = Math.max(0, (side === "a" ? match.score_a : match.score_b) + delta);
+  const current = side === "a" ? match.score_a : match.score_b;
+  const nextValue = Math.min(match.target_score, Math.max(0, current + delta));
+  if (nextValue === current) return;
   const nextStatus = match.status === "upcoming" ? "live" : match.status;
   const { error } = await supabase
     .from("matches")

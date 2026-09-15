@@ -574,6 +574,7 @@ function MatchEditor({
           <ScoreLine
             name={nameA}
             score={match.score_a}
+            targetScore={match.target_score}
             isWinner={Boolean(match.winner_id) && match.winner_id === match.player_a_id}
             disabled={complete || pending}
             onAdjust={(delta) => onAdjust("a", delta)}
@@ -582,6 +583,7 @@ function MatchEditor({
           <ScoreLine
             name={nameB}
             score={match.score_b}
+            targetScore={match.target_score}
             isWinner={Boolean(match.winner_id) && match.winner_id === match.player_b_id}
             disabled={complete || pending}
             onAdjust={(delta) => onAdjust("b", delta)}
@@ -721,16 +723,19 @@ function NoShowControl({
 function ScoreLine({
   name,
   score,
+  targetScore,
   isWinner,
   disabled,
   onAdjust,
 }: {
   name: string;
   score: number;
+  targetScore: number;
   isWinner: boolean;
   disabled: boolean;
   onAdjust: (delta: number) => void;
 }) {
+  const atTarget = score >= targetScore;
   return (
     <div className={`player-row ${isWinner ? "winner" : ""}`}>
       <span className="name">{name}</span>
@@ -739,10 +744,10 @@ function ScoreLine({
           &minus;
         </button>
         <FlashingScore value={score} className="value" />
-        <button className="secondary" disabled={disabled} onClick={() => onAdjust(1)}>
+        <button className="secondary" disabled={disabled || atTarget} onClick={() => onAdjust(1)}>
           +1
         </button>
-        <button className="secondary" disabled={disabled} onClick={() => onAdjust(2)}>
+        <button className="secondary" disabled={disabled || atTarget} onClick={() => onAdjust(2)}>
           +2
         </button>
       </div>
