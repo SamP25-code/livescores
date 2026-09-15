@@ -201,9 +201,10 @@ export default function NightPage({ params }: { params: { id: string } }) {
           </p>
           <div className="roster-list">
             {finalsSlots.map((p, i) => (
-              <div key={i} className="roster-row">
-                <span className="roster-number">{i + 1}.</span>
-                <span className="roster-name">{p ? p.name : ""}</span>
+              <div key={i} className={`roster-row ${p ? "" : "roster-row-empty"}`}>
+                <span className="roster-number">{i + 1}</span>
+                {p && <Avatar name={p.name} />}
+                <span className="roster-name">{p ? p.name : "TBC"}</span>
               </div>
             ))}
           </div>
@@ -219,7 +220,8 @@ export default function NightPage({ params }: { params: { id: string } }) {
           <div className="roster-list">
             {qualifierPlayers.map((p, i) => (
               <div key={p.id} className="roster-row">
-                <span className="roster-number">{i + 1}.</span>
+                <span className="roster-number">{i + 1}</span>
+                <Avatar name={p.name} />
                 <span className="roster-name">{p.name}</span>
               </div>
             ))}

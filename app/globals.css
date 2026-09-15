@@ -291,29 +291,44 @@ a {
 }
 
 .roster-list {
-  max-width: 360px;
+  max-width: 420px;
   margin: 0 auto;
-}
-
-.roster-row {
   background: #fff;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  margin-bottom: 10px;
-  padding: 14px 16px;
+  padding: 0 18px;
+}
+
+.roster-row {
   display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 10px;
-  font-size: 1.2rem;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.roster-row:last-child {
+  border-bottom: none;
+}
+
+.roster-row-empty {
+  opacity: 0.55;
 }
 
 .roster-number {
-  color: var(--ink-soft);
-  font-size: 1.1rem;
+  flex: none;
+  min-width: 22px;
+  text-align: center;
+  background: var(--green-pale);
+  color: var(--green-deep);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 999px;
 }
 
 .roster-name {
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--ink);
 }
