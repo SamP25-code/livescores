@@ -29,6 +29,7 @@ import {
   ensureFinalsBracketGenerated,
   generateBracket,
   getFinalsRoster,
+  markNoShow,
   renamePlayer,
   reopenMatch,
   reorderPlayers,
@@ -236,6 +237,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
                   onAdjust={withErrorHandling((side, delta) => adjustScore(m, side, delta))}
                   onComplete={withErrorHandling(() => completeMatch(m))}
                   onReopen={withErrorHandling(() => reopenMatch(m))}
+                  onNoShow={withErrorHandling((side: "a" | "b") => markNoShow(m, side))}
                 />
               ))}
             </section>
@@ -535,20 +537,26 @@ function MatchEditor({
   onAdjust,
   onComplete,
   onReopen,
+  onNoShow,
 }: {
   match: MatchRow;
   playerNames: Record<string, string>;
   onAdjust: (side: "a" | "b", delta: number) => Promise<void>;
   onComplete: () => Promise<void>;
   onReopen: () => Promise<void>;
+  onNoShow: (side: "a" | "b") => Promise<void>;
 }) {
   if (!match.player_a_id || !match.player_b_id) {
-    const isBye = Boolean(match.player_a_id) && !match.player_b_id && match.status === "complete";
+    // A bye can land on either side - see markNoShow - so this checks for
+    // exactly one blank side on an otherwise-decided match, not specifically
+    // which one, and looks up whichever id is actually present.
+    const isBye = match.status === "complete" && Boolean(match.player_a_id) !== Boolean(match.player_b_id);
+    const advancingId = match.player_a_id ?? match.player_b_id;
     return (
       <div className="card">
         <p className="hint" style={{ margin: 0 }}>
           {isBye
-            ? `${playerNames[match.player_a_id!] ?? "This player"} gets a bye and advances automatically.`
+            ? `${(advancingId && playerNames[advancingId]) ?? "This player"} gets a bye and advances automatically.`
             : match.round === 1
             ? "Waiting for this slot's draw number to be given out."
             : "Waiting for the winners of earlier matches."}
@@ -559,47 +567,97 @@ function MatchEditor({
 
   const complete = match.status === "complete";
   const canComplete = !complete && isMatchComplete(match);
+  const nameA = playerNames[match.player_a_id] ?? "—";
+  const nameB = playerNames[match.player_b_id] ?? "—";
 
   return (
-    <div className={`card match ${complete ? "complete" : ""}`}>
-      <div className="players">
-        <ScoreLine
-          name={playerNames[match.player_a_id] ?? "—"}
-          score={match.score_a}
-          isWinner={Boolean(match.winner_id) && match.winner_id === match.player_a_id}
-          disabled={complete}
-          onAdjust={(delta) => onAdjust("a", delta)}
-        />
-        <hr className="divider" />
-        <ScoreLine
-          name={playerNames[match.player_b_id] ?? "—"}
-          score={match.score_b}
-          isWinner={Boolean(match.winner_id) && match.winner_id === match.player_b_id}
-          disabled={complete}
-          onAdjust={(delta) => onAdjust("b", delta)}
-        />
+    <div className="card">
+      <div className={`match ${complete ? "complete" : ""}`}>
+        <div className="players">
+          <ScoreLine
+            name={nameA}
+            score={match.score_a}
+            isWinner={Boolean(match.winner_id) && match.winner_id === match.player_a_id}
+            disabled={complete}
+            onAdjust={(delta) => onAdjust("a", delta)}
+          />
+          <hr className="divider" />
+          <ScoreLine
+            name={nameB}
+            score={match.score_b}
+            isWinner={Boolean(match.winner_id) && match.winner_id === match.player_b_id}
+            disabled={complete}
+            onAdjust={(delta) => onAdjust("b", delta)}
+          />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", gap: 8 }}>
+          <span className={`status-pill ${match.status}`}>
+            {match.status === "live" && <span className="live-dot" />}
+            {match.status}
+          </span>
+          {!complete && (
+            <button onClick={onComplete} disabled={!canComplete}>
+              Mark complete
+            </button>
+          )}
+          {complete && (
+            <button
+              className="secondary"
+              onClick={() => {
+                if (confirm("Reopen this match to fix a mistake?")) onReopen();
+              }}
+            >
+              Reopen
+            </button>
+          )}
+        </div>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", gap: 8 }}>
-        <span className={`status-pill ${match.status}`}>
-          {match.status === "live" && <span className="live-dot" />}
-          {match.status}
-        </span>
-        {!complete && (
-          <button onClick={onComplete} disabled={!canComplete}>
-            Mark complete
-          </button>
-        )}
-        {complete && (
-          <button
-            className="secondary"
-            onClick={() => {
-              if (confirm("Reopen this match to fix a mistake?")) onReopen();
-            }}
-          >
-            Reopen
-          </button>
-        )}
-      </div>
+      {!complete && <NoShowControl nameA={nameA} nameB={nameB} onNoShow={onNoShow} />}
+    </div>
+  );
+}
+
+/**
+ * Handles the far more common bye scenario - someone who was supposed to
+ * play doesn't turn up once the draw's already made, sometimes mid-game.
+ * Collapsed by default so it doesn't clutter the normal scoring flow.
+ */
+function NoShowControl({
+  nameA,
+  nameB,
+  onNoShow,
+}: {
+  nameA: string;
+  nameB: string;
+  onNoShow: (side: "a" | "b") => Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+
+  if (!open) {
+    return (
+      <p style={{ marginTop: 8 }}>
+        <button type="button" className="link-button" onClick={() => setOpen(true)}>
+          Someone not here?
+        </button>
+      </p>
+    );
+  }
+
+  function confirmNoShow(side: "a" | "b", absentName: string, advancingName: string) {
+    if (confirm(`${absentName} didn't show - give ${advancingName} the win as a bye?`)) onNoShow(side);
+  }
+
+  return (
+    <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 8 }}>
+      <button className="secondary" onClick={() => confirmNoShow("a", nameA, nameB)}>
+        {nameA} didn&rsquo;t show
+      </button>
+      <button className="secondary" onClick={() => confirmNoShow("b", nameB, nameA)}>
+        {nameB} didn&rsquo;t show
+      </button>
+      <button className="secondary" onClick={() => setOpen(false)}>
+        Cancel
+      </button>
     </div>
   );
 }

@@ -266,6 +266,39 @@ export async function completeMatch(match: MatchRow) {
 }
 
 /**
+ * Converts a match already underway into a bye, for the far more common
+ * real-world case than a pre-draw no-show: someone doesn't turn up once
+ * play's already started, sometimes with scores already on the board. The
+ * side that didn't show is cleared entirely (so it displays exactly like
+ * any other bye - "BYE", not a 0-0 forfeit scoreline), the other side is
+ * credited the win and advances, and any scores already entered are
+ * cleared, since officially no game was played. Only valid before the
+ * match has already been completed for real - reopen it first if needed.
+ */
+export async function markNoShow(match: MatchRow, side: "a" | "b") {
+  if (match.status === "complete") {
+    throw new Error("This match is already complete - reopen it first if you need to change the result.");
+  }
+
+  const winnerId = side === "a" ? match.player_b_id : match.player_a_id;
+  if (!winnerId) {
+    throw new Error("The other side hasn't been decided yet, so there's no one to advance.");
+  }
+  const absentField = side === "a" ? "player_a_id" : "player_b_id";
+
+  const { error } = await supabase
+    .from("matches")
+    .update({ [absentField]: null, score_a: 0, score_b: 0, status: "complete", winner_id: winnerId })
+    .eq("id", match.id);
+  if (error) throw error;
+
+  if (match.next_match_id && match.next_match_slot) {
+    const field = match.next_match_slot === "a" ? "player_a_id" : "player_b_id";
+    await supabase.from("matches").update({ [field]: winnerId }).eq("id", match.next_match_id);
+  }
+}
+
+/**
  * Undoes "Mark complete" on a single match, for fixing a mistake without
  * resetting the whole night's bracket. Refuses if the winner has already
  * started their next match (nothing to retract cleanly to), or if the match

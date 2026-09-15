@@ -253,10 +253,14 @@ function MatchCard({
   players: Record<string, Player>;
   highlightPlayerId?: string | null;
 }) {
-  const isBye = Boolean(match.player_a_id) && !match.player_b_id && match.status === "complete";
+  // A bye can land on either side - the original padding algorithm always
+  // put it on B, but a no-show discovered mid-match (see markNoShow) clears
+  // whichever side didn't turn up, so this checks for exactly one blank
+  // side on an otherwise-decided match, not specifically which one.
+  const isBye = match.status === "complete" && Boolean(match.player_a_id) !== Boolean(match.player_b_id);
   const playerA = match.player_a_id ? players[match.player_a_id] : undefined;
   const playerB = match.player_b_id ? players[match.player_b_id] : undefined;
-  const nameA = playerA?.name ?? "TBC";
+  const nameA = match.player_a_id ? playerA?.name ?? "TBC" : isBye ? "BYE" : "TBC";
   const nameB = match.player_b_id ? playerB?.name ?? "TBC" : isBye ? "BYE" : "TBC";
   const winnerA = Boolean(match.winner_id) && match.winner_id === match.player_a_id;
   const winnerB = Boolean(match.winner_id) && match.winner_id === match.player_b_id;
