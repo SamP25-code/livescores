@@ -262,6 +262,34 @@ a {
   border-radius: 999px;
 }
 
+.roster-list {
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.roster-row {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1.2rem;
+}
+
+.roster-number {
+  color: var(--ink-soft);
+  font-size: 1.1rem;
+}
+
+.roster-name {
+  font-weight: 700;
+  color: var(--ink);
+}
+
 .player-row .score {
   font-variant-numeric: tabular-nums;
   font-size: 1.7rem;

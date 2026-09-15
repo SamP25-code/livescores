@@ -199,12 +199,14 @@ export default function NightPage({ params }: { params: { id: string } }) {
           <p className="hint" style={{ textAlign: "center" }}>
             Qualifiers confirmed so far &mdash; the lineup fills in as each qualifying night finishes.
           </p>
-          {finalsSlots.map((p, i) => (
-            <div key={i} className="card" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
-              <span>{i + 1}.</span>
-              <span>{p ? p.name : ""}</span>
-            </div>
-          ))}
+          <div className="roster-list">
+            {finalsSlots.map((p, i) => (
+              <div key={i} className="roster-row">
+                <span className="roster-number">{i + 1}.</span>
+                <span className="roster-name">{p ? p.name : ""}</span>
+              </div>
+            ))}
+          </div>
         </>
       )}
 
@@ -214,12 +216,14 @@ export default function NightPage({ params }: { params: { id: string } }) {
             {qualifierPlayers.length} player{qualifierPlayers.length === 1 ? "" : "s"} entered &mdash; the draw will
             appear here once it&rsquo;s made.
           </p>
-          {qualifierPlayers.map((p, i) => (
-            <div key={p.id} className="card" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
-              <span>{i + 1}.</span>
-              <span>{p.name}</span>
-            </div>
-          ))}
+          <div className="roster-list">
+            {qualifierPlayers.map((p, i) => (
+              <div key={p.id} className="roster-row">
+                <span className="roster-number">{i + 1}.</span>
+                <span className="roster-name">{p.name}</span>
+              </div>
+            ))}
+          </div>
         </>
       )}
 
