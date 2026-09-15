@@ -35,3 +35,14 @@ export type MatchRow = {
   next_match_slot: "a" | "b" | null;
   updated_at: string;
 };
+
+export type MatchEvent = {
+  id: string;
+  match_id: string;
+  night_id: string;
+  event_type: "score" | "complete" | "reopen" | "no_show";
+  score_a: number;
+  score_b: number;
+  status: "upcoming" | "live" | "complete";
+  created_at: string;
+};

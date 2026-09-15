@@ -42,6 +42,7 @@ import { buildFinalsSlots, isMatchComplete, nextPowerOfTwo, roundLabel } from "@
 import { errorMessage } from "@/lib/errors";
 import FinalsSlotBoard from "@/components/FinalsSlotBoard";
 import FlashingScore from "@/components/FlashingScore";
+import MatchHistory from "@/components/MatchHistory";
 import type { MatchRow, Night, Player } from "@/lib/types";
 
 export default function AdminNightPage({ params }: { params: { id: string } }) {
@@ -543,6 +544,8 @@ function MatchEditor({
   onReopen: () => Promise<void>;
   onNoShow: (side: "a" | "b") => Promise<void>;
 }) {
+  const [showHistory, setShowHistory] = useState(false);
+
   if (!match.player_a_id || !match.player_b_id) {
     const isBye = match.status === "complete" && Boolean(match.player_a_id) !== Boolean(match.player_b_id);
     const advancingId = match.player_a_id ?? match.player_b_id;
@@ -607,6 +610,14 @@ function MatchEditor({
         </div>
       </div>
       {!complete && match.round === 1 && <NoShowControl nameA={nameA} nameB={nameB} onNoShow={onNoShow} />}
+      {match.status !== "upcoming" && (
+        <div style={{ marginTop: 8 }}>
+          <button type="button" className="link-button match-history-toggle" onClick={() => setShowHistory((v) => !v)}>
+            {showHistory ? "Hide history" : "History"}
+          </button>
+          {showHistory && <MatchHistory matchId={match.id} />}
+        </div>
+      )}
     </div>
   );
 }
@@ -729,7 +740,10 @@ function ScoreLine({
         </button>
         <FlashingScore value={score} className="value" />
         <button className="secondary" disabled={disabled} onClick={() => onAdjust(1)}>
-          +
+          +1
+        </button>
+        <button className="secondary" disabled={disabled} onClick={() => onAdjust(2)}>
+          +2
         </button>
       </div>
     </div>

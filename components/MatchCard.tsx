@@ -1,5 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import Avatar from "@/components/Avatar";
 import FlashingScore from "@/components/FlashingScore";
+import MatchHistory from "@/components/MatchHistory";
 import type { MatchRow, Player } from "@/lib/types";
 
 export default function MatchCard({
@@ -15,6 +19,7 @@ export default function MatchCard({
   onSelectPlayer?: (playerId: string) => void;
   compact?: boolean;
 }) {
+  const [showHistory, setShowHistory] = useState(false);
   const isBye = match.status === "complete" && Boolean(match.player_a_id) !== Boolean(match.player_b_id);
   const playerA = match.player_a_id ? players[match.player_a_id] : undefined;
   const playerB = match.player_b_id ? players[match.player_b_id] : undefined;
@@ -42,6 +47,18 @@ export default function MatchCard({
         {match.status === "live" && <span className="live-dot" />}
         {isBye ? "bye" : match.status}
       </span>
+      {!compact && !isBye && match.status !== "upcoming" && (
+        <div className="match-history-toggle-wrap">
+          <button
+            type="button"
+            className="link-button match-history-toggle"
+            onClick={() => setShowHistory((v) => !v)}
+          >
+            {showHistory ? "Hide history" : "History"}
+          </button>
+          {showHistory && <MatchHistory matchId={match.id} />}
+        </div>
+      )}
     </div>
   );
 }

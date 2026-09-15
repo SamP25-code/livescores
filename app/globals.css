@@ -134,6 +134,42 @@ a {
   cursor: pointer;
 }
 
+.match-history-toggle-wrap {
+  flex-basis: 100%;
+}
+
+.match-history-toggle {
+  font-size: 0.8rem;
+}
+
+.match-history {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.match-history li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+  font-size: 0.85rem;
+}
+
+.match-history-time {
+  color: var(--ink-soft);
+  flex: none;
+}
+
+.match-history-desc {
+  text-align: right;
+}
+
+.match-history-empty {
+  margin: 8px 0 0;
+}
+
 .card {
   background: #fff;
   border: 1px solid var(--line);
@@ -165,6 +201,7 @@ a {
 .match {
   display: flex;
   align-items: stretch;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -426,9 +463,9 @@ label {
 }
 
 .score-stepper button {
-  width: 36px;
+  min-width: 36px;
   height: 36px;
-  padding: 0;
+  padding: 0 6px;
   font-size: 1.1rem;
   line-height: 1;
 }
@@ -803,33 +840,6 @@ label {
 .hint {
   color: var(--ink-soft);
   font-size: 0.85rem;
-}
-
-.how-it-works {
-  margin-top: 32px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-}
-
-.how-it-works summary {
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--green-deep);
-}
-
-.how-it-works-body {
-  margin-top: 10px;
-  color: var(--ink-soft);
-  font-size: 0.9rem;
-  line-height: 1.55;
-}
-
-.how-it-works-body p {
-  margin: 0 0 10px;
-}
-
-.how-it-works-body strong {
-  color: var(--ink);
 }
 
 .drag-handle {

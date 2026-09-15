@@ -67,9 +67,27 @@ create table matches (
 -- instead of leaving duplicate/corrupted rounds.
 alter table matches add constraint matches_night_round_slot_unique unique (night_id, round, slot);
 
+-- One row per score/status change to a match, so the running score can be
+-- shown as a timeline (both to the admin and publicly) rather than just the
+-- current total - e.g. "2 shots scored, then 1, then complete 21-15".
+-- night_id is duplicated from matches here purely so the public/admin pages
+-- can subscribe to realtime changes for a whole night without a join.
+create table match_events (
+  id uuid primary key default gen_random_uuid(),
+  match_id uuid not null references matches(id) on delete cascade,
+  night_id uuid not null references nights(id) on delete cascade,
+  event_type text not null check (event_type in ('score', 'complete', 'reopen', 'no_show')),
+  score_a int not null,
+  score_b int not null,
+  status text not null,
+  created_at timestamptz not null default now()
+);
+
 create index on players (night_id);
 create index on matches (night_id);
 create index on matches (next_match_id);
+create index on match_events (match_id);
+create index on match_events (night_id);
 
 -- Keep updated_at current on every score/status change
 create or replace function set_updated_at()
@@ -89,10 +107,12 @@ for each row execute function set_updated_at();
 alter table nights enable row level security;
 alter table players enable row level security;
 alter table matches enable row level security;
+alter table match_events enable row level security;
 
 create policy "public read nights" on nights for select using (true);
 create policy "public read players" on players for select using (true);
 create policy "public read matches" on matches for select using (true);
+create policy "public read match_events" on match_events for select using (true);
 
 create policy "auth write nights" on nights for all
   using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
@@ -100,11 +120,14 @@ create policy "auth write players" on players for all
   using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 create policy "auth write matches" on matches for all
   using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+create policy "auth write match_events" on match_events for all
+  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
 -- Enable realtime so the public page updates live
 alter publication supabase_realtime add table matches;
 alter publication supabase_realtime add table players;
 alter publication supabase_realtime add table nights;
+alter publication supabase_realtime add table match_events;
 
 -- If you already ran this schema before `finals_number` was added above,
 -- run this once instead of the whole file:
@@ -137,3 +160,23 @@ alter publication supabase_realtime add table nights;
 -- If you already ran this schema before `players.is_bye` was added above,
 -- run this once instead of the whole file:
 -- alter table players add column is_bye boolean not null default false;
+
+-- If you already ran this schema before `match_events` (score history) was
+-- added above, run this once instead of the whole file:
+-- create table match_events (
+--   id uuid primary key default gen_random_uuid(),
+--   match_id uuid not null references matches(id) on delete cascade,
+--   night_id uuid not null references nights(id) on delete cascade,
+--   event_type text not null check (event_type in ('score', 'complete', 'reopen', 'no_show')),
+--   score_a int not null,
+--   score_b int not null,
+--   status text not null,
+--   created_at timestamptz not null default now()
+-- );
+-- create index on match_events (match_id);
+-- create index on match_events (night_id);
+-- alter table match_events enable row level security;
+-- create policy "public read match_events" on match_events for select using (true);
+-- create policy "auth write match_events" on match_events for all
+--   using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+-- alter publication supabase_realtime add table match_events;

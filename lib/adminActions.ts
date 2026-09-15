@@ -8,7 +8,24 @@ import {
   roundOneSlotForSeed,
   totalRounds,
 } from "@/lib/bracket";
-import type { MatchRow, Player } from "@/lib/types";
+import type { MatchEvent, MatchRow, Player } from "@/lib/types";
+
+async function logMatchEvent(
+  match: Pick<MatchRow, "id" | "night_id">,
+  eventType: MatchEvent["event_type"],
+  scoreA: number,
+  scoreB: number,
+  status: MatchEvent["status"]
+) {
+  await supabase.from("match_events").insert({
+    match_id: match.id,
+    night_id: match.night_id,
+    event_type: eventType,
+    score_a: scoreA,
+    score_b: scoreB,
+    status,
+  });
+}
 
 export async function createNight(name: string, kind: "qualifier" | "finals") {
   const { data: last } = await supabase
@@ -177,11 +194,16 @@ export async function generateBracket(
 export async function adjustScore(match: MatchRow, side: "a" | "b", delta: number) {
   const field = side === "a" ? "score_a" : "score_b";
   const nextValue = Math.max(0, (side === "a" ? match.score_a : match.score_b) + delta);
+  const nextStatus = match.status === "upcoming" ? "live" : match.status;
   const { error } = await supabase
     .from("matches")
-    .update({ [field]: nextValue, status: match.status === "upcoming" ? "live" : match.status })
+    .update({ [field]: nextValue, status: nextStatus })
     .eq("id", match.id);
   if (error) throw error;
+
+  const scoreA = side === "a" ? nextValue : match.score_a;
+  const scoreB = side === "b" ? nextValue : match.score_b;
+  await logMatchEvent(match, "score", scoreA, scoreB, nextStatus);
 }
 
 export async function completeMatch(match: MatchRow) {
@@ -196,6 +218,8 @@ export async function completeMatch(match: MatchRow) {
     .update({ status: "complete", winner_id: winnerId })
     .eq("id", match.id);
   if (error) throw error;
+
+  await logMatchEvent(match, "complete", match.score_a, match.score_b, "complete");
 
   if (match.next_match_id && match.next_match_slot && winnerId) {
     const field = match.next_match_slot === "a" ? "player_a_id" : "player_b_id";
@@ -225,6 +249,8 @@ export async function markNoShow(match: MatchRow, side: "a" | "b") {
     .update({ [absentField]: null, score_a: 0, score_b: 0, status: "complete", winner_id: winnerId })
     .eq("id", match.id);
   if (error) throw error;
+
+  await logMatchEvent(match, "no_show", 0, 0, "complete");
 
   if (match.next_match_id && match.next_match_slot) {
     const field = match.next_match_slot === "a" ? "player_a_id" : "player_b_id";
@@ -257,6 +283,8 @@ export async function reopenMatch(match: MatchRow) {
 
   const { error } = await supabase.from("matches").update({ status: "live", winner_id: null }).eq("id", match.id);
   if (error) throw error;
+
+  await logMatchEvent(match, "reopen", match.score_a, match.score_b, "live");
 }
 
 export async function setFinalsNumber(player: Player, finalsNumber: number | null) {

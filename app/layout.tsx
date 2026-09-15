@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Zilla_Slab, Inter } from "next/font/google";
 import "./globals.css";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
+import SentryInit from "@/components/SentryInit";
 
 const display = Zilla_Slab({
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body>
+        <SentryInit />
         <div className="site-background" aria-hidden="true" />
         {!isSupabaseConfigured && (
           <div
