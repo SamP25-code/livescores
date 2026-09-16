@@ -13,9 +13,6 @@ export default function HomePage() {
       <div className="public-background" aria-hidden="true" />
       <div className="top-bar">
         <Brand />
-        <nav>
-          <Link href="/admin">Log in</Link>
-        </nav>
       </div>
 
       <div className="home-hero">
@@ -25,6 +22,10 @@ export default function HomePage() {
       </div>
       <LiveNowBanner />
       <NightNav variant="home" />
+
+      <nav className="page-footer-nav">
+        <Link href="/admin">Log in</Link>
+      </nav>
     </div>
   );
 }

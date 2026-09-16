@@ -64,9 +64,20 @@ body {
 .page-photo .hint,
 .page-photo .count,
 .page-photo .round-col .round-title,
-.page-photo .champion-col .round-title {
+.page-photo .champion-col .round-title,
+.page-photo .page-footer-nav a {
   color: #fff;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.page-footer-nav {
+  text-align: center;
+  margin-top: 28px;
+}
+
+.page-footer-nav a {
+  font-size: 0.85rem;
+  text-decoration: none;
 }
 
 /* The top bar keeps its own solid backing rather than sitting on the raw

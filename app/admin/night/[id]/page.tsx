@@ -93,6 +93,35 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
     refresh();
   }, [nightId]);
 
+  // Picks up changes made from anywhere else - another admin's browser, or
+  // a scorer working a different match on the same night - so this page
+  // never sits on a stale view of what's actually been scored.
+  useEffect(() => {
+    const channel = supabase
+      .channel(`admin-night-${nightId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "matches", filter: `night_id=eq.${nightId}` },
+        () => refresh()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "players", filter: `night_id=eq.${nightId}` },
+        () => refresh()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "nights", filter: `id=eq.${nightId}` },
+        () => refresh()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nightId]);
+
   function withErrorHandling<Args extends unknown[]>(fn: (...args: Args) => Promise<void>) {
     return async (...args: Args) => {
       setError(null);
