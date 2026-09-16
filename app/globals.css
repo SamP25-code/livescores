@@ -75,6 +75,8 @@ body {
    surface under it instead. */
 .page-photo .top-bar {
   background: var(--cream);
+  border-bottom: none;
+  border-radius: 20px;
 }
 
 .page-photo .champion-banner .hint {
