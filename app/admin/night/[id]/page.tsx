@@ -580,11 +580,14 @@ function MatchEditor({
   if (!match.player_a_id || !match.player_b_id) {
     const isBye = match.status === "complete" && Boolean(match.player_a_id) !== Boolean(match.player_b_id);
     const advancingId = match.player_a_id ?? match.player_b_id;
+    const advancingName = advancingId ? playerNames[advancingId] : null;
     return (
       <div className="card">
         <p className="hint" style={{ margin: 0 }}>
           {isBye
-            ? `${(advancingId && playerNames[advancingId]) ?? "This player"} gets a bye and advances automatically.`
+            ? `${advancingName ?? "This player"} gets a bye and advances automatically.`
+            : advancingName
+            ? `${advancingName} is through — waiting for their opponent.`
             : match.round === 1
             ? "Waiting for this slot's draw number to be given out."
             : "Waiting for the winners of earlier matches."}
@@ -642,7 +645,9 @@ function MatchEditor({
           )}
         </div>
       </div>
-      {!complete && match.round === 1 && <NoShowControl nameA={nameA} nameB={nameB} onNoShow={onNoShow} />}
+      {match.status === "upcoming" && match.round === 1 && (
+        <NoShowControl nameA={nameA} nameB={nameB} onNoShow={onNoShow} />
+      )}
       {match.status !== "upcoming" && (
         <div style={{ marginTop: 8 }}>
           <button type="button" className="link-button match-history-toggle" onClick={() => setShowHistory((v) => !v)}>
