@@ -648,7 +648,7 @@ function MatchEditor({
           <button type="button" className="link-button match-history-toggle" onClick={() => setShowHistory((v) => !v)}>
             {showHistory ? "Hide history" : "History"}
           </button>
-          {showHistory && <MatchHistory matchId={match.id} />}
+          {showHistory && <MatchHistory matchId={match.id} admin />}
         </div>
       )}
     </div>

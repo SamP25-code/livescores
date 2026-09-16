@@ -17,7 +17,7 @@ function describeEvent(e: MatchEvent): string {
   }
 }
 
-export default function MatchHistory({ matchId }: { matchId: string }) {
+export default function MatchHistory({ matchId, admin = false }: { matchId: string; admin?: boolean }) {
   const [events, setEvents] = useState<MatchEvent[]>([]);
 
   useEffect(() => {
@@ -51,13 +51,17 @@ export default function MatchHistory({ matchId }: { matchId: string }) {
     };
   }, [matchId]);
 
-  if (events.length === 0) {
+  // A reopen is an admin correcting a mistake, not something worth
+  // surfacing to viewers - shown only on the admin side.
+  const visibleEvents = admin ? events : events.filter((e) => e.event_type !== "reopen");
+
+  if (visibleEvents.length === 0) {
     return <p className="hint match-history-empty">No history yet.</p>;
   }
 
   return (
     <ul className="match-history">
-      {events.map((e) => (
+      {visibleEvents.map((e) => (
         <li key={e.id}>{describeEvent(e)}</li>
       ))}
     </ul>
