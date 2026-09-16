@@ -95,7 +95,11 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
 
   // Picks up changes made from anywhere else - another admin's browser, or
   // a scorer working a different match on the same night - so this page
-  // never sits on a stale view of what's actually been scored.
+  // never sits on a stale view of what's actually been scored. Backed up
+  // by a plain poll too: realtime delivery between two authenticated admin
+  // sessions has proven less reliable in practice than to the public page,
+  // so this guarantees the view corrects itself within a few seconds even
+  // if a change event never arrives.
   useEffect(() => {
     const channel = supabase
       .channel(`admin-night-${nightId}`)
@@ -116,8 +120,11 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
       )
       .subscribe();
 
+    const poll = setInterval(() => refresh(), 4000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(poll);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nightId]);

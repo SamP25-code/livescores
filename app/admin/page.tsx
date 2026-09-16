@@ -36,7 +36,7 @@ export default function AdminDashboard() {
     refresh();
   }, []);
 
-  const visibleNights = role === null ? [] : role === "scorer" ? nights.filter((n) => n.draw_published) : nights;
+  const visibleNights = role === null ? [] : nights;
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -89,13 +89,13 @@ export default function AdminDashboard() {
         </>
       )}
 
-      <h1>{role === "scorer" ? "Nights you can score" : "All nights"}</h1>
+      <h1>All nights</h1>
       {role === "scorer" && (
-        <p className="hint">Only nights whose draw has been published show up here.</p>
+        <p className="hint">You can score a night once its draw has been published.</p>
       )}
       {visibleNights.length === 0 && (
         <p className="empty">
-          {role === "scorer" ? "Nothing published to score yet." : "Nothing set up yet — create your first night above."}
+          {role === "scorer" ? "Nothing set up yet." : "Nothing set up yet — create your first night above."}
         </p>
       )}
       {visibleNights.map((night) => {
