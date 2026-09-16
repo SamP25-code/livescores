@@ -117,14 +117,44 @@ create policy "public read players" on players for select using (true);
 create policy "public read matches" on matches for select using (true);
 create policy "public read match_events" on match_events for select using (true);
 
-create policy "auth write nights" on nights for all
-  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "auth write players" on players for all
-  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "auth write matches" on matches for all
-  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "auth write match_events" on match_events for all
-  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+-- Two kinds of logged-in user: the owner (full control - the default for
+-- any account with no role set, so the existing admin login is unaffected)
+-- and a "scorer" - a second admin who can only work a match that's already
+-- live to the public, and can't touch nights, players, or the draw itself.
+-- A scorer's role is set via their auth.users.raw_app_meta_data, which only
+-- an owner running SQL directly can change - never the user themselves.
+
+create policy "owner write nights" on nights for all
+  using (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer')
+  with check (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer');
+
+create policy "owner write players" on players for all
+  using (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer')
+  with check (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer');
+
+create policy "owner write matches" on matches for all
+  using (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer')
+  with check (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer');
+
+create policy "scorer update live matches" on matches for update
+  using (
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'scorer'
+    and exists (select 1 from nights n where n.id = matches.night_id and n.draw_published)
+  )
+  with check (
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'scorer'
+    and exists (select 1 from nights n where n.id = matches.night_id and n.draw_published)
+  );
+
+create policy "owner write match_events" on match_events for all
+  using (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer')
+  with check (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer');
+
+create policy "scorer insert match events" on match_events for insert
+  with check (
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'scorer'
+    and exists (select 1 from nights n where n.id = match_events.night_id and n.draw_published)
+  );
 
 -- Enable realtime so the public page updates live
 alter publication supabase_realtime add table matches;
@@ -189,3 +219,47 @@ alter publication supabase_realtime add table match_events;
 -- night to true (published) so nothing already live gets hidden by this -
 -- new nights created afterwards start unpublished automatically.
 -- alter table nights add column draw_published boolean not null default true;
+
+-- If you already ran this schema before the scorer role was added above,
+-- run this once instead of the whole file. Drops the old "any authenticated
+-- user can do anything" policies and replaces them with the owner/scorer
+-- split described above.
+-- drop policy "auth write nights" on nights;
+-- drop policy "auth write players" on players;
+-- drop policy "auth write matches" on matches;
+-- drop policy "auth write match_events" on match_events;
+-- create policy "owner write nights" on nights for all
+--   using (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer')
+--   with check (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer');
+-- create policy "owner write players" on players for all
+--   using (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer')
+--   with check (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer');
+-- create policy "owner write matches" on matches for all
+--   using (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer')
+--   with check (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer');
+-- create policy "scorer update live matches" on matches for update
+--   using (
+--     (auth.jwt() -> 'app_metadata' ->> 'role') = 'scorer'
+--     and exists (select 1 from nights n where n.id = matches.night_id and n.draw_published)
+--   )
+--   with check (
+--     (auth.jwt() -> 'app_metadata' ->> 'role') = 'scorer'
+--     and exists (select 1 from nights n where n.id = matches.night_id and n.draw_published)
+--   );
+-- create policy "owner write match_events" on match_events for all
+--   using (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer')
+--   with check (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer');
+-- create policy "scorer insert match events" on match_events for insert
+--   with check (
+--     (auth.jwt() -> 'app_metadata' ->> 'role') = 'scorer'
+--     and exists (select 1 from nights n where n.id = match_events.night_id and n.draw_published)
+--   );
+--
+-- Then, to actually make someone a scorer (run once per person, after
+-- creating their login in Authentication > Users):
+-- update auth.users set raw_app_meta_data = raw_app_meta_data || '{"role": "scorer"}'::jsonb
+--   where email = 'their-email@example.com';
+--
+-- To turn a scorer back into a full owner:
+-- update auth.users set raw_app_meta_data = raw_app_meta_data - 'role'
+--   where email = 'their-email@example.com';

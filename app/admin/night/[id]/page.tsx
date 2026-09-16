@@ -40,6 +40,7 @@ import {
   setPlayerBye,
 } from "@/lib/adminActions";
 import { buildFinalsSlots, isMatchComplete, nextPowerOfTwo, roundLabel } from "@/lib/bracket";
+import { useAdminRole } from "@/lib/auth";
 import { errorMessage } from "@/lib/errors";
 import FinalsSlotBoard from "@/components/FinalsSlotBoard";
 import FlashingScore from "@/components/FlashingScore";
@@ -47,6 +48,7 @@ import MatchHistory from "@/components/MatchHistory";
 import type { MatchRow, Night, Player } from "@/lib/types";
 
 export default function AdminNightPage({ params }: { params: { id: string } }) {
+  const role = useAdminRole();
   const nightId = params.id;
   const [night, setNight] = useState<Night | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -170,7 +172,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
       <h1>{night?.name ?? "Loading…"}</h1>
       {error && <p className="error">{error}</p>}
 
-      {night && !isFinals && (
+      {role === "owner" && night && !isFinals && (
         <div
           className="card"
           style={{
@@ -200,7 +202,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
         </div>
       )}
 
-      {isFinals && (
+      {role === "owner" && isFinals && (
         <section>
           <div className="round-heading">
             <h2>Finals lineup</h2>
@@ -222,21 +224,22 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
         </section>
       )}
 
-      {isFinals ? (
-        <AddExtraFinalsPlayer onAdd={withErrorHandling((name: string) => addPlayer(nightId, name))} />
-      ) : (
-        <PlayerSection
-          players={orderedPlayers}
-          bracketExists={bracketExists}
-          onAdd={withErrorHandling((name: string) => addPlayer(nightId, name))}
-          onReorder={withErrorHandling((ids: string[]) => reorderPlayers(ids))}
-          onRename={withErrorHandling((id: string, name: string) => renamePlayer(id, name))}
-          onToggleBye={withErrorHandling((id: string, isBye: boolean) => setPlayerBye(id, isBye))}
-          onRemove={withErrorHandling((id: string) => deletePlayer(id))}
-        />
-      )}
+      {role === "owner" &&
+        (isFinals ? (
+          <AddExtraFinalsPlayer onAdd={withErrorHandling((name: string) => addPlayer(nightId, name))} />
+        ) : (
+          <PlayerSection
+            players={orderedPlayers}
+            bracketExists={bracketExists}
+            onAdd={withErrorHandling((name: string) => addPlayer(nightId, name))}
+            onReorder={withErrorHandling((ids: string[]) => reorderPlayers(ids))}
+            onRename={withErrorHandling((id: string, name: string) => renamePlayer(id, name))}
+            onToggleBye={withErrorHandling((id: string, isBye: boolean) => setPlayerBye(id, isBye))}
+            onRemove={withErrorHandling((id: string) => deletePlayer(id))}
+          />
+        ))}
 
-      {!isFinals && !bracketExists && (
+      {role === "owner" && !isFinals && !bracketExists && (
         <BracketSetup
           players={orderedPlayers}
           onGenerate={withErrorHandling(async () => {
@@ -245,17 +248,23 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
         />
       )}
 
-      {bracketExists && (
-        <>
-          <div style={{ margin: "20px 0" }}>
-            <ResetBracketControl
-              nightName={night?.name ?? ""}
-              onReset={withErrorHandling(async () => {
-                await resetBracket(nightId);
-              })}
-            />
-          </div>
+      {role === "owner" && bracketExists && (
+        <div style={{ margin: "20px 0" }}>
+          <ResetBracketControl
+            nightName={night?.name ?? ""}
+            onReset={withErrorHandling(async () => {
+              await resetBracket(nightId);
+            })}
+          />
+        </div>
+      )}
 
+      {role === "scorer" && bracketExists && !night?.draw_published && (
+        <p className="empty">This draw isn&rsquo;t published yet &mdash; nothing to score.</p>
+      )}
+
+      {bracketExists && (role === "owner" || night?.draw_published) && (
+        <>
           {rounds.map(([round, roundMatches]) => (
             <section key={round}>
               <div className="round-heading">
@@ -276,7 +285,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
             </section>
           ))}
 
-          {night?.kind === "qualifier" && qualifiers.length > 0 && (
+          {role === "owner" && night?.kind === "qualifier" && qualifiers.length > 0 && (
             <section>
               <div className="round-heading">
                 <h2>Advancing to finals day</h2>

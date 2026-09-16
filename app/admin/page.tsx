@@ -6,11 +6,13 @@ import { supabase } from "@/lib/supabaseClient";
 import { createNight } from "@/lib/adminActions";
 import { errorMessage } from "@/lib/errors";
 import { fetchNightStatuses } from "@/lib/nightStatus";
+import { useAdminRole } from "@/lib/auth";
 import Brand from "@/components/Brand";
 import type { NightStatus } from "@/lib/bracket";
 import type { Night } from "@/lib/types";
 
 export default function AdminDashboard() {
+  const role = useAdminRole();
   const [nights, setNights] = useState<Night[]>([]);
   const [statuses, setStatuses] = useState<Record<string, NightStatus>>({});
   const [name, setName] = useState("");
@@ -33,6 +35,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     refresh();
   }, []);
+
+  const visibleNights = role === null ? [] : role === "scorer" ? nights.filter((n) => n.draw_published) : nights;
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -59,31 +63,42 @@ export default function AdminDashboard() {
         </nav>
       </div>
 
-      <h1>New competition night</h1>
-      <form onSubmit={handleCreate} className="card">
-        <div className="field">
-          <label htmlFor="night-name">Name</label>
-          <input
-            id="night-name"
-            placeholder="Qualifying Night 3"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="night-kind">Type</label>
-          <select id="night-kind" value={kind} onChange={(e) => setKind(e.target.value as "qualifier" | "finals")}>
-            <option value="qualifier">Qualifying night</option>
-            <option value="finals">Finals day</option>
-          </select>
-        </div>
-        {error && <p className="error">{error}</p>}
-        <button type="submit">Create night</button>
-      </form>
+      {role === "owner" && (
+        <>
+          <h1>New competition night</h1>
+          <form onSubmit={handleCreate} className="card">
+            <div className="field">
+              <label htmlFor="night-name">Name</label>
+              <input
+                id="night-name"
+                placeholder="Qualifying Night 3"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="night-kind">Type</label>
+              <select id="night-kind" value={kind} onChange={(e) => setKind(e.target.value as "qualifier" | "finals")}>
+                <option value="qualifier">Qualifying night</option>
+                <option value="finals">Finals day</option>
+              </select>
+            </div>
+            {error && <p className="error">{error}</p>}
+            <button type="submit">Create night</button>
+          </form>
+        </>
+      )}
 
-      <h1>All nights</h1>
-      {nights.length === 0 && <p className="empty">Nothing set up yet &mdash; create your first night above.</p>}
-      {nights.map((night) => {
+      <h1>{role === "scorer" ? "Nights you can score" : "All nights"}</h1>
+      {role === "scorer" && (
+        <p className="hint">Only nights whose draw has been published show up here.</p>
+      )}
+      {visibleNights.length === 0 && (
+        <p className="empty">
+          {role === "scorer" ? "Nothing published to score yet." : "Nothing set up yet — create your first night above."}
+        </p>
+      )}
+      {visibleNights.map((night) => {
         const status = statuses[night.id] ?? "upcoming";
         return (
           <Link key={night.id} href={`/admin/night/${night.id}`} style={{ textDecoration: "none" }}>
