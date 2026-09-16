@@ -32,7 +32,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body>
         <SentryInit />
-        <div className="site-background" aria-hidden="true" />
         {!isSupabaseConfigured && (
           <div
             style={{

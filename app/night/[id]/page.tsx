@@ -168,7 +168,8 @@ export default function NightPage({ params }: { params: { id: string } }) {
   }, [night, rounds, players, showDraw]);
 
   return (
-    <div className="page">
+    <div className="page page-photo">
+      <div className="public-background" aria-hidden="true" />
       <div className="top-bar">
         <Brand />
         <nav>

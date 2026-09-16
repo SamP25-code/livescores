@@ -45,6 +45,43 @@ body {
   background-repeat: no-repeat;
 }
 
+.public-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--cream);
+  background-image: url("/bowls-background.jpg");
+  background-size: cover;
+  background-position: center 20%;
+  background-repeat: no-repeat;
+}
+
+/* Public pages sit on the solid photo above, not a card, for a handful of
+   elements - everything else lives inside an opaque .card and keeps its
+   normal dark text regardless. */
+.page-photo h1,
+.page-photo h2,
+.page-photo .hint,
+.page-photo .count,
+.page-photo .round-col .round-title,
+.page-photo .champion-col .round-title {
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* The top bar keeps its own solid backing rather than sitting on the raw
+   photo, since the sponsor's logo has fixed dark text baked into the image
+   - recoloring their actual logo isn't ours to do, so it needs a light
+   surface under it instead. */
+.page-photo .top-bar {
+  background: var(--cream);
+}
+
+.page-photo .champion-banner .hint {
+  color: var(--ink-soft);
+  text-shadow: none;
+}
+
 h1,
 h2,
 h3 {
@@ -77,8 +114,8 @@ a {
   position: relative;
   text-align: center;
   border-bottom: 3px solid var(--green-deep);
-  padding: 4px 80px 18px;
-  margin-bottom: 20px;
+  padding: 4px 60px 12px;
+  margin-bottom: 16px;
 }
 
 .top-bar .brand {
@@ -88,20 +125,22 @@ a {
   font-size: 1.05rem;
   line-height: 1.45;
   color: var(--ink-soft);
-  max-width: 520px;
+  max-width: 600px;
   margin: 0 auto;
 }
 
 .sponsor-logo {
   display: block;
-  height: 100px;
+  height: 150px;
   width: auto;
   margin: 0 auto 8px;
 }
 
 .top-bar .brand a {
+  display: inline-block;
   color: var(--green-deep);
   font-weight: 800;
+  font-size: 1.35rem;
 }
 
 .top-bar nav {
@@ -525,8 +564,7 @@ label {
   text-align: center;
   margin: -20px -16px 32px;
   padding: 56px 16px 44px;
-  background-image: linear-gradient(to bottom, rgba(10, 12, 8, 0.35), rgba(10, 12, 8, 0.15) 55%, var(--cream) 100%),
-    url("/bowls-background.jpg");
+  background-image: url("/bowls-background.jpg");
   background-size: cover;
   background-position: center 18%;
   border-radius: 0 0 28px 28px;

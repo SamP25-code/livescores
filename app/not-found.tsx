@@ -3,7 +3,8 @@ import Brand from "@/components/Brand";
 
 export default function NotFound() {
   return (
-    <div className="page">
+    <div className="page page-photo">
+      <div className="public-background" aria-hidden="true" />
       <div className="top-bar">
         <Brand />
         <nav>

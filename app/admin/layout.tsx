@@ -27,9 +27,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (session && isLoginPage) router.replace("/admin");
   }, [session, isLoginPage, router]);
 
-  if (isLoginPage) return <>{children}</>;
-  if (session === "loading") return <div className="page">Loading&hellip;</div>;
-  if (!session) return <div className="page">Redirecting to sign in&hellip;</div>;
+  if (isLoginPage) {
+    return (
+      <>
+        <div className="site-background" aria-hidden="true" />
+        {children}
+      </>
+    );
+  }
+  if (session === "loading") {
+    return (
+      <>
+        <div className="site-background" aria-hidden="true" />
+        <div className="page">Loading&hellip;</div>
+      </>
+    );
+  }
+  if (!session) {
+    return (
+      <>
+        <div className="site-background" aria-hidden="true" />
+        <div className="page">Redirecting to sign in&hellip;</div>
+      </>
+    );
+  }
 
-  return <>{children}</>;
+  return (
+    <>
+      <div className="site-background" aria-hidden="true" />
+      {children}
+    </>
+  );
 }
