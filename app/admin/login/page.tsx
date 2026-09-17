@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -48,6 +49,11 @@ export default function LoginPage() {
   if (mode === "forgot") {
     return (
       <div className="page" style={{ maxWidth: 360 }}>
+        <div className="top-bar top-bar-plain">
+          <Link href="/" className="back-link">
+            &larr; Back to results
+          </Link>
+        </div>
         <h1>Reset password</h1>
         {resetSent ? (
           <p className="hint">
@@ -90,6 +96,11 @@ export default function LoginPage() {
 
   return (
     <div className="page" style={{ maxWidth: 360 }}>
+      <div className="top-bar top-bar-plain">
+        <Link href="/" className="back-link">
+          &larr; Back to results
+        </Link>
+      </div>
       <h1>Admin sign in</h1>
       <form onSubmit={handleSubmit}>
         <div className="field">

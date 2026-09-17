@@ -573,12 +573,7 @@ label {
 
 .home-hero {
   text-align: center;
-  margin: -20px -16px 32px;
-  padding: 56px 16px 44px;
-  background-image: url("/bowls-background.jpg");
-  background-size: cover;
-  background-position: center 18%;
-  border-radius: 0 0 28px 28px;
+  margin: 24px 0 32px;
 }
 
 .home-hero h1 {
