@@ -34,6 +34,7 @@ import {
   reopenMatch,
   reorderPlayers,
   resetBracket,
+  saveResult,
   setDrawPublished,
   setFinalsNumber,
   setFinalsPlayerSeed,
@@ -312,10 +313,12 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
                   match={m}
                   playerNames={playerNames}
                   pending={pendingMatchIds.has(m.id)}
+                  resultsOnly={!isFinals}
                   onAdjust={(side, delta) => handleAdjust(m, side, delta)}
                   onComplete={withErrorHandling(() => completeMatch(m))}
                   onReopen={withErrorHandling(() => reopenMatch(m))}
-                  onNoShow={withErrorHandling((side: "a" | "b") => markNoShow(m, side))}
+                  onSaveResult={withErrorHandling((scoreA: number, scoreB: number) => saveResult(m, scoreA, scoreB))}
+                  onNoShow={withErrorHandling((side: "a" | "b") => markNoShow(m, side, isFinals))}
                 />
               ))}
             </section>
@@ -607,17 +610,21 @@ function MatchEditor({
   match,
   playerNames,
   pending,
+  resultsOnly,
   onAdjust,
   onComplete,
   onReopen,
+  onSaveResult,
   onNoShow,
 }: {
   match: MatchRow;
   playerNames: Record<string, string>;
   pending: boolean;
+  resultsOnly: boolean;
   onAdjust: (side: "a" | "b", delta: number) => void;
   onComplete: () => Promise<void>;
   onReopen: () => Promise<void>;
+  onSaveResult: (scoreA: number, scoreB: number) => Promise<void>;
   onNoShow: (side: "a" | "b") => Promise<void>;
 }) {
   const [showHistory, setShowHistory] = useState(false);
@@ -648,52 +655,64 @@ function MatchEditor({
 
   return (
     <div className="card">
-      <div className={`match ${complete ? "complete" : ""}`}>
-        <div className="players">
-          <ScoreLine
-            name={nameA}
-            score={match.score_a}
-            targetScore={match.target_score}
-            isWinner={Boolean(match.winner_id) && match.winner_id === match.player_a_id}
-            disabled={complete || pending}
-            onAdjust={(delta) => onAdjust("a", delta)}
-          />
-          <hr className="divider" />
-          <ScoreLine
-            name={nameB}
-            score={match.score_b}
-            targetScore={match.target_score}
-            isWinner={Boolean(match.winner_id) && match.winner_id === match.player_b_id}
-            disabled={complete || pending}
-            onAdjust={(delta) => onAdjust("b", delta)}
-          />
+      {resultsOnly ? (
+        <ResultEntry
+          nameA={nameA}
+          nameB={nameB}
+          scoreA={match.score_a}
+          scoreB={match.score_b}
+          complete={complete}
+          pending={pending}
+          onSave={onSaveResult}
+        />
+      ) : (
+        <div className={`match ${complete ? "complete" : ""}`}>
+          <div className="players">
+            <ScoreLine
+              name={nameA}
+              score={match.score_a}
+              targetScore={match.target_score}
+              isWinner={Boolean(match.winner_id) && match.winner_id === match.player_a_id}
+              disabled={complete || pending}
+              onAdjust={(delta) => onAdjust("a", delta)}
+            />
+            <hr className="divider" />
+            <ScoreLine
+              name={nameB}
+              score={match.score_b}
+              targetScore={match.target_score}
+              isWinner={Boolean(match.winner_id) && match.winner_id === match.player_b_id}
+              disabled={complete || pending}
+              onAdjust={(delta) => onAdjust("b", delta)}
+            />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", gap: 8 }}>
+            <span className={`status-pill ${match.status}`}>
+              {match.status === "live" && <span className="live-dot" />}
+              {match.status}
+            </span>
+            {!complete && (
+              <button onClick={onComplete} disabled={!canComplete}>
+                Mark complete
+              </button>
+            )}
+            {complete && (
+              <button
+                className="secondary"
+                onClick={() => {
+                  if (confirm("Reopen this match to fix a mistake?")) onReopen();
+                }}
+              >
+                Reopen
+              </button>
+            )}
+          </div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", gap: 8 }}>
-          <span className={`status-pill ${match.status}`}>
-            {match.status === "live" && <span className="live-dot" />}
-            {match.status}
-          </span>
-          {!complete && (
-            <button onClick={onComplete} disabled={!canComplete}>
-              Mark complete
-            </button>
-          )}
-          {complete && (
-            <button
-              className="secondary"
-              onClick={() => {
-                if (confirm("Reopen this match to fix a mistake?")) onReopen();
-              }}
-            >
-              Reopen
-            </button>
-          )}
-        </div>
-      </div>
+      )}
       {match.status === "upcoming" && match.round === 1 && (
         <NoShowControl nameA={nameA} nameB={nameB} onNoShow={onNoShow} />
       )}
-      {match.status !== "upcoming" && (
+      {!resultsOnly && match.status !== "upcoming" && (
         <div style={{ marginTop: 8 }}>
           <button type="button" className="link-button match-history-toggle" onClick={() => setShowHistory((v) => !v)}>
             {showHistory ? "Hide history" : "History"}
@@ -830,6 +849,70 @@ function ScoreLine({
         </button>
         <button className="secondary" disabled={disabled || atTarget} onClick={() => onAdjust(2)}>
           +2
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ResultEntry({
+  nameA,
+  nameB,
+  scoreA,
+  scoreB,
+  complete,
+  pending,
+  onSave,
+}: {
+  nameA: string;
+  nameB: string;
+  scoreA: number;
+  scoreB: number;
+  complete: boolean;
+  pending: boolean;
+  onSave: (scoreA: number, scoreB: number) => Promise<void>;
+}) {
+  const [a, setA] = useState(String(scoreA));
+  const [b, setB] = useState(String(scoreB));
+
+  useEffect(() => {
+    setA(String(scoreA));
+    setB(String(scoreB));
+  }, [scoreA, scoreB]);
+
+  const canSave = a.trim() !== "" && b.trim() !== "" && Number(a) !== Number(b);
+
+  return (
+    <div>
+      <div className="players">
+        <div className="player-row">
+          <span className="name">{nameA}</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={a}
+            onChange={(e) => setA(e.target.value)}
+            style={{ width: 64, textAlign: "right", fontSize: "1.2rem", fontWeight: 700 }}
+          />
+        </div>
+        <hr className="divider" />
+        <div className="player-row">
+          <span className="name">{nameB}</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={b}
+            onChange={(e) => setB(e.target.value)}
+            style={{ width: 64, textAlign: "right", fontSize: "1.2rem", fontWeight: 700 }}
+          />
+        </div>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+        <span className={`status-pill ${complete ? "complete" : "upcoming"}`}>
+          {complete ? "complete" : "result pending"}
+        </span>
+        <button disabled={!canSave || pending} onClick={() => onSave(Number(a), Number(b))}>
+          {complete ? "Update result" : "Save result"}
         </button>
       </div>
     </div>

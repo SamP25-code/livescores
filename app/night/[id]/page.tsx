@@ -292,6 +292,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
                 players={players}
                 highlightPlayerId={highlightPlayerId}
                 onSelectPlayer={toggleHighlight}
+                historyEnabled={night?.kind === "finals"}
               />
             ))}
           </section>

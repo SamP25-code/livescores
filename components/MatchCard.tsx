@@ -12,12 +12,14 @@ export default function MatchCard({
   highlightPlayerId,
   onSelectPlayer,
   compact,
+  historyEnabled = true,
 }: {
   match: MatchRow;
   players: Record<string, Player>;
   highlightPlayerId?: string | null;
   onSelectPlayer?: (playerId: string) => void;
   compact?: boolean;
+  historyEnabled?: boolean;
 }) {
   const [showHistory, setShowHistory] = useState(false);
   const isBye = match.status === "complete" && Boolean(match.player_a_id) !== Boolean(match.player_b_id);
@@ -47,7 +49,7 @@ export default function MatchCard({
         {match.status === "live" && <span className="live-dot" />}
         {isBye ? "bye" : match.status}
       </span>
-      {!compact && !isBye && match.status !== "upcoming" && (
+      {historyEnabled && !compact && !isBye && match.status !== "upcoming" && (
         <div className="match-history-toggle-wrap">
           <button
             type="button"

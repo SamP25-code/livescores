@@ -222,6 +222,47 @@ export async function adjustScore(match: MatchRow, side: "a" | "b", delta: numbe
   }
 }
 
+/**
+ * Enters a final score directly for a night that isn't being live-scored -
+ * a qualifying night with several matches running at once, say, where
+ * tracking every point as it happens isn't realistic. No history is kept
+ * (there's nothing point-by-point to record), and this can be called again
+ * on an already-complete match to correct a mistake - there's no separate
+ * "reopen" step, since re-entering the result is the correction.
+ */
+export async function saveResult(match: MatchRow, scoreA: number, scoreB: number) {
+  if (!match.player_a_id || !match.player_b_id) {
+    throw new Error("Both players need to be known before entering a result.");
+  }
+  if (scoreA === scoreB) {
+    throw new Error("Scores can't be level - there has to be a winner.");
+  }
+  const winnerId = scoreA > scoreB ? match.player_a_id : match.player_b_id;
+
+  if (match.status === "complete" && match.next_match_id) {
+    const { data: nextMatch } = await supabase
+      .from("matches")
+      .select("*")
+      .eq("id", match.next_match_id)
+      .single();
+    const nm = nextMatch as MatchRow | null;
+    if (nm && (nm.status === "complete" || nm.score_a > 0 || nm.score_b > 0)) {
+      throw new Error("Can't change this - the winner has already started their next match.");
+    }
+  }
+
+  const { error } = await supabase
+    .from("matches")
+    .update({ score_a: scoreA, score_b: scoreB, status: "complete", winner_id: winnerId })
+    .eq("id", match.id);
+  if (error) throw error;
+
+  if (match.next_match_id && match.next_match_slot) {
+    const field = match.next_match_slot === "a" ? "player_a_id" : "player_b_id";
+    await supabase.from("matches").update({ [field]: winnerId }).eq("id", match.next_match_id);
+  }
+}
+
 export async function completeMatch(match: MatchRow) {
   if (!isMatchComplete(match)) {
     throw new Error("Neither player has reached the target score yet.");
@@ -246,7 +287,7 @@ export async function completeMatch(match: MatchRow) {
   }
 }
 
-export async function markNoShow(match: MatchRow, side: "a" | "b") {
+export async function markNoShow(match: MatchRow, side: "a" | "b", recordHistory = true) {
   if (match.round !== 1) {
     throw new Error("A no-show can only be marked in the first round.");
   }
@@ -266,7 +307,7 @@ export async function markNoShow(match: MatchRow, side: "a" | "b") {
     .eq("id", match.id);
   if (error) throw error;
 
-  await logMatchEvent(match, "no_show", 0, 0, "complete");
+  if (recordHistory) await logMatchEvent(match, "no_show", 0, 0, "complete");
 
   if (match.next_match_id && match.next_match_slot) {
     const field = match.next_match_slot === "a" ? "player_a_id" : "player_b_id";
