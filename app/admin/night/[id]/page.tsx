@@ -661,7 +661,8 @@ function MatchEditor({
           nameB={nameB}
           scoreA={match.score_a}
           scoreB={match.score_b}
-          complete={complete}
+          targetScore={match.target_score}
+          status={match.status}
           pending={pending}
           onSave={onSaveResult}
         />
@@ -860,7 +861,8 @@ function ResultEntry({
   nameB,
   scoreA,
   scoreB,
-  complete,
+  targetScore,
+  status,
   pending,
   onSave,
 }: {
@@ -868,7 +870,8 @@ function ResultEntry({
   nameB: string;
   scoreA: number;
   scoreB: number;
-  complete: boolean;
+  targetScore: number;
+  status: MatchRow["status"];
   pending: boolean;
   onSave: (scoreA: number, scoreB: number) => Promise<void>;
 }) {
@@ -880,7 +883,14 @@ function ResultEntry({
     setB(String(scoreB));
   }, [scoreA, scoreB]);
 
-  const canSave = a.trim() !== "" && b.trim() !== "" && Number(a) !== Number(b);
+  const complete = status === "complete";
+  const numA = Number(a);
+  const numB = Number(b);
+  const validA = a.trim() !== "" && Number.isInteger(numA) && numA >= 0 && numA <= targetScore;
+  const validB = b.trim() !== "" && Number.isInteger(numB) && numB >= 0 && numB <= targetScore;
+  const wouldBeComplete = validA && validB && (numA >= targetScore || numB >= targetScore);
+  const levelWhenComplete = wouldBeComplete && numA === numB;
+  const canSave = validA && validB && !levelWhenComplete;
 
   return (
     <div>
@@ -890,6 +900,8 @@ function ResultEntry({
           <input
             type="number"
             inputMode="numeric"
+            min={0}
+            max={targetScore}
             value={a}
             onChange={(e) => setA(e.target.value)}
             style={{ width: 64, textAlign: "right", fontSize: "1.2rem", fontWeight: 700 }}
@@ -901,17 +913,25 @@ function ResultEntry({
           <input
             type="number"
             inputMode="numeric"
+            min={0}
+            max={targetScore}
             value={b}
             onChange={(e) => setB(e.target.value)}
             style={{ width: 64, textAlign: "right", fontSize: "1.2rem", fontWeight: 700 }}
           />
         </div>
       </div>
+      {levelWhenComplete && (
+        <p className="error" style={{ margin: "8px 0 0", fontSize: "0.9rem" }}>
+          Scores can&rsquo;t be level once someone&rsquo;s reached {targetScore} &mdash; there has to be a winner.
+        </p>
+      )}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-        <span className={`status-pill ${complete ? "complete" : "upcoming"}`}>
-          {complete ? "complete" : "result pending"}
+        <span className={`status-pill ${status}`}>
+          {status === "live" && <span className="live-dot" />}
+          {status === "upcoming" ? "result pending" : status}
         </span>
-        <button disabled={!canSave || pending} onClick={() => onSave(Number(a), Number(b))}>
+        <button disabled={!canSave || pending} onClick={() => onSave(numA, numB)}>
           {complete ? "Update result" : "Save result"}
         </button>
       </div>

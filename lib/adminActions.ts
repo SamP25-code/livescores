@@ -223,23 +223,36 @@ export async function adjustScore(match: MatchRow, side: "a" | "b", delta: numbe
 }
 
 /**
- * Enters a final score directly for a night that isn't being live-scored -
- * a qualifying night with several matches running at once, say, where
+ * Enters a score directly for a night that isn't being live-scored - a
+ * qualifying night with several matches running at once, say, where
  * tracking every point as it happens isn't realistic. No history is kept
- * (there's nothing point-by-point to record), and this can be called again
- * on an already-complete match to correct a mistake - there's no separate
- * "reopen" step, since re-entering the result is the correction.
+ * (there's nothing point-by-point to record). The match only completes
+ * once someone actually reaches the target score - anything short of
+ * that (10-10, say) just saves as the score-so-far and shows as live,
+ * without sending anyone through to the next round. This can be called
+ * again on an already-complete match to correct a mistake - there's no
+ * separate "reopen" step, since re-entering the result is the correction.
  */
 export async function saveResult(match: MatchRow, scoreA: number, scoreB: number) {
   if (!match.player_a_id || !match.player_b_id) {
     throw new Error("Both players need to be known before entering a result.");
   }
-  if (scoreA === scoreB) {
-    throw new Error("Scores can't be level - there has to be a winner.");
+  if (!Number.isInteger(scoreA) || !Number.isInteger(scoreB) || scoreA < 0 || scoreB < 0) {
+    throw new Error("Scores can't be negative.");
   }
-  const winnerId = scoreA > scoreB ? match.player_a_id : match.player_b_id;
+  if (scoreA > match.target_score || scoreB > match.target_score) {
+    throw new Error(`Scores can't be higher than ${match.target_score}.`);
+  }
 
-  if (match.status === "complete" && match.next_match_id) {
+  const scored = { score_a: scoreA, score_b: scoreB, target_score: match.target_score };
+  const complete = isMatchComplete(scored);
+  if (complete && scoreA === scoreB) {
+    throw new Error("Scores can't be level once someone's reached the target - there has to be a winner.");
+  }
+  const winnerSide = complete ? getWinnerSide(scored) : null;
+  const winnerId = winnerSide === "a" ? match.player_a_id : winnerSide === "b" ? match.player_b_id : null;
+
+  if (match.next_match_id && winnerId !== match.winner_id) {
     const { data: nextMatch } = await supabase
       .from("matches")
       .select("*")
@@ -253,11 +266,11 @@ export async function saveResult(match: MatchRow, scoreA: number, scoreB: number
 
   const { error } = await supabase
     .from("matches")
-    .update({ score_a: scoreA, score_b: scoreB, status: "complete", winner_id: winnerId })
+    .update({ score_a: scoreA, score_b: scoreB, status: complete ? "complete" : "live", winner_id: winnerId })
     .eq("id", match.id);
   if (error) throw error;
 
-  if (match.next_match_id && match.next_match_slot) {
+  if (match.next_match_id && match.next_match_slot && winnerId !== match.winner_id) {
     const field = match.next_match_slot === "a" ? "player_a_id" : "player_b_id";
     await supabase.from("matches").update({ [field]: winnerId }).eq("id", match.next_match_id);
   }
