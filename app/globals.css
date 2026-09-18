@@ -167,6 +167,13 @@ a {
   margin: 0 7px;
 }
 
+.top-bar nav span {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-weight: 600;
+  margin: 0 7px;
+}
+
 .top-bar-plain {
   text-align: left;
   padding: 0 0 12px;
