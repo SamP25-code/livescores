@@ -898,26 +898,26 @@ function ResultEntry({
         <div className="player-row">
           <span className="name">{nameA}</span>
           <input
+            className="result-input"
             type="number"
             inputMode="numeric"
             min={0}
             max={targetScore}
             value={a}
             onChange={(e) => setA(e.target.value)}
-            style={{ width: 64, textAlign: "right", fontSize: "1.2rem", fontWeight: 700 }}
           />
         </div>
         <hr className="divider" />
         <div className="player-row">
           <span className="name">{nameB}</span>
           <input
+            className="result-input"
             type="number"
             inputMode="numeric"
             min={0}
             max={targetScore}
             value={b}
             onChange={(e) => setB(e.target.value)}
-            style={{ width: 64, textAlign: "right", fontSize: "1.2rem", fontWeight: 700 }}
           />
         </div>
       </div>

@@ -548,6 +548,28 @@ label {
   font-variant-numeric: tabular-nums;
 }
 
+.result-input {
+  width: 64px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  padding: 8px 4px;
+  -moz-appearance: textfield;
+}
+
+.result-input::-webkit-outer-spin-button,
+.result-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.result-input:focus {
+  outline: none;
+  border-color: var(--green-mid);
+  box-shadow: 0 0 0 2px var(--green-pale);
+}
+
 .error {
   color: var(--maroon);
   font-size: 0.9rem;
