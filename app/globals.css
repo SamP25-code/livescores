@@ -85,18 +85,38 @@ body {
 }
 
 .page-footer-nav a {
-  font-size: 0.85rem;
+  display: inline-block;
+  font-size: 0.9rem;
+  font-weight: 600;
   text-decoration: none;
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-/* The top bar keeps its own solid backing rather than sitting on the raw
-   photo, since the sponsor's logo has fixed dark text baked into the image
-   - recoloring their actual logo isn't ours to do, so it needs a light
-   surface under it instead. */
+.page-footer-nav a:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* The top bar keeps its own mostly-opaque backing rather than sitting on
+   the raw photo, since the sponsor's logo has fixed dark text baked into
+   the image - recoloring their actual logo isn't ours to do, so it needs
+   a light surface under it. Still glass-tinted (blur + a touch of
+   transparency) to match the rest of the page, just a lot less sheer than
+   the night cards so that text stays legible. */
 .page-photo .top-bar {
-  background: var(--cream);
+  background: rgba(239, 235, 221, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-bottom: none;
   border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 .page-photo .champion-banner .hint {
@@ -156,6 +176,12 @@ a {
   width: auto;
   max-width: 80%;
   margin: 0 auto 8px;
+}
+
+.brand-tagline {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--ink-soft);
 }
 
 .top-bar .brand a {
@@ -679,7 +705,7 @@ label {
 .night-list {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
   max-width: 480px;
   margin: 0 auto 20px;
 }
@@ -689,39 +715,62 @@ label {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 28px 26px;
+  padding: 30px 26px;
   border-radius: 20px;
-  border: 2px solid var(--green-deep);
-  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   text-decoration: none;
-  box-shadow: 0 3px 0 var(--line);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
 .night-card:hover {
   transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 10px 20px rgba(31, 61, 43, 0.2);
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
 }
 
 .night-card-name {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
   font-family: var(--font-display), Georgia, serif;
-  font-size: 1.55rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--green-deep);
+  color: #fff;
+}
+
+.night-card-day {
+  font-size: 1.45rem;
+}
+
+.night-card-date {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .night-card-finals {
-  border-color: var(--gold);
-  background: linear-gradient(135deg, #fff, var(--gold-pale));
+  border-color: rgba(201, 151, 44, 0.45);
+  background: rgba(201, 151, 44, 0.14);
 }
 
 .night-card-finals .night-card-name {
-  color: var(--gold-deep);
+  color: var(--gold);
 }
 
 .night-card .status-pill {
   font-size: 0.8rem;
   padding: 4px 12px;
+}
+
+.night-card .status-pill.upcoming {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .champion-banner {

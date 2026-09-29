@@ -3,8 +3,8 @@ export default function Brand({ suffix }: { suffix?: string }) {
     <span className="brand">
       <img src="/verve-wills-logo.png" alt="Verve Wills & Estate Planning" className="sponsor-logo" />
       Penwortham Sports &amp; Social Club
-      <br /> 
-      October singles kindly sponsored by
+      <br />
+      <span className="brand-tagline">October singles kindly sponsored by</span>
       <br />
       <a href="https://vervewills.co.uk/" target="_blank" rel="noopener noreferrer">
         Verve Wills and Estate Planning

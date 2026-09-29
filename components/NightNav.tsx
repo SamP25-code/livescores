@@ -7,6 +7,17 @@ import { fetchNightStatuses } from "@/lib/nightStatus";
 import type { Night } from "@/lib/types";
 import type { NightStatus } from "@/lib/bracket";
 
+const WEEKDAY_NAME = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b\s*(.*)$/i;
+
+// Splits "Monday 12th October" into a bold day + a smaller muted date line.
+// Falls back to null for anything that doesn't start with a weekday (e.g.
+// "Finals Day"), which just renders as a single line instead.
+function splitNightName(name: string): { day: string; rest: string } | null {
+  const match = name.match(WEEKDAY_NAME);
+  if (!match || !match[2].trim()) return null;
+  return { day: match[1], rest: match[2].trim() };
+}
+
 export default function NightNav({
   currentId,
   variant = "compact",
@@ -56,9 +67,19 @@ export default function NightNav({
       <nav className="night-list">
         {nights.map((n) => {
           const status = statuses[n.id] ?? "upcoming";
+          const split = splitNightName(n.name);
           return (
             <Link key={n.id} href={`/night/${n.id}`} className={`night-card night-card-${n.kind}`}>
-              <span className="night-card-name">{n.name}</span>
+              <span className="night-card-name">
+                {split ? (
+                  <>
+                    <span className="night-card-day">{split.day}</span>
+                    <span className="night-card-date">{split.rest}</span>
+                  </>
+                ) : (
+                  n.name
+                )}
+              </span>
               <span className={`status-pill ${status}`}>
                 {status === "live" && <span className="live-dot" />}
                 {status}
