@@ -6,10 +6,7 @@ export default function NotFound() {
     <div className="page page-photo">
       <div className="public-background" aria-hidden="true" />
       <div className="top-bar">
-        <Brand />
-        <nav>
-          <Link href="/">Home</Link>
-        </nav>
+        <Brand homeLink />
       </div>
 
       <div className="home-hero">

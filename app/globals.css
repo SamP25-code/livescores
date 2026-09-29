@@ -148,68 +148,14 @@ a {
   padding: 20px 16px 64px;
 }
 
-/* One consistent single-row header everywhere - logo, then the club
-   name/sponsor line, then (on inner pages) the Home link, all on one
-   line and vertically centred. The name/tagline wrap naturally on
-   narrow phones rather than the logo ever shrinking below its set size. */
+/* A short, stacked header instead of the tall two-column one - title
+   row (with Home) up top, a thin divider, then a small caption and the
+   centred logo. Keeps the card compact on a phone screen instead of
+   eating a third of it. */
 .top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  text-align: left;
-  border-bottom: 3px solid var(--green-deep);
-  padding: 10px 16px;
+  padding: 12px 16px;
   margin-bottom: 14px;
-}
-
-.top-bar nav {
-  flex: none;
-  margin: 0;
-}
-
-.top-bar .brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  flex: 1;
-}
-
-.sponsor-logo {
-  flex: none;
-  height: 78px;
-  width: auto;
-  object-fit: contain;
-}
-
-.brand-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.brand-name {
-  font-family: var(--font-body), sans-serif;
-  font-weight: 700;
-  font-size: 0.95rem;
-  line-height: 1.25;
-  color: var(--ink);
-  white-space: normal;
-}
-
-.brand-tagline {
-  font-size: 0.72rem;
-  font-style: italic;
-  color: var(--ink-soft);
-  white-space: normal;
-}
-
-.brand-tagline a {
-  color: var(--green-deep);
-  font-weight: 700;
-  font-style: normal;
+  border-bottom: 3px solid var(--green-deep);
 }
 
 .top-bar nav a {
@@ -224,6 +170,59 @@ a {
   color: var(--ink-soft);
   font-weight: 600;
   margin: 0 7px;
+}
+
+.brand {
+  display: block;
+}
+
+.brand-top-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  margin-bottom: 8px;
+}
+
+.brand-name {
+  font-family: var(--font-body), sans-serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.brand-home-link {
+  flex: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.brand-divider {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 0 0 8px;
+}
+
+.brand-caption {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.brand-logo-link {
+  display: block;
+  text-align: center;
+}
+
+.sponsor-logo {
+  height: clamp(40px, 9vw, 56px);
+  width: auto;
+  object-fit: contain;
 }
 
 .top-bar-plain {

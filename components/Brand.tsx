@@ -1,17 +1,21 @@
-export default function Brand({ suffix }: { suffix?: string }) {
+import Link from "next/link";
+
+export default function Brand({ homeLink }: { homeLink?: boolean }) {
   return (
-    <span className="brand">
-      <img src="/verve-wills-logo.png" alt="Verve Wills & Estate Planning" className="sponsor-logo" />
-      <span className="brand-text">
+    <div className="brand">
+      <div className="brand-top-row">
         <span className="brand-name">Penwortham Sports &amp; Social Club</span>
-        <span className="brand-tagline">
-          October singles kindly sponsored by{" "}
-          <a href="https://vervewills.co.uk/" target="_blank" rel="noopener noreferrer">
-            Verve Wills and Estate Planning
-          </a>
-        </span>
-      </span>
-      {suffix}
-    </span>
+        {homeLink && (
+          <Link href="/" className="brand-home-link">
+            Home
+          </Link>
+        )}
+      </div>
+      <hr className="brand-divider" />
+      <p className="brand-caption">October singles sponsored by</p>
+      <a href="https://vervewills.co.uk/" target="_blank" rel="noopener noreferrer" className="brand-logo-link">
+        <img src="/verve-wills-logo.png" alt="Verve Wills and Estate Planning" className="sponsor-logo" />
+      </a>
+    </div>
   );
 }
