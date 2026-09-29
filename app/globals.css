@@ -571,20 +571,12 @@ a {
   color: var(--ink);
 }
 
-.score-cell {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2.2em;
-  padding: 2px 6px;
-}
-
 .player-row .score {
   font-family: Georgia, "Times New Roman", serif;
   font-variant-numeric: tabular-nums;
   font-size: 1.7rem;
   font-weight: 700;
+  min-width: 2ch;
   text-align: right;
   color: var(--ink-soft);
 }
@@ -597,39 +589,6 @@ a {
 .match.complete .player-row:not(.winner) .score {
   opacity: 0.55;
   font-weight: 500;
-}
-
-/* A hand-drawn loop around the winner's score instead of a separate
-   "complete" pill - see WinnerCircle.tsx. Skipped for byes, since
-   there's no real result to circle. */
-.winner-circle {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
-
-.winner-circle path {
-  fill: none;
-  stroke: #2b4a8b;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .winner-circle-animate path {
-    stroke-dasharray: 170;
-    stroke-dashoffset: 170;
-    animation: winner-circle-draw 0.6s ease-out forwards;
-  }
-}
-
-@keyframes winner-circle-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
 }
 
 .score-flash {

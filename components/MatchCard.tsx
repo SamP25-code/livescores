@@ -4,7 +4,6 @@ import { useState } from "react";
 import Avatar from "@/components/Avatar";
 import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
-import WinnerCircle from "@/components/WinnerCircle";
 import type { MatchRow, Player } from "@/lib/types";
 
 export default function MatchCard({
@@ -58,18 +57,12 @@ export default function MatchCard({
       <div className="players">
         <div className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""}`}>
           <NameCell player={playerA} name={nameA} playerId={match.player_a_id} onSelectPlayer={onSelectPlayer} />
-          <span className="score-cell">
-            <FlashingScore value={scoreA} />
-            <WinnerCircle matchId={match.id} active={!isBye && match.status === "complete" && winnerA} />
-          </span>
+          <FlashingScore value={scoreA} />
         </div>
         <hr className="divider" />
         <div className={`player-row ${winnerB ? "winner" : ""} ${spotlightB ? "spotlight" : ""}`}>
           <NameCell player={playerB} name={nameB} playerId={match.player_b_id} onSelectPlayer={onSelectPlayer} />
-          <span className="score-cell">
-            <FlashingScore value={scoreB} />
-            <WinnerCircle matchId={match.id} active={!isBye && match.status === "complete" && winnerB} />
-          </span>
+          <FlashingScore value={scoreB} />
         </div>
       </div>
       {historyEnabled && !compact && !isBye && match.status !== "upcoming" && (
