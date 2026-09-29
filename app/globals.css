@@ -148,12 +148,20 @@ a {
   padding: 20px 16px 64px;
 }
 
+/* The fixed photo behind these pages already reaches the very top of
+   the screen (including under the iOS status bar, once viewport-fit
+   is set) - this just keeps the actual content, like the Home link,
+   clear of the notch/status bar rather than sitting under it. */
+.page-photo {
+  padding-top: calc(20px + env(safe-area-inset-top));
+}
+
 /* A short, stacked, centred header - title, a thin divider, a small
    caption, then the logo sized by width so its baked-in wordmark stays
    readable. Home lives above this card now (.page-back-link), not
    inside it. */
 .top-bar {
-  padding: 13px 16px;
+  padding: 12px 16px;
   margin-bottom: 14px;
   border-bottom: 3px solid var(--green-deep);
 }
@@ -193,7 +201,7 @@ a {
 }
 
 .brand-caption {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: 0.72rem;
   color: var(--ink-soft);
 }
@@ -202,17 +210,23 @@ a {
   display: block;
 }
 
+/* The logo file's background is solid white rather than transparent -
+   multiply blends it into the cream card so it doesn't show as a white
+   rectangle. Swap in a transparent PNG/SVG later and this can just be
+   dropped. Sizing is all in this one rule, not tied to the file's own
+   pixel dimensions, so swapping the asset needs no CSS changes. */
 .sponsor-logo {
   display: block;
-  width: 70%;
-  max-width: 260px;
+  width: 55%;
+  max-width: 220px;
   height: auto;
   margin: 0 auto;
+  mix-blend-mode: multiply;
 }
 
 @media (min-width: 640px) {
   .sponsor-logo {
-    max-width: 280px;
+    max-width: 240px;
   }
 }
 
@@ -228,7 +242,7 @@ a {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--cream);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
   text-decoration: none;
 }
 

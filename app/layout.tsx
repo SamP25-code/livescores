@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Zilla_Slab, Inter } from "next/font/google";
 import "./globals.css";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
@@ -15,6 +15,12 @@ const body = Inter({
   weight: ["400", "500", "600", "700"],
   variable: "--font-body",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(`https://${process.env.VERCEL_URL ?? "localhost:3000"}`),
