@@ -108,8 +108,6 @@ body {
    text baked in that isn't ours to recolor. */
 .page-photo .top-bar {
   background: var(--cream);
-  background-image: radial-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 1px);
-  background-size: 3px 3px;
   border: 1px solid var(--line);
   border-bottom: none;
   border-radius: 20px;
@@ -654,8 +652,11 @@ label {
 }
 
 .home-hero .hint {
-  font-size: 1rem;
-  color: #fff;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.05rem;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--gold-pale);
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
 }
 
@@ -708,10 +709,10 @@ label {
 }
 
 /* Styled like a printed matchday programme card rather than a floating
-   glass panel - card-stock cream, a wood spine down the left edge (like a
-   bookmark or a torn ticket stub), and a faint grain texture instead of
-   blur. The slight alternating tilt is deliberate - a shade of the
-   "pinned up by hand" look rather than a perfectly uniform grid. */
+   glass panel - flat card-stock cream, a wood spine down the left edge
+   (like a bookmark or a torn ticket stub). The slight alternating tilt is
+   deliberate - a shade of the "pinned up by hand" look rather than a
+   perfectly uniform grid. */
 .night-card {
   display: flex;
   align-items: center;
@@ -721,8 +722,6 @@ label {
   border-radius: 8px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   background-color: var(--cream);
-  background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
-  background-size: 3px 3px;
   position: relative;
   overflow: hidden;
   text-decoration: none;

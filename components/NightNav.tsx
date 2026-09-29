@@ -8,12 +8,22 @@ import type { Night } from "@/lib/types";
 import type { NightStatus } from "@/lib/bracket";
 
 const WEEKDAY_NAME = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b\s*(.*)$/i;
+const WEEKDAY_ANYWHERE = /(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b\s*(.*)$/i;
+const FINALS_LABEL = "Finals Day";
 
 // Splits "Monday 12th October" into a bold day + a smaller muted date line.
-// Falls back to null for anything that doesn't start with a weekday (e.g.
-// "Finals Day"), which just renders as a single line instead.
-function splitNightName(name: string): { day: string; rest: string } | null {
-  const match = name.match(WEEKDAY_NAME);
+// Finals Day always shows that fixed label as the title, with whatever date
+// text the admin entered (however it's worded) pulled out as the subtitle -
+// driven by the night's kind rather than guessing from its exact wording.
+// Falls back to null (a single line) for anything else that doesn't start
+// with a weekday.
+function splitNightName(night: Night): { day: string; rest: string } | null {
+  if (night.kind === "finals") {
+    const match = night.name.match(WEEKDAY_ANYWHERE);
+    const rest = (match ? `${match[1]} ${match[2]}` : night.name).trim();
+    return rest && rest !== FINALS_LABEL ? { day: FINALS_LABEL, rest } : null;
+  }
+  const match = night.name.match(WEEKDAY_NAME);
   if (!match || !match[2].trim()) return null;
   return { day: match[1], rest: match[2].trim() };
 }
@@ -67,7 +77,7 @@ export default function NightNav({
       <nav className="night-list">
         {nights.map((n) => {
           const status = statuses[n.id] ?? "upcoming";
-          const split = splitNightName(n.name);
+          const split = splitNightName(n);
           return (
             <Link key={n.id} href={`/night/${n.id}`} className={`night-card night-card-${n.kind}`}>
               <span className="night-card-name">
