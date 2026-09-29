@@ -1,16 +1,7 @@
-import Link from "next/link";
-
-export default function Brand({ homeLink }: { homeLink?: boolean }) {
+export default function Brand() {
   return (
     <div className="brand">
-      <div className="brand-top-row">
-        <span className="brand-name">Penwortham Sports &amp; Social Club</span>
-        {homeLink && (
-          <Link href="/" className="brand-home-link">
-            Home
-          </Link>
-        )}
-      </div>
+      <p className="brand-name">Penwortham Sports &amp; Social Club</p>
       <hr className="brand-divider" />
       <p className="brand-caption">October singles sponsored by</p>
       <a href="https://vervewills.co.uk/" target="_blank" rel="noopener noreferrer" className="brand-logo-link">

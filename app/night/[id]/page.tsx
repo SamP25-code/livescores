@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, roundLabel } from "@/lib/bracket";
 import NightNav, { splitNightName } from "@/components/NightNav";
@@ -176,8 +177,11 @@ export default function NightPage({ params }: { params: { id: string } }) {
   return (
     <div className="page page-photo">
       <div className="public-background" aria-hidden="true" />
+      <Link href="/" className="page-back-link">
+        <span aria-hidden="true">&lsaquo;</span> Home
+      </Link>
       <div className="top-bar">
-        <Brand homeLink />
+        <Brand />
       </div>
 
       <NightNav currentId={nightId} />
