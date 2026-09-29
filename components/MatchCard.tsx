@@ -4,6 +4,7 @@ import { useState } from "react";
 import Avatar from "@/components/Avatar";
 import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
+import WinnerCircle from "@/components/WinnerCircle";
 import type { MatchRow, Player } from "@/lib/types";
 
 export default function MatchCard({
@@ -33,6 +34,9 @@ export default function MatchCard({
   const winnerB = Boolean(match.winner_id) && match.winner_id === match.player_b_id;
   const spotlightA = highlightPlayerId != null && match.player_a_id === highlightPlayerId;
   const spotlightB = highlightPlayerId != null && match.player_b_id === highlightPlayerId;
+  const upcoming = match.status === "upcoming";
+  const scoreA = !match.player_a_id || upcoming ? "–" : match.score_a;
+  const scoreB = !match.player_b_id || upcoming ? "–" : match.score_b;
 
   return (
     <div
@@ -41,29 +45,33 @@ export default function MatchCard({
         isBye ? "bye" : ""
       }`}
     >
-      {!isBye && match.status === "live" && (
-        <div className="match-live-flag">
+      {isBye ? (
+        <div className="match-flag match-flag-muted">Bye</div>
+      ) : match.status === "live" ? (
+        <div className="match-flag match-flag-live">
           <span className="live-dot" />
           Live
         </div>
+      ) : (
+        upcoming && <div className="match-flag match-flag-muted">Upcoming</div>
       )}
       <div className="players">
         <div className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""}`}>
           <NameCell player={playerA} name={nameA} playerId={match.player_a_id} onSelectPlayer={onSelectPlayer} />
-          <FlashingScore value={match.player_a_id ? match.score_a : "–"} />
+          <span className="score-cell">
+            <FlashingScore value={scoreA} />
+            <WinnerCircle matchId={match.id} active={!isBye && match.status === "complete" && winnerA} />
+          </span>
         </div>
         <hr className="divider" />
         <div className={`player-row ${winnerB ? "winner" : ""} ${spotlightB ? "spotlight" : ""}`}>
           <NameCell player={playerB} name={nameB} playerId={match.player_b_id} onSelectPlayer={onSelectPlayer} />
-          <FlashingScore value={match.player_b_id ? match.score_b : "–"} />
+          <span className="score-cell">
+            <FlashingScore value={scoreB} />
+            <WinnerCircle matchId={match.id} active={!isBye && match.status === "complete" && winnerB} />
+          </span>
         </div>
       </div>
-      {isBye ? (
-        <span className="status-pill complete">bye</span>
-      ) : (
-        match.status !== "complete" &&
-        match.status !== "live" && <span className={`status-pill ${match.status}`}>{match.status}</span>
-      )}
       {historyEnabled && !compact && !isBye && match.status !== "upcoming" && (
         <div className="match-history-toggle-wrap">
           <button

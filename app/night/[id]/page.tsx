@@ -125,21 +125,23 @@ export default function NightPage({ params }: { params: { id: string } }) {
   const liveMatches = useMemo(() => matches.filter((m) => m.status === "live"), [matches]);
   const firstLiveMatchId = liveMatches.length > 0 ? liveMatches[0].id : null;
 
-  const lastRound = rounds.length > 0 ? rounds[rounds.length - 1][0] : 0;
   const drawPublished = night?.draw_published ?? true;
   // Finals day updates live as it happens, same as before this feature
   // existed - only a qualifying night's draw waits on an explicit publish,
   // since that's the one the admin privately rearranges beforehand.
   const showDraw = rounds.length > 0 && (night?.kind === "finals" || drawPublished);
 
+  // Always as many slots as the last round has matches (one qualifier per
+  // match), even before they're all decided - an undecided slot renders
+  // as null and shows a "to be decided" placeholder instead of just not
+  // being there yet.
   const qualifiers = useMemo(() => {
-    if (!night || night.kind !== "qualifier" || lastRound === 0 || !drawPublished) return [];
-    return matches
-      .filter((m) => m.round === lastRound && m.status === "complete" && m.winner_id)
+    if (!night || night.kind !== "qualifier" || rounds.length === 0 || !drawPublished) return [];
+    const lastRoundMatches = rounds[rounds.length - 1][1];
+    return [...lastRoundMatches]
       .sort((a, b) => a.slot - b.slot)
-      .map((m) => (m.winner_id ? players[m.winner_id] : undefined))
-      .filter((p): p is Player => Boolean(p));
-  }, [matches, players, night, lastRound, drawPublished]);
+      .map((m) => (m.status === "complete" && m.winner_id ? players[m.winner_id] ?? null : null));
+  }, [rounds, players, night, drawPublished]);
 
   // Doubles as the fallback view whenever the real bracket shouldn't show
   // yet - either it hasn't been generated, or it has but the admin hasn't
@@ -175,8 +177,8 @@ export default function NightPage({ params }: { params: { id: string } }) {
   return (
     <div className="page page-photo">
       <div className="public-background" aria-hidden="true" />
-      <div className="top-bar top-bar-slim">
-        <Brand compact />
+      <div className="top-bar">
+        <Brand />
         <nav>
           <Link href="/">Home</Link>
         </nav>
@@ -325,18 +327,21 @@ export default function NightPage({ params }: { params: { id: string } }) {
           <p className="hint" style={{ textAlign: "center" }}>
             Tap a name to highlight their results from tonight.
           </p>
-          {qualifiers.map((p) => (
+          {qualifiers.map((p, i) => (
             <button
-              key={p.id}
+              key={p?.id ?? `slot-${i}`}
               type="button"
-              className={`card qualifier-row ${highlightPlayerId === p.id ? "selected" : ""}`}
-              onClick={() => toggleHighlight(p.id)}
+              className={`qualifier-row ${p && highlightPlayerId === p.id ? "selected" : ""} ${
+                p ? "" : "qualifier-row-empty"
+              }`}
+              onClick={() => p && toggleHighlight(p.id)}
+              disabled={!p}
             >
               <span className="name-cell">
-                <Avatar name={p.name} />
-                <span className="name">{p.name}</span>
+                {p ? <Avatar name={p.name} /> : <span className="avatar avatar-empty">?</span>}
+                <span className="name">{p ? p.name : "To be decided"}</span>
               </span>
-              <strong>{p.finals_number ?? ""}</strong>
+              <span className="qualifier-number">{p?.finals_number ?? ""}</span>
             </button>
           ))}
         </section>

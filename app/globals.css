@@ -76,7 +76,7 @@ body {
 .page-photo .round-col .round-title,
 .page-photo .champion-col .round-title {
   color: #fff;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
 }
 
 .page-footer-nav {
@@ -111,13 +111,8 @@ body {
   background: var(--cream);
   border: 1px solid var(--line);
   border-bottom: none;
-  border-radius: 20px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
-}
-
-.page-photo .top-bar-slim {
-  border-radius: 14px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 .page-photo .champion-banner .hint {
@@ -153,86 +148,68 @@ a {
   padding: 20px 16px 64px;
 }
 
+/* One consistent single-row header everywhere - logo, then the club
+   name/sponsor line, then (on inner pages) the Home link, all on one
+   line and vertically centred. The name/tagline wrap naturally on
+   narrow phones rather than the logo ever shrinking below its set size. */
 .top-bar {
-  text-align: center;
-  border-bottom: 3px solid var(--green-deep);
-  padding: 4px 16px 10px;
-  margin-bottom: 14px;
-}
-
-/* A single-line strip rather than the stacked, centered layout the full
-   home-page header uses - logo/name on the left, Home on the right. */
-.top-bar-slim {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   text-align: left;
-  padding: 8px 16px;
-  margin-bottom: 12px;
-  border-radius: 14px;
-}
-
-.top-bar-slim nav {
-  margin-top: 0;
-}
-
-.top-bar .brand {
-  display: block;
-  font-family: var(--font-body), sans-serif;
-  font-weight: 600;
-  font-size: 1.05rem;
-  line-height: 1.45;
-  color: var(--ink-soft);
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.sponsor-logo {
-  display: block;
-  height: clamp(70px, 22vw, 150px);
-  width: auto;
-  max-width: 80%;
-  margin: 0 auto 8px;
-}
-
-/* A slim strip for inner pages - logo and club name side by side on one
-   line, instead of the full stacked hero treatment on the home page. */
-.brand-compact {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.sponsor-logo-sm {
-  height: 30px;
-  width: auto;
-  margin: 0;
-}
-
-.brand-compact-text {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--ink-soft);
-}
-
-.brand-tagline {
-  font-size: 0.85rem;
-  font-style: italic;
-  color: var(--ink-soft);
-}
-
-.top-bar .brand a {
-  display: inline-block;
-  color: var(--green-deep);
-  font-weight: 800;
-  font-size: 1.35rem;
+  border-bottom: 3px solid var(--green-deep);
+  padding: 10px 16px;
+  margin-bottom: 14px;
 }
 
 .top-bar nav {
-  margin-top: 8px;
+  flex: none;
+  margin: 0;
+}
+
+.top-bar .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.sponsor-logo {
+  flex: none;
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.brand-name {
+  font-family: var(--font-body), sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  color: var(--ink);
+  white-space: normal;
+}
+
+.brand-tagline {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--ink-soft);
+  white-space: normal;
+}
+
+.brand-tagline a {
+  color: var(--green-deep);
+  font-weight: 700;
+  font-style: normal;
 }
 
 .top-bar nav a {
@@ -286,9 +263,7 @@ a {
   background: var(--cream);
   color: var(--maroon);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   text-decoration: none;
 }
@@ -387,16 +362,25 @@ a {
 
 /* A small live indicator at the top of the card rather than a pill off to
    the side - reads clearly regardless of what else the card is doing. */
-.match-live-flag {
+/* A small flag at the top-left of the card for a status that isn't
+   "just completed" (which the circled score already covers) - live
+   gets the pulsing dot and maroon; upcoming/bye are a plain muted label. */
+.match-flag {
   flex-basis: 100%;
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 0.72rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
+}
+
+.match-flag-live {
   color: var(--maroon);
+}
+
+.match-flag-muted {
+  color: var(--ink-soft);
 }
 
 .player-row {
@@ -470,16 +454,36 @@ a {
   font-weight: 700;
 }
 
+/* Matches the paper-draw look of the match cards above, rather than the
+   old plain white row with a green number pill. */
 .qualifier-row {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  gap: 12px;
+  padding: 12px 16px 12px 22px;
   width: 100%;
   text-align: left;
   font: inherit;
   color: inherit;
   cursor: pointer;
+  background: var(--cream);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+
+.qualifier-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6px;
+  background: linear-gradient(180deg, #8a6339, var(--wood) 55%, #6b4726);
 }
 
 .qualifier-row.selected {
@@ -487,12 +491,28 @@ a {
   box-shadow: 0 0 0 2px var(--green-pale);
 }
 
-.qualifier-row strong {
-  background: var(--green-pale);
+.qualifier-row-empty {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.qualifier-row-empty::before {
+  background: var(--line);
+}
+
+.qualifier-number {
+  font-family: Georgia, "Times New Roman", serif;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.3rem;
+  font-weight: 700;
   color: var(--green-deep);
-  font-size: 0.85rem;
-  padding: 2px 10px;
-  border-radius: 999px;
+  min-width: 1.4em;
+  text-align: right;
+}
+
+.avatar-empty {
+  background: var(--line);
+  color: var(--ink-soft);
 }
 
 .roster-list {
@@ -551,11 +571,20 @@ a {
   color: var(--ink);
 }
 
+.score-cell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.2em;
+  padding: 2px 6px;
+}
+
 .player-row .score {
-  font-family: var(--font-display), Georgia, serif;
+  font-family: Georgia, "Times New Roman", serif;
+  font-variant-numeric: tabular-nums;
   font-size: 1.7rem;
   font-weight: 700;
-  min-width: 2ch;
   text-align: right;
   color: var(--ink-soft);
 }
@@ -570,17 +599,37 @@ a {
   font-weight: 500;
 }
 
-/* Circling the winner's score like a hand-marked scorecard, instead of a
-   separate "complete" pill - the circle already says the match is over.
-   Skipped for byes, since there's no real result to circle. */
-.match.complete:not(.bye) .player-row.winner .score {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.8em;
-  padding: 0 6px;
-  border: 2px solid var(--green-deep);
-  border-radius: 999px;
+/* A hand-drawn loop around the winner's score instead of a separate
+   "complete" pill - see WinnerCircle.tsx. Skipped for byes, since
+   there's no real result to circle. */
+.winner-circle {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.winner-circle path {
+  fill: none;
+  stroke: #2b4a8b;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .winner-circle-animate path {
+    stroke-dasharray: 170;
+    stroke-dashoffset: 170;
+    animation: winner-circle-draw 0.6s ease-out forwards;
+  }
+}
+
+@keyframes winner-circle-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 .score-flash {
