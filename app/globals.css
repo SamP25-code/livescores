@@ -73,8 +73,7 @@ body {
 .page-photo .hint,
 .page-photo .count,
 .page-photo .round-col .round-title,
-.page-photo .champion-col .round-title,
-.page-photo .page-footer-nav a {
+.page-photo .champion-col .round-title {
   color: #fff;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
 }
@@ -87,36 +86,34 @@ body {
 .page-footer-nav a {
   display: inline-block;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
-  padding: 10px 24px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: background 0.15s ease, border-color 0.15s ease;
+  padding: 9px 24px;
+  border-radius: 7px;
+  border: 1.5px solid var(--wood);
+  background: var(--cream);
+  color: var(--wood);
+  box-shadow: 0 2px 0 var(--line);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .page-footer-nav a:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 var(--line);
 }
 
-/* The top bar keeps its own mostly-opaque backing rather than sitting on
-   the raw photo, since the sponsor's logo has fixed dark text baked into
-   the image - recoloring their actual logo isn't ours to do, so it needs
-   a light surface under it. Still glass-tinted (blur + a touch of
-   transparency) to match the rest of the page, just a lot less sheer than
-   the night cards so that text stays legible. */
+/* The top bar is a printed-card-stock cream panel, same paper as the
+   night cards below, rather than glass - it also happens to be the
+   surface the sponsor's logo needs, since that image has fixed dark
+   text baked in that isn't ours to recolor. */
 .page-photo .top-bar {
-  background: rgba(239, 235, 221, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: var(--cream);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+  background-size: 3px 3px;
+  border: 1px solid var(--line);
   border-bottom: none;
   border-radius: 20px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
 }
 
 .page-photo .champion-banner .hint {
@@ -710,26 +707,50 @@ label {
   margin: 0 auto 20px;
 }
 
+/* Styled like a printed matchday programme card rather than a floating
+   glass panel - card-stock cream, a wood spine down the left edge (like a
+   bookmark or a torn ticket stub), and a faint grain texture instead of
+   blur. The slight alternating tilt is deliberate - a shade of the
+   "pinned up by hand" look rather than a perfectly uniform grid. */
 .night-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 30px 26px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  padding: 24px 24px 24px 30px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: var(--cream);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 3px 3px;
+  position: relative;
+  overflow: hidden;
   text-decoration: none;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.night-card:hover {
-  transform: translateY(-3px) scale(1.01);
-  background: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+.night-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 8px;
+  background: linear-gradient(180deg, #8a6339, var(--wood) 55%, #6b4726);
+}
+
+.night-list .night-card:nth-child(odd) {
+  transform: rotate(-0.5deg);
+}
+
+.night-list .night-card:nth-child(even) {
+  transform: rotate(0.5deg);
+}
+
+.night-list .night-card:hover {
+  transform: translateY(-3px) rotate(0deg);
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.4);
 }
 
 .night-card-name {
@@ -739,27 +760,31 @@ label {
   font-family: var(--font-display), Georgia, serif;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--green-deep);
 }
 
 .night-card-day {
-  font-size: 1.45rem;
+  font-size: 1.4rem;
 }
 
 .night-card-date {
   font-family: var(--font-body), sans-serif;
-  font-size: 0.88rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+}
+
+.night-card-finals::before {
+  background: linear-gradient(180deg, var(--gold), var(--gold-deep) 65%, var(--gold-deep));
 }
 
 .night-card-finals {
-  border-color: rgba(201, 151, 44, 0.45);
-  background: rgba(201, 151, 44, 0.14);
+  background-color: var(--gold-pale);
 }
 
 .night-card-finals .night-card-name {
-  color: var(--gold);
+  color: var(--gold-deep);
 }
 
 .night-card .status-pill {
@@ -767,10 +792,17 @@ label {
   padding: 4px 12px;
 }
 
+/* A rubber-stamp treatment for the one status that repeats on every card -
+   an outline instead of a solid fill so five of them in a row read as a
+   quiet detail, not five identical AI-template badges. */
 .night-card .status-pill.upcoming {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  color: rgba(255, 255, 255, 0.85);
+  border: 1.5px solid var(--green-mid);
+  color: var(--green-mid);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transform: rotate(-4deg);
 }
 
 .champion-banner {
