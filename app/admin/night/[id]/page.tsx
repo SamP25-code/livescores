@@ -248,7 +248,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
             </span>
           </div>
           <p className="hint">
-            Fills in on its own as qualifiers are confirmed on each qualifying night &mdash; nothing to add here
+            Fills in on its own as qualifiers are confirmed on each qualifying night, nothing to add here
             normally. Drag a name onto a number to place them, or back down to &ldquo;Not yet placed&rdquo; to
             clear it.
           </p>

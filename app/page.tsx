@@ -17,8 +17,8 @@ export default function HomePage() {
 
       <div className="home-hero">
         <h1>Results</h1>
-        <p className="hint">Pick a night below to see its live scores.</p>
-        <p className="hint">The draw and results update automatically &mdash; no need to refresh the page.</p>
+        <p className="hint">Pick a night below to see the lineups and live scores.</p>
+        <p className="hint">The draw and results update automatically.</p>
       </div>
       <LiveNowBanner />
       <NightNav variant="home" />

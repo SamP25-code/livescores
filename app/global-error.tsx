@@ -21,7 +21,7 @@ export default function GlobalError({
           <div className="home-hero">
             <h1>Something went wrong</h1>
             <p className="hint">
-              This page hit an error. Try again, or refresh &mdash; scores and the draw aren&rsquo;t affected.
+              This page hit an error. Try again or refresh, scores and the draw aren&rsquo;t affected.
             </p>
           </div>
           <p style={{ textAlign: "center" }}>

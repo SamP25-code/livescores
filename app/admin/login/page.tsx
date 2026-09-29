@@ -57,7 +57,7 @@ export default function LoginPage() {
         <h1>Reset password</h1>
         {resetSent ? (
           <p className="hint">
-            If an account exists for {email}, a password reset link has been sent &mdash; check your inbox.
+            If an account exists for {email}, a password reset link has been sent. Check your inbox.
           </p>
         ) : (
           <form onSubmit={handleReset}>

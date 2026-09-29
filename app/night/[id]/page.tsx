@@ -186,13 +186,13 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
       {loadError && (
         <p className="empty" style={{ textAlign: "center" }}>
-          Having trouble loading this page &mdash; check your connection and try refreshing.
+          Having trouble loading this page? Check your connection and try refreshing.
         </p>
       )}
 
       {!loadError && connectionLost && (
         <p className="hint" style={{ textAlign: "center" }}>
-          Live updates paused &mdash; reconnecting&hellip;
+          Live updates paused, reconnecting&hellip;
         </p>
       )}
 
@@ -230,7 +230,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
       {!loadError && finalsSlots.length > 0 && (
         <>
           <p className="hint" style={{ textAlign: "center" }}>
-            Qualifiers confirmed so far &mdash; the lineup fills in as each qualifying night finishes.
+            Qualifiers confirmed so far. The lineup fills in as each qualifying night finishes.
           </p>
           <div className="roster-list">
             {finalsSlots.map((p, i) => (
@@ -247,7 +247,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
       {!loadError && qualifierPlayers.length > 0 && (
         <>
           <p className="hint" style={{ textAlign: "center" }}>
-            {qualifierPlayers.length} player{qualifierPlayers.length === 1 ? "" : "s"} entered &mdash; the draw will
+            {qualifierPlayers.length} player{qualifierPlayers.length === 1 ? "" : "s"} entered. The draw will
             appear here once it&rsquo;s ready.
           </p>
           <div className="roster-list">

@@ -42,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               textAlign: "center",
             }}
           >
-            Supabase isn&rsquo;t configured for this deployment &mdash; set NEXT_PUBLIC_SUPABASE_URL and
+            Supabase isn&rsquo;t configured for this deployment set NEXT_PUBLIC_SUPABASE_URL and
             NEXT_PUBLIC_SUPABASE_ANON_KEY for this environment and redeploy.
           </div>
         )}

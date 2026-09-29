@@ -14,7 +14,7 @@ export default function NotFound() {
 
       <div className="home-hero">
         <h1>Page not found</h1>
-        <p className="hint">That link doesn&rsquo;t lead anywhere &mdash; maybe it&rsquo;s been moved or mistyped.</p>
+        <p className="hint">That link doesn&rsquo;t lead anywhere, maybe it&rsquo;s been moved or mistyped.</p>
       </div>
 
       <p style={{ textAlign: "center" }}>
