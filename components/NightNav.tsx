@@ -17,7 +17,7 @@ const FINALS_LABEL = "Finals Day";
 // driven by the night's kind rather than guessing from its exact wording.
 // Falls back to null (a single line) for anything else that doesn't start
 // with a weekday.
-function splitNightName(night: Night): { day: string; rest: string } | null {
+export function splitNightName(night: Night): { day: string; rest: string } | null {
   if (night.kind === "finals") {
     const match = night.name.match(WEEKDAY_ANYWHERE);
     const rest = (match ? `${match[1]} ${match[2]}` : night.name).trim();
@@ -26,6 +26,27 @@ function splitNightName(night: Night): { day: string; rest: string } | null {
   const match = night.name.match(WEEKDAY_NAME);
   if (!match || !match[2].trim()) return null;
   return { day: match[1], rest: match[2].trim() };
+}
+
+const WEEKDAY_ABBR: Record<string, string> = {
+  Monday: "Mon",
+  Tuesday: "Tue",
+  Wednesday: "Wed",
+  Thursday: "Thu",
+  Friday: "Fri",
+  Saturday: "Sat",
+  Sunday: "Sun",
+};
+
+// A short label for the tab bar, e.g. "Mon 12" or "Finals" - derived from
+// the same split used for the full title, so the two never drift apart.
+function shortNightLabel(night: Night): string {
+  if (night.kind === "finals") return "Finals";
+  const split = splitNightName(night);
+  if (!split) return night.name;
+  const dayNum = split.rest.match(/\d+/)?.[0];
+  const abbr = WEEKDAY_ABBR[split.day] ?? split.day.slice(0, 3);
+  return dayNum ? `${abbr} ${dayNum}` : split.day;
 }
 
 export default function NightNav({
@@ -104,8 +125,12 @@ export default function NightNav({
   return (
     <nav className="night-nav">
       {nights.map((n) => (
-        <Link key={n.id} href={`/night/${n.id}`} className={`night-pill ${n.id === currentId ? "active" : ""}`}>
-          {n.name}
+        <Link
+          key={n.id}
+          href={`/night/${n.id}`}
+          className={`night-pill night-pill-${n.kind} ${n.id === currentId ? "active" : ""}`}
+        >
+          {shortNightLabel(n)}
         </Link>
       ))}
     </nav>

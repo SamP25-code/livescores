@@ -40,6 +40,7 @@ body {
   font-size: 16px;
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
+  background: var(--cream);
 }
 
 .site-background {
@@ -63,6 +64,30 @@ body {
   background-size: cover;
   background-position: center 20%;
   background-repeat: no-repeat;
+}
+
+/* A per-night page shows only a short, fixed strip of the photo behind the
+   tabs and title - it stays put while the cards scroll up over it, rather
+   than the photo filling the whole page like it does on the home page. */
+.night-hero-photo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 300px;
+  z-index: -1;
+  background-color: var(--green-deep);
+  background-image: url("/bowls-background.jpg");
+  background-size: cover;
+  background-position: center 20%;
+  background-repeat: no-repeat;
+}
+
+.night-hero-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 55%, var(--cream) 100%);
 }
 
 /* Public pages sit on the solid photo above, not a card, for a handful of
@@ -336,6 +361,8 @@ a {
   flex: 1;
 }
 
+/* An enamel-pin look - a bright rim plus an inner gloss highlight on top
+   of the flat hashed color, rather than a plain flat-filled circle. */
 .avatar {
   display: inline-flex;
   align-items: center;
@@ -348,12 +375,15 @@ a {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.02em;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.4);
 }
 
 .avatar-sm {
   width: 20px;
   height: 20px;
   font-size: 0.6rem;
+  border-width: 1.5px;
 }
 
 .player-row.spotlight {
@@ -395,20 +425,33 @@ a {
 }
 
 .roster-list {
+  position: relative;
   max-width: 420px;
   margin: 0 auto;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 0 18px;
+  background: var(--cream);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 4px 18px 4px 26px;
+  overflow: hidden;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.3);
+}
+
+.roster-list::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 7px;
+  background: linear-gradient(180deg, #8a6339, var(--wood) 55%, #6b4726);
 }
 
 .roster-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 14px 0;
+  border-bottom: 1px dashed var(--line);
 }
 
 .roster-row:last-child {
@@ -616,28 +659,111 @@ label {
   margin-top: 6px;
 }
 
+/* A row of tabs that reads as flush with the scoresheet card below it -
+   the active tab loses its bottom rounding so it visually fuses with the
+   card, like a folder tab, rather than floating above as a separate pill. */
 .night-nav {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 20px;
+  gap: 6px;
+  margin: 0 0 0;
 }
 
 .night-pill {
-  display: inline-block;
-  padding: 7px 13px;
-  border-radius: 999px;
-  border: 1px solid var(--green-deep);
+  flex: 1;
+  text-align: center;
+  padding: 13px 4px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
   color: var(--green-deep);
   text-decoration: none;
-  font-size: 0.85rem;
-  background: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  background: var(--cream);
+  white-space: nowrap;
 }
 
 .night-pill.active {
   background: var(--green-deep);
+  border-color: var(--green-deep);
   color: #fff;
+  border-radius: 14px 14px 0 0;
+}
+
+.night-pill-finals {
+  background: var(--gold-pale);
+  border-color: rgba(201, 151, 44, 0.4);
+  color: var(--gold-deep);
+}
+
+.night-pill-finals.active {
+  background: var(--gold-deep);
+  border-color: var(--gold-deep);
+  color: #fff;
+}
+
+/* The scoresheet-style header: a dark green card the active tab above it
+   flows straight into, with the day/date on its own cream plate. */
+.night-header-card {
+  background: var(--green-deep);
+  border-radius: 20px;
+  padding: 26px 20px 22px;
+  margin: 0 0 20px;
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.night-header-title {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--cream);
+  border-radius: 16px;
+  padding: 14px 30px;
+}
+
+.night-header-day {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--green-deep);
+  line-height: 1.15;
+}
+
+.night-header-date {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.night-header-badges {
+  margin: 16px 0 0;
+}
+
+.night-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: var(--cream);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.night-header-hint {
+  font-family: var(--font-display), Georgia, serif;
+  font-style: italic;
+  color: rgba(239, 235, 221, 0.85);
+  font-size: 0.95rem;
+  margin: 14px 0 0;
+}
+
+.night-header-hint-error {
+  font-family: var(--font-body), sans-serif;
+  font-style: normal;
+  color: #ffd9d9;
 }
 
 .home-hero {

@@ -1,6 +1,6 @@
 export default function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" }) {
   return (
-    <span className={`avatar ${size === "sm" ? "avatar-sm" : ""}`} style={{ background: `hsl(${hashHue(name)}, 40%, 32%)` }}>
+    <span className={`avatar ${size === "sm" ? "avatar-sm" : ""}`} style={{ background: `hsl(${hashHue(name)}, 48%, 38%)` }}>
       {getInitials(name)}
     </span>
   );

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, roundLabel } from "@/lib/bracket";
-import NightNav from "@/components/NightNav";
+import NightNav, { splitNightName } from "@/components/NightNav";
 import Brand from "@/components/Brand";
 import Avatar from "@/components/Avatar";
 import MatchCard from "@/components/MatchCard";
@@ -170,9 +170,11 @@ export default function NightPage({ params }: { params: { id: string } }) {
     return players[finalMatch.winner_id] ?? null;
   }, [night, rounds, players, showDraw]);
 
+  const titleSplit = night ? splitNightName(night) : null;
+
   return (
     <div className="page page-photo">
-      <div className="public-background" aria-hidden="true" />
+      <div className="night-hero-photo" aria-hidden="true" />
       <div className="top-bar">
         <Brand />
         <nav>
@@ -182,36 +184,53 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
       <NightNav currentId={nightId} />
 
-      <h1 style={{ textAlign: "center" }}>{night?.name ?? "Loading\u2026"}</h1>
+      <div className="night-header-card">
+        <div className="night-header-title">
+          {titleSplit ? (
+            <>
+              <span className="night-header-day">{titleSplit.day}</span>
+              <span className="night-header-date">{titleSplit.rest}</span>
+            </>
+          ) : (
+            <span className="night-header-day">{night?.name ?? "Loading\u2026"}</span>
+          )}
+        </div>
 
-      {loadError && (
-        <p className="empty" style={{ textAlign: "center" }}>
-          Having trouble loading this page? Check your connection and try refreshing.
-        </p>
-      )}
+        {loadError && (
+          <p className="night-header-hint night-header-hint-error">
+            Having trouble loading this page? Check your connection and try refreshing.
+          </p>
+        )}
 
-      {!loadError && connectionLost && (
-        <p className="hint" style={{ textAlign: "center" }}>
-          Live updates paused, reconnecting&hellip;
-        </p>
-      )}
+        {!loadError && connectionLost && (
+          <p className="night-header-hint">Live updates paused, reconnecting&hellip;</p>
+        )}
 
-      {!loadError && viewerCount > 0 && (
-        <p style={{ textAlign: "center", margin: "0 0 20px" }}>
-          <span className="count">
-            {viewerCount} watching now
-          </span>
-        </p>
-      )}
+        {!loadError && viewerCount > 0 && (
+          <p className="night-header-badges">
+            <span className="night-header-badge">{viewerCount} watching now</span>
+          </p>
+        )}
 
-      {!loadError && viewMode === "list" && firstLiveMatchId && (
-        <p style={{ textAlign: "center", margin: "0 0 20px" }}>
-          <a href="#jump-to-live" className="link-button jump-to-live-link">
-            <span className="live-dot" />
-            Jump to {liveMatches.length > 1 ? `${liveMatches.length} live matches` : "the live match"}
-          </a>
-        </p>
-      )}
+        {!loadError && night?.kind === "qualifier" && qualifierPlayers.length > 0 && (
+          <p className="night-header-hint">The draw will appear here once it&rsquo;s ready.</p>
+        )}
+
+        {!loadError && night?.kind === "finals" && finalsSlots.length > 0 && (
+          <p className="night-header-hint">
+            Qualifiers confirmed so far. The lineup fills in as each qualifying night finishes.
+          </p>
+        )}
+
+        {!loadError && viewMode === "list" && firstLiveMatchId && (
+          <p style={{ margin: "14px 0 0" }}>
+            <a href="#jump-to-live" className="link-button jump-to-live-link">
+              <span className="live-dot" />
+              Jump to {liveMatches.length > 1 ? `${liveMatches.length} live matches` : "the live match"}
+            </a>
+          </p>
+        )}
+      </div>
 
       {!loadError && champion && (
         <div className="champion-banner">
@@ -228,37 +247,26 @@ export default function NightPage({ params }: { params: { id: string } }) {
       )}
 
       {!loadError && finalsSlots.length > 0 && (
-        <>
-          <p className="hint" style={{ textAlign: "center" }}>
-            Qualifiers confirmed so far. The lineup fills in as each qualifying night finishes.
-          </p>
-          <div className="roster-list">
-            {finalsSlots.map((p, i) => (
-              <div key={i} className={`roster-row ${p ? "" : "roster-row-empty"}`}>
-                <span className="roster-number">{i + 1}</span>
-                {p && <Avatar name={p.name} />}
-                <span className="roster-name">{p ? p.name : "TBC"}</span>
-              </div>
-            ))}
-          </div>
-        </>
+        <div className="roster-list">
+          {finalsSlots.map((p, i) => (
+            <div key={i} className={`roster-row ${p ? "" : "roster-row-empty"}`}>
+              <span className="roster-number">{i + 1}</span>
+              {p && <Avatar name={p.name} />}
+              <span className="roster-name">{p ? p.name : "TBC"}</span>
+            </div>
+          ))}
+        </div>
       )}
 
       {!loadError && qualifierPlayers.length > 0 && (
-        <>
-          <p className="hint" style={{ textAlign: "center" }}>
-            {qualifierPlayers.length} player{qualifierPlayers.length === 1 ? "" : "s"} entered. The draw will
-            appear here once it&rsquo;s ready.
-          </p>
-          <div className="roster-list">
-            {qualifierPlayers.map((p) => (
-              <div key={p.id} className="roster-row">
-                <Avatar name={p.name} />
-                <span className="roster-name">{p.name}</span>
-              </div>
-            ))}
-          </div>
-        </>
+        <div className="roster-list">
+          {qualifierPlayers.map((p) => (
+            <div key={p.id} className="roster-row">
+              <Avatar name={p.name} />
+              <span className="roster-name">{p.name}</span>
+            </div>
+          ))}
+        </div>
       )}
 
       {!loadError && night?.kind === "finals" && showDraw && (
