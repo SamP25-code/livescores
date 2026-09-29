@@ -175,8 +175,8 @@ export default function NightPage({ params }: { params: { id: string } }) {
   return (
     <div className="page page-photo">
       <div className="night-hero-photo" aria-hidden="true" />
-      <div className="top-bar">
-        <Brand />
+      <div className="top-bar top-bar-slim">
+        <Brand compact />
         <nav>
           <Link href="/">Home</Link>
         </nav>

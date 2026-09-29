@@ -74,7 +74,7 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  height: 300px;
+  height: 360px;
   z-index: -1;
   background-color: var(--green-deep);
   background-image: url("/bowls-background.jpg");
@@ -87,14 +87,13 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, transparent 55%, var(--cream) 100%);
+  background: linear-gradient(to bottom, transparent 60%, var(--cream) 100%);
 }
 
 /* Public pages sit on the solid photo above, not a card, for a handful of
    elements - everything else lives inside an opaque .card and keeps its
    normal dark text regardless. */
 .page-photo h1,
-.page-photo h2,
 .page-photo .hint,
 .page-photo .count,
 .page-photo .round-col .round-title,
@@ -179,6 +178,11 @@ a {
   margin-bottom: 14px;
 }
 
+.top-bar-slim {
+  padding: 8px 16px;
+  margin-bottom: 12px;
+}
+
 .top-bar .brand {
   display: block;
   font-family: var(--font-body), sans-serif;
@@ -196,6 +200,28 @@ a {
   width: auto;
   max-width: 80%;
   margin: 0 auto 8px;
+}
+
+/* A slim strip for inner pages - logo and club name side by side on one
+   line, instead of the full stacked hero treatment on the home page. */
+.brand-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.sponsor-logo-sm {
+  height: 30px;
+  width: auto;
+  margin: 0;
+}
+
+.brand-compact-text {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink-soft);
 }
 
 .brand-tagline {
@@ -253,13 +279,29 @@ a {
   cursor: pointer;
 }
 
+/* A tilted ink-stamp button rather than a plain underlined link, with a
+   small red pulsing dot so "live" actually reads as live regardless of
+   what it's sitting on. */
 .jump-to-live-link {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  color: #fff;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1.5px solid var(--maroon);
+  background: var(--cream);
+  color: var(--maroon);
   font-weight: 700;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.8rem;
+  transform: rotate(-3deg);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  text-decoration: none;
+}
+
+.jump-to-live-link:hover {
+  transform: rotate(-3deg) translateY(-1px);
 }
 
 .match-history-toggle-wrap {
@@ -317,12 +359,32 @@ a {
   border-radius: 999px;
 }
 
+/* Match cards pick up the same paper-draw look as the roster list and
+   night cards - cream stock, a wood spine, a crisp hairline border -
+   instead of the plain white rounded box left over from before. */
 .match {
+  position: relative;
   display: flex;
   align-items: stretch;
   flex-wrap: wrap;
   gap: 10px;
   scroll-margin-top: 16px;
+  background: var(--cream);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 14px 16px 14px 22px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+
+.match::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6px;
+  background: linear-gradient(180deg, #8a6339, var(--wood) 55%, #6b4726);
 }
 
 .match .players {
@@ -363,6 +425,8 @@ a {
 
 /* An enamel-pin look - a bright rim plus an inner gloss highlight on top
    of the flat hashed color, rather than a plain flat-filled circle. */
+/* A flat, muted badge - a solid ring and serif initials, no gloss or
+   drop shadow, so it reads as printed rather than glowing. */
 .avatar {
   display: inline-flex;
   align-items: center;
@@ -372,11 +436,11 @@ a {
   height: 30px;
   border-radius: 50%;
   color: #fff;
+  font-family: var(--font-display), Georgia, serif;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  border: 2px solid rgba(255, 255, 255, 0.55);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  border: 2px solid rgba(0, 0, 0, 0.18);
 }
 
 .avatar-sm {
@@ -481,11 +545,23 @@ a {
 }
 
 .player-row .score {
+  font-family: var(--font-display), Georgia, serif;
   font-variant-numeric: tabular-nums;
   font-size: 1.7rem;
-  font-weight: 800;
+  font-weight: 700;
   min-width: 2ch;
   text-align: right;
+  color: var(--ink-soft);
+}
+
+.player-row.winner .score {
+  font-weight: 800;
+  color: var(--green-deep);
+}
+
+.match.complete .player-row:not(.winner) .score {
+  opacity: 0.55;
+  font-weight: 500;
 }
 
 .score-flash {
@@ -552,6 +628,10 @@ a {
 .status-pill.complete {
   background: var(--green-deep);
   color: #fff;
+}
+
+.match .status-pill.complete {
+  transform: rotate(-4deg);
 }
 
 .empty {
@@ -659,13 +739,10 @@ label {
   margin-top: 6px;
 }
 
-/* A row of tabs that reads as flush with the scoresheet card below it -
-   the active tab loses its bottom rounding so it visually fuses with the
-   card, like a folder tab, rather than floating above as a separate pill. */
 .night-nav {
   display: flex;
   gap: 6px;
-  margin: 0 0 0;
+  margin: 0 0 20px;
 }
 
 .night-pill {
@@ -686,7 +763,6 @@ label {
   background: var(--green-deep);
   border-color: var(--green-deep);
   color: #fff;
-  border-radius: 14px 14px 0 0;
 }
 
 .night-pill-finals {
@@ -701,15 +777,13 @@ label {
   color: #fff;
 }
 
-/* The scoresheet-style header: a dark green card the active tab above it
-   flows straight into, with the day/date on its own cream plate. */
+/* Just the cream title plate sitting on the photo strip - no heavy solid
+   block behind it, so the photo still shows around it. Badges and hints
+   sit directly on the photo too, same white-plus-shadow treatment as the
+   rest of the page's on-photo text. */
 .night-header-card {
-  background: var(--green-deep);
-  border-radius: 20px;
-  padding: 26px 20px 22px;
   margin: 0 0 20px;
   text-align: center;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
 }
 
 .night-header-title {
@@ -718,12 +792,13 @@ label {
   gap: 2px;
   background: var(--cream);
   border-radius: 16px;
-  padding: 14px 30px;
+  padding: 12px 28px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 
 .night-header-day {
   font-family: var(--font-display), Georgia, serif;
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 800;
   color: var(--green-deep);
   line-height: 1.15;
@@ -731,39 +806,41 @@ label {
 
 .night-header-date {
   font-family: var(--font-body), sans-serif;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-style: italic;
   color: var(--ink-soft);
 }
 
 .night-header-badges {
-  margin: 16px 0 0;
+  margin: 14px 0 0;
 }
 
 .night-header-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 16px;
+  padding: 6px 15px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  color: var(--cream);
-  font-size: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.15);
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  font-size: 0.82rem;
   font-weight: 600;
 }
 
 .night-header-hint {
   font-family: var(--font-display), Georgia, serif;
   font-style: italic;
-  color: rgba(239, 235, 221, 0.85);
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
   font-size: 0.95rem;
-  margin: 14px 0 0;
+  margin: 12px 0 0;
 }
 
 .night-header-hint-error {
   font-family: var(--font-body), sans-serif;
   font-style: normal;
-  color: #ffd9d9;
 }
 
 .home-hero {
@@ -1058,6 +1135,11 @@ label {
   position: relative;
   padding: 10px 12px;
   margin-bottom: 0;
+  border-radius: 10px;
+}
+
+.match.compact::before {
+  display: none;
 }
 
 .match.compact::after {
