@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, roundLabel } from "@/lib/bracket";
 import NightNav, { splitNightName } from "@/components/NightNav";
@@ -342,6 +343,10 @@ export default function NightPage({ params }: { params: { id: string } }) {
           ))}
         </section>
       )}
+
+      <nav className="page-footer-nav">
+        <Link href="/">Home</Link>
+      </nav>
     </div>
   );
 }
