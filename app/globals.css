@@ -207,6 +207,15 @@ a {
   cursor: pointer;
 }
 
+.jump-to-live-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
 .match-history-toggle-wrap {
   flex-basis: 100%;
 }

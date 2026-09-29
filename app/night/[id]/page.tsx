@@ -206,7 +206,8 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
       {!loadError && viewMode === "list" && firstLiveMatchId && (
         <p style={{ textAlign: "center", margin: "0 0 20px" }}>
-          <a href="#jump-to-live" className="link-button">
+          <a href="#jump-to-live" className="link-button jump-to-live-link">
+            <span className="live-dot" />
             Jump to {liveMatches.length > 1 ? `${liveMatches.length} live matches` : "the live match"}
           </a>
         </p>
