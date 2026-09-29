@@ -66,34 +66,11 @@ body {
   background-repeat: no-repeat;
 }
 
-/* A per-night page shows only a short, fixed strip of the photo behind the
-   tabs and title - it stays put while the cards scroll up over it, rather
-   than the photo filling the whole page like it does on the home page. */
-.night-hero-photo {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 360px;
-  z-index: -1;
-  background-color: var(--green-deep);
-  background-image: url("/bowls-background.jpg");
-  background-size: cover;
-  background-position: center 20%;
-  background-repeat: no-repeat;
-}
-
-.night-hero-photo::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, transparent 60%, var(--cream) 100%);
-}
-
 /* Public pages sit on the solid photo above, not a card, for a handful of
    elements - everything else lives inside an opaque .card and keeps its
    normal dark text regardless. */
 .page-photo h1,
+.page-photo h2,
 .page-photo .hint,
 .page-photo .count,
 .page-photo .round-col .round-title,
@@ -138,6 +115,11 @@ body {
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
 }
 
+.page-photo .top-bar-slim {
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
 .page-photo .champion-banner .hint {
   color: var(--ink-soft);
   text-shadow: none;
@@ -178,9 +160,21 @@ a {
   margin-bottom: 14px;
 }
 
+/* A single-line strip rather than the stacked, centered layout the full
+   home-page header uses - logo/name on the left, Home on the right. */
 .top-bar-slim {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
   padding: 8px 16px;
   margin-bottom: 12px;
+  border-radius: 14px;
+}
+
+.top-bar-slim nav {
+  margin-top: 0;
 }
 
 .top-bar .brand {
@@ -295,13 +289,12 @@ a {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: 0.8rem;
-  transform: rotate(-3deg);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   text-decoration: none;
 }
 
 .jump-to-live-link:hover {
-  transform: rotate(-3deg) translateY(-1px);
+  transform: translateY(-1px);
 }
 
 .match-history-toggle-wrap {
@@ -390,6 +383,20 @@ a {
 .match .players {
   flex: 1;
   min-width: 0;
+}
+
+/* A small live indicator at the top of the card rather than a pill off to
+   the side - reads clearly regardless of what else the card is doing. */
+.match-live-flag {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--maroon);
 }
 
 .player-row {
@@ -546,7 +553,6 @@ a {
 
 .player-row .score {
   font-family: var(--font-display), Georgia, serif;
-  font-variant-numeric: tabular-nums;
   font-size: 1.7rem;
   font-weight: 700;
   min-width: 2ch;
@@ -562,6 +568,19 @@ a {
 .match.complete .player-row:not(.winner) .score {
   opacity: 0.55;
   font-weight: 500;
+}
+
+/* Circling the winner's score like a hand-marked scorecard, instead of a
+   separate "complete" pill - the circle already says the match is over.
+   Skipped for byes, since there's no real result to circle. */
+.match.complete:not(.bye) .player-row.winner .score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.8em;
+  padding: 0 6px;
+  border: 2px solid var(--green-deep);
+  border-radius: 999px;
 }
 
 .score-flash {
@@ -628,10 +647,6 @@ a {
 .status-pill.complete {
   background: var(--green-deep);
   color: #fff;
-}
-
-.match .status-pill.complete {
-  transform: rotate(-4deg);
 }
 
 .empty {
@@ -811,22 +826,12 @@ label {
   color: var(--ink-soft);
 }
 
-.night-header-badges {
-  margin: 14px 0 0;
-}
-
-.night-header-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 15px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: rgba(0, 0, 0, 0.15);
-  color: #fff;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-  font-size: 0.82rem;
-  font-weight: 600;
+.night-header-viewers {
+  display: block;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  margin-top: 4px;
 }
 
 .night-header-hint {
@@ -1004,7 +1009,6 @@ label {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  transform: rotate(-4deg);
 }
 
 .champion-banner {

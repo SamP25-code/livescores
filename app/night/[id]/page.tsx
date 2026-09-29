@@ -174,7 +174,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="page page-photo">
-      <div className="night-hero-photo" aria-hidden="true" />
+      <div className="public-background" aria-hidden="true" />
       <div className="top-bar top-bar-slim">
         <Brand compact />
         <nav>
@@ -194,6 +194,9 @@ export default function NightPage({ params }: { params: { id: string } }) {
           ) : (
             <span className="night-header-day">{night?.name ?? "Loading\u2026"}</span>
           )}
+          {!loadError && viewerCount > 0 && (
+            <span className="night-header-viewers">{viewerCount} watching now</span>
+          )}
         </div>
 
         {loadError && (
@@ -204,12 +207,6 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
         {!loadError && connectionLost && (
           <p className="night-header-hint">Live updates paused, reconnecting&hellip;</p>
-        )}
-
-        {!loadError && viewerCount > 0 && (
-          <p className="night-header-badges">
-            <span className="night-header-badge">{viewerCount} watching now</span>
-          </p>
         )}
 
         {!loadError && night?.kind === "qualifier" && qualifierPlayers.length > 0 && (

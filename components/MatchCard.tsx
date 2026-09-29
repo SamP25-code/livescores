@@ -35,7 +35,18 @@ export default function MatchCard({
   const spotlightB = highlightPlayerId != null && match.player_b_id === highlightPlayerId;
 
   return (
-    <div id={id} className={`card match ${compact ? "compact" : ""} ${match.status === "complete" ? "complete" : ""}`}>
+    <div
+      id={id}
+      className={`card match ${compact ? "compact" : ""} ${match.status === "complete" ? "complete" : ""} ${
+        isBye ? "bye" : ""
+      }`}
+    >
+      {!isBye && match.status === "live" && (
+        <div className="match-live-flag">
+          <span className="live-dot" />
+          Live
+        </div>
+      )}
       <div className="players">
         <div className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""}`}>
           <NameCell player={playerA} name={nameA} playerId={match.player_a_id} onSelectPlayer={onSelectPlayer} />
@@ -47,10 +58,12 @@ export default function MatchCard({
           <FlashingScore value={match.player_b_id ? match.score_b : "–"} />
         </div>
       </div>
-      <span className={`status-pill ${match.status}`}>
-        {match.status === "live" && <span className="live-dot" />}
-        {isBye ? "bye" : match.status}
-      </span>
+      {isBye ? (
+        <span className="status-pill complete">bye</span>
+      ) : (
+        match.status !== "complete" &&
+        match.status !== "live" && <span className={`status-pill ${match.status}`}>{match.status}</span>
+      )}
       {historyEnabled && !compact && !isBye && match.status !== "upcoming" && (
         <div className="match-history-toggle-wrap">
           <button
