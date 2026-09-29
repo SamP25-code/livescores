@@ -24,6 +24,16 @@ body {
   margin: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   color: var(--ink);
   font-family: var(--font-body), -apple-system, sans-serif;
@@ -257,6 +267,7 @@ a {
   align-items: stretch;
   flex-wrap: wrap;
   gap: 10px;
+  scroll-margin-top: 16px;
 }
 
 .match .players {

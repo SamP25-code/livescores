@@ -13,6 +13,7 @@ export default function MatchCard({
   onSelectPlayer,
   compact,
   historyEnabled = true,
+  id,
 }: {
   match: MatchRow;
   players: Record<string, Player>;
@@ -20,6 +21,7 @@ export default function MatchCard({
   onSelectPlayer?: (playerId: string) => void;
   compact?: boolean;
   historyEnabled?: boolean;
+  id?: string;
 }) {
   const [showHistory, setShowHistory] = useState(false);
   const isBye = match.status === "complete" && Boolean(match.player_a_id) !== Boolean(match.player_b_id);
@@ -33,7 +35,7 @@ export default function MatchCard({
   const spotlightB = highlightPlayerId != null && match.player_b_id === highlightPlayerId;
 
   return (
-    <div className={`card match ${compact ? "compact" : ""} ${match.status === "complete" ? "complete" : ""}`}>
+    <div id={id} className={`card match ${compact ? "compact" : ""} ${match.status === "complete" ? "complete" : ""}`}>
       <div className="players">
         <div className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""}`}>
           <NameCell player={playerA} name={nameA} playerId={match.player_a_id} onSelectPlayer={onSelectPlayer} />

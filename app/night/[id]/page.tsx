@@ -122,6 +122,9 @@ export default function NightPage({ params }: { params: { id: string } }) {
     return [...byRound.entries()].sort((a, b) => a[0] - b[0]);
   }, [matches]);
 
+  const liveMatches = useMemo(() => matches.filter((m) => m.status === "live"), [matches]);
+  const firstLiveMatchId = liveMatches.length > 0 ? liveMatches[0].id : null;
+
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1][0] : 0;
   const drawPublished = night?.draw_published ?? true;
   // Finals day updates live as it happens, same as before this feature
@@ -198,6 +201,14 @@ export default function NightPage({ params }: { params: { id: string } }) {
           <span className="count">
             {viewerCount} watching now
           </span>
+        </p>
+      )}
+
+      {!loadError && viewMode === "list" && firstLiveMatchId && (
+        <p style={{ textAlign: "center", margin: "0 0 20px" }}>
+          <a href="#jump-to-live" className="link-button">
+            Jump to {liveMatches.length > 1 ? `${liveMatches.length} live matches` : "the live match"}
+          </a>
         </p>
       )}
 
@@ -288,6 +299,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
             {roundMatches.map((m) => (
               <MatchCard
                 key={m.id}
+                id={m.id === firstLiveMatchId ? "jump-to-live" : undefined}
                 match={m}
                 players={players}
                 highlightPlayerId={highlightPlayerId}
