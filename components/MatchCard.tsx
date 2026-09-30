@@ -74,7 +74,7 @@ export default function MatchCard({
           >
             {showHistory ? "Hide history" : "History"}
           </button>
-          {showHistory && <MatchHistory matchId={match.id} />}
+          {showHistory && <MatchHistory matchId={match.id} nameA={playerA?.name} nameB={playerB?.name} />}
         </div>
       )}
     </div>

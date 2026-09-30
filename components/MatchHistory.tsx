@@ -17,7 +17,35 @@ function describeEvent(e: MatchEvent): string {
   }
 }
 
-export default function MatchHistory({ matchId, admin = false }: { matchId: string; admin?: boolean }) {
+// Works out who each point went to by comparing it with the score before
+// it. A score going down means the scorer pressed minus to fix a mistake.
+function scorerLabels(events: MatchEvent[], nameA: string, nameB: string): Map<string, string> {
+  const labels = new Map<string, string>();
+  let prevA = 0;
+  let prevB = 0;
+  for (const e of events) {
+    if (e.event_type === "score") {
+      if (e.score_a < prevA || e.score_b < prevB) labels.set(e.id, "Correction");
+      else if (e.score_a > prevA) labels.set(e.id, nameA);
+      else if (e.score_b > prevB) labels.set(e.id, nameB);
+    }
+    prevA = e.score_a;
+    prevB = e.score_b;
+  }
+  return labels;
+}
+
+export default function MatchHistory({
+  matchId,
+  admin = false,
+  nameA,
+  nameB,
+}: {
+  matchId: string;
+  admin?: boolean;
+  nameA?: string;
+  nameB?: string;
+}) {
   const [events, setEvents] = useState<MatchEvent[]>([]);
 
   useEffect(() => {
@@ -59,11 +87,19 @@ export default function MatchHistory({ matchId, admin = false }: { matchId: stri
     return <p className="hint match-history-empty">No history yet.</p>;
   }
 
+  const labels = nameA && nameB ? scorerLabels(events, nameA, nameB) : null;
+
   return (
     <ul className="match-history">
-      {visibleEvents.map((e) => (
-        <li key={e.id}>{describeEvent(e)}</li>
-      ))}
+      {visibleEvents.map((e) => {
+        const who = labels?.get(e.id);
+        return (
+          <li key={e.id}>
+            {who && <span className="match-history-who">{who}</span>}
+            {describeEvent(e)}
+          </li>
+        );
+      })}
     </ul>
   );
 }

@@ -201,6 +201,17 @@ export default function NightPage({ params }: { params: { id: string } }) {
           ) : (
             <span className="night-header-day">{night?.name ?? "Loading\u2026"}</span>
           )}
+          {!loadError && night && !playStarted && (
+            <span className="night-header-times">
+              {night.kind === "finals" ? "Practice 12:30pm · Start 1pm" : "Practice 6:30pm · Start 7pm"}
+              {night.kind === "qualifier" && qualifierPlayers.length > 0 && (
+                <>
+                  <br />
+                  Draw to follow
+                </>
+              )}
+            </span>
+          )}
           {!loadError && viewerCount > 0 && (
             <span className="night-header-viewers">{viewerCount} watching now</span>
           )}
@@ -214,18 +225,6 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
         {!loadError && connectionLost && (
           <p className="night-header-hint">Live updates paused, reconnecting&hellip;</p>
-        )}
-
-        {!loadError && night && !playStarted && (
-          <p className="night-header-hint">
-            {night.kind === "finals" ? "Practice 12:30pm · Start 1pm" : "Practice 6:30pm · Start 7pm"}
-            {night.kind === "qualifier" && qualifierPlayers.length > 0 && (
-              <>
-                <br />
-                Draw to follow
-              </>
-            )}
-          </p>
         )}
 
         {!loadError && night?.kind === "finals" && finalsSlots.length > 0 && (

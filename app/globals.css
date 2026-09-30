@@ -301,9 +301,18 @@ a {
 }
 
 .match-history li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
   padding: 3px 0;
   font-size: 0.85rem;
   white-space: nowrap;
+}
+
+.match-history-who {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .match-history-empty {
@@ -836,6 +845,14 @@ label {
   color: var(--ink-soft);
 }
 
+.night-header-times {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  margin-top: 6px;
+}
+
 .night-header-viewers {
   display: block;
   font-family: var(--font-body), sans-serif;
@@ -1170,8 +1187,11 @@ label {
   border-bottom: 1px solid var(--line);
 }
 
+/* Auto margins centre it in the column at its natural height, level with
+   the Final, rather than stretching to the full height of the bracket. */
 .champion-box {
-  flex: 1;
+  flex: none;
+  margin: auto 0;
   display: flex;
   flex-direction: column;
   align-items: center;
