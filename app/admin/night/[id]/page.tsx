@@ -43,6 +43,7 @@ import {
 import { buildFinalsSlots, isMatchComplete, nextPowerOfTwo, roundLabel } from "@/lib/bracket";
 import { useAdminRole } from "@/lib/auth";
 import { errorMessage } from "@/lib/errors";
+import Avatar from "@/components/Avatar";
 import FinalsSlotBoard from "@/components/FinalsSlotBoard";
 import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
@@ -836,8 +837,11 @@ function ScoreLine({
 }) {
   const atTarget = score >= targetScore;
   return (
-    <div className={`player-row ${isWinner ? "winner" : ""}`}>
-      <span className="name">{name}</span>
+    <div className={`player-row score-line ${isWinner ? "winner" : ""}`}>
+      <span className="name-cell">
+        <Avatar name={name} />
+        <span className="name">{name}</span>
+      </span>
       <div className="score-stepper">
         <button className="secondary" disabled={disabled} onClick={() => onAdjust(-1)}>
           &minus;

@@ -788,6 +788,24 @@ label {
   gap: 8px;
 }
 
+.score-line .score-stepper {
+  flex: none;
+}
+
+/* A phone held upright doesn't have room for full names beside the score
+   buttons, so just the avatar shows. The name is hidden visually but kept
+   for screen readers, and comes back when the phone is turned sideways. */
+@media (orientation: portrait) and (max-width: 640px) {
+  .score-line .name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
 .score-stepper button {
   min-width: 36px;
   height: 36px;
