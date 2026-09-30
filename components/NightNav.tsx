@@ -117,10 +117,12 @@ export default function NightNav({
                   n.name
                 )}
               </span>
-              <span className={`status-pill ${status}`}>
-                {status === "live" && <span className="live-dot" />}
-                {STATUS_LABEL[status]}
-              </span>
+              {status !== "upcoming" && (
+                <span className={`status-pill ${status}`}>
+                  {status === "live" && <span className="live-dot" />}
+                  {STATUS_LABEL[status]}
+                </span>
+              )}
             </Link>
           );
         })}

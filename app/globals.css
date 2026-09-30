@@ -330,6 +330,37 @@ a {
   margin: 0;
 }
 
+.page-photo .round-heading {
+  justify-content: flex-start;
+  margin: 24px 0 8px;
+}
+
+/* One panel per round with the games as ruled rows, like a paper draw
+   sheet, rather than a stack of separate cards. */
+.draw-sheet {
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.draw-sheet > .match {
+  background: none;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.draw-sheet > .match:last-child,
+.draw-sheet > .qualifier-row:last-child {
+  border-bottom: none;
+}
+
+.draw-sheet .divider {
+  display: none;
+}
+
 .round-heading .count {
   font-size: 0.8rem;
   color: var(--ink-soft);
@@ -450,22 +481,23 @@ a {
   width: 100%;
   text-align: left;
   font: inherit;
+  font-weight: 600;
   color: inherit;
   cursor: pointer;
-  background: var(--cream);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  margin-bottom: 10px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
 }
 
 .qualifier-row.selected {
-  border-color: var(--green-mid);
-  box-shadow: 0 0 0 2px var(--green-pale);
+  background: var(--green-pale);
 }
 
 .qualifier-row-empty {
   cursor: default;
-  opacity: 0.7;
+  font-weight: 400;
+  color: var(--ink-soft);
 }
 
 .qualifier-number {
@@ -478,14 +510,7 @@ a {
   text-align: right;
 }
 
-.avatar-empty {
-  background: var(--line);
-  color: var(--ink-soft);
-}
-
 .roster-list {
-  max-width: 420px;
-  margin: 0 auto;
   background: var(--cream);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -807,24 +832,19 @@ label {
   font-style: normal;
 }
 
+/* Plain notice-board text on the photo: left-aligned, normal size, with
+   just enough shadow to stay readable over the bright parts. */
 .home-hero {
-  text-align: center;
-  margin: 24px 0 32px;
+  margin: 22px 0 20px;
 }
 
 .home-hero h1 {
-  font-size: 2.4rem;
-  color: #fff;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+  margin-bottom: 6px;
 }
 
 .home-hero .hint {
-  font-family: var(--font-display), Georgia, serif;
-  font-size: 1.05rem;
-  font-style: italic;
-  font-weight: 500;
-  color: var(--gold-pale);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  font-size: 0.95rem;
+  margin: 2px 0;
 }
 
 .live-now-banner {
@@ -870,9 +890,8 @@ label {
 .night-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  max-width: 480px;
-  margin: 0 auto 20px;
+  gap: 12px;
+  margin: 0 0 20px;
 }
 
 /* The wood edge is kept here only, so it marks the night list out rather
@@ -942,12 +961,6 @@ label {
 .night-card .status-pill {
   font-size: 0.8rem;
   padding: 4px 12px;
-}
-
-.night-card .status-pill.upcoming {
-  background: transparent;
-  border: 1px solid var(--line);
-  color: var(--ink-soft);
 }
 
 .champion-banner {
@@ -1093,12 +1106,6 @@ label {
 
 .match.compact .name-cell {
   gap: 6px;
-}
-
-.match.compact .avatar {
-  width: 20px;
-  height: 20px;
-  font-size: 0.55rem;
 }
 
 .match.compact .name {

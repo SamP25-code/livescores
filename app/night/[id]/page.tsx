@@ -311,17 +311,19 @@ export default function NightPage({ params }: { params: { id: string } }) {
             <div className="round-heading">
               <h2>{roundLabel(night?.kind ?? "qualifier", round, roundMatches.length)}</h2>
             </div>
-            {roundMatches.map((m) => (
-              <MatchCard
-                key={m.id}
-                id={m.id === firstLiveMatchId ? "jump-to-live" : undefined}
-                match={m}
-                players={players}
-                highlightPlayerId={highlightPlayerId}
-                onSelectPlayer={toggleHighlight}
-                historyEnabled={night?.kind === "finals"}
-              />
-            ))}
+            <div className="draw-sheet">
+              {roundMatches.map((m) => (
+                <MatchCard
+                  key={m.id}
+                  id={m.id === firstLiveMatchId ? "jump-to-live" : undefined}
+                  match={m}
+                  players={players}
+                  highlightPlayerId={highlightPlayerId}
+                  onSelectPlayer={toggleHighlight}
+                  historyEnabled={night?.kind === "finals"}
+                />
+              ))}
+            </div>
           </section>
         ))
       )}
@@ -331,23 +333,22 @@ export default function NightPage({ params }: { params: { id: string } }) {
           <div className="round-heading">
             <h2>Through to Finals Day</h2>
           </div>
-          {qualifiers.map((p, i) => (
-            <button
-              key={p?.id ?? `slot-${i}`}
-              type="button"
-              className={`qualifier-row ${p && highlightPlayerId === p.id ? "selected" : ""} ${
-                p ? "" : "qualifier-row-empty"
-              }`}
-              onClick={() => p && toggleHighlight(p.id)}
-              disabled={!p}
-            >
-              <span className="name-cell">
-                {p ? <Avatar name={p.name} /> : <span className="avatar avatar-empty">?</span>}
+          <div className="draw-sheet">
+            {qualifiers.map((p, i) => (
+              <button
+                key={p?.id ?? `slot-${i}`}
+                type="button"
+                className={`qualifier-row ${p && highlightPlayerId === p.id ? "selected" : ""} ${
+                  p ? "" : "qualifier-row-empty"
+                }`}
+                onClick={() => p && toggleHighlight(p.id)}
+                disabled={!p}
+              >
                 <span className="name">{p ? p.name : "To be decided"}</span>
-              </span>
-              <span className="qualifier-number">{p?.finals_number ?? ""}</span>
-            </button>
-          ))}
+                <span className="qualifier-number">{p?.finals_number ?? ""}</span>
+              </button>
+            ))}
+          </div>
         </section>
       )}
     </div>
