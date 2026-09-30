@@ -16,9 +16,10 @@ export default function HomePage() {
       </div>
 
       <div className="home-hero">
-        <h1>Results</h1>
-        <p className="hint">Pick a night below to see the lineups and live scores.</p>
-        <p className="hint">The draw and results update automatically.</p>
+        <h1>October Singles 2026</h1>
+        <p className="hint">Qualifying nights: practice from 6:30pm, play starts at 7pm.</p>
+        <p className="hint">Finals Day: practice from 12:30pm, play starts at 1pm.</p>
+        <p className="hint">Four go through from each night to Finals Day.</p>
       </div>
       <LiveNowBanner />
       <NightNav variant="home" />

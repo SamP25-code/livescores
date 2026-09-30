@@ -28,6 +28,12 @@ export function splitNightName(night: Night): { day: string; rest: string } | nu
   return { day: match[1], rest: match[2].trim() };
 }
 
+const STATUS_LABEL: Record<NightStatus, string> = {
+  upcoming: "Upcoming",
+  live: "Live",
+  complete: "Finished",
+};
+
 const WEEKDAY_ABBR: Record<string, string> = {
   Monday: "Mon",
   Tuesday: "Tue",
@@ -113,7 +119,7 @@ export default function NightNav({
               </span>
               <span className={`status-pill ${status}`}>
                 {status === "live" && <span className="live-dot" />}
-                {status}
+                {STATUS_LABEL[status]}
               </span>
             </Link>
           );

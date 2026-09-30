@@ -25,10 +25,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(`https://${process.env.VERCEL_URL ?? "localhost:3000"}`),
   title: "Bowls Live",
-  description: "Live knockout results",
+  description: "Live scores from the October Singles at Penwortham Sports & Social Club",
   openGraph: {
     title: "Bowls Live",
-    description: "Live knockout results",
+    description: "Live scores from the October Singles at Penwortham Sports & Social Club",
     images: ["/bowls-background.jpg"],
   },
 };

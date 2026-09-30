@@ -117,7 +117,6 @@ export default function BracketTree({
           <div className="champion-col">
             <div className="round-title">Champion</div>
             <div className={`champion-box ${champion ? "champion-box-decided" : ""}`}>
-              <span className="trophy">🏆</span>
               <span className="label">{champion ? champion.name : "TBC"}</span>
             </div>
           </div>

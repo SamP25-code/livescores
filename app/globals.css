@@ -87,32 +87,27 @@ body {
 .page-footer-nav a {
   display: inline-block;
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
   padding: 9px 24px;
-  border-radius: 7px;
-  border: 1.5px solid var(--wood);
+  border-radius: var(--radius);
+  border: 1px solid var(--wood);
   background: var(--cream);
   color: var(--wood);
-  box-shadow: 0 2px 0 var(--line);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .page-footer-nav a:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 0 var(--line);
+  background: #fff;
 }
 
-/* The top bar is a printed-card-stock cream panel, same paper as the
-   night cards below, rather than glass - it also happens to be the
-   surface the sponsor's logo needs, since that image has fixed dark
-   text baked in that isn't ours to recolor. */
+/* Cream rather than transparent because the sponsor logo has dark text
+   baked in and needs a light surface behind it. */
 .page-photo .top-bar {
   background: var(--cream);
   border: 1px solid var(--line);
   border-bottom: none;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
 }
 
 .page-photo .champion-banner .hint {
@@ -270,26 +265,22 @@ a {
   cursor: pointer;
 }
 
-/* A tilted ink-stamp button rather than a plain underlined link, with a
-   small red pulsing dot so "live" actually reads as live regardless of
-   what it's sitting on. */
 .jump-to-live-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 8px 18px;
-  border-radius: 8px;
-  border: 1.5px solid var(--maroon);
+  border-radius: var(--radius);
+  border: 1px solid var(--maroon);
   background: var(--cream);
   color: var(--maroon);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.85rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   text-decoration: none;
 }
 
 .jump-to-live-link:hover {
-  transform: translateY(-1px);
+  background: #fff;
 }
 
 .match-history-toggle-wrap {
@@ -347,9 +338,6 @@ a {
   border-radius: 999px;
 }
 
-/* Match cards pick up the same paper-draw look as the roster list and
-   night cards - cream stock, a wood spine, a crisp hairline border -
-   instead of the plain white rounded box left over from before. */
 .match {
   position: relative;
   display: flex;
@@ -358,21 +346,10 @@ a {
   gap: 10px;
   scroll-margin-top: 16px;
   background: var(--cream);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  padding: 14px 16px 14px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
   overflow: hidden;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
-}
-
-.match::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 6px;
-  background: linear-gradient(180deg, #8a6339, var(--wood) 55%, #6b4726);
 }
 
 .match .players {
@@ -380,19 +357,14 @@ a {
   min-width: 0;
 }
 
-/* A small live indicator at the top of the card rather than a pill off to
-   the side - reads clearly regardless of what else the card is doing. */
-/* A small flag at the top-left of the card for a status that isn't
-   "just completed" (which the circled score already covers) - live
-   gets the pulsing dot and maroon; upcoming/bye are a plain muted label. */
+/* Finished matches have no label - the winner's bold score says it. */
 .match-flag {
   flex-basis: 100%;
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .match-flag-live {
@@ -411,7 +383,7 @@ a {
 }
 
 .player-row.winner .name {
-  font-weight: 800;
+  font-weight: 700;
   color: var(--green-deep);
 }
 
@@ -434,10 +406,6 @@ a {
   flex: 1;
 }
 
-/* An enamel-pin look - a bright rim plus an inner gloss highlight on top
-   of the flat hashed color, rather than a plain flat-filled circle. */
-/* A flat, muted badge - a solid ring and serif initials, no gloss or
-   drop shadow, so it reads as printed rather than glowing. */
 .avatar {
   display: inline-flex;
   align-items: center;
@@ -463,7 +431,6 @@ a {
 
 .player-row.spotlight {
   background: var(--green-pale);
-  border-radius: 8px;
   margin: 0 -16px;
   padding-left: 16px;
   padding-right: 16px;
@@ -474,36 +441,21 @@ a {
   font-weight: 700;
 }
 
-/* Matches the paper-draw look of the match cards above, rather than the
-   old plain white row with a green number pill. */
 .qualifier-row {
-  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px 12px 22px;
+  padding: 12px 16px;
   width: 100%;
   text-align: left;
   font: inherit;
   color: inherit;
   cursor: pointer;
   background: var(--cream);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   margin-bottom: 10px;
-  overflow: hidden;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
-}
-
-.qualifier-row::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 6px;
-  background: linear-gradient(180deg, #8a6339, var(--wood) 55%, #6b4726);
 }
 
 .qualifier-row.selected {
@@ -516,12 +468,8 @@ a {
   opacity: 0.7;
 }
 
-.qualifier-row-empty::before {
-  background: var(--line);
-}
-
 .qualifier-number {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-body), sans-serif;
   font-variant-numeric: tabular-nums;
   font-size: 1.3rem;
   font-weight: 700;
@@ -536,25 +484,12 @@ a {
 }
 
 .roster-list {
-  position: relative;
   max-width: 420px;
   margin: 0 auto;
   background: var(--cream);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  padding: 4px 18px 4px 26px;
-  overflow: hidden;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.3);
-}
-
-.roster-list::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 7px;
-  background: linear-gradient(180deg, #8a6339, var(--wood) 55%, #6b4726);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 4px 18px;
 }
 
 .roster-row {
@@ -592,17 +527,17 @@ a {
 }
 
 .player-row .score {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-body), sans-serif;
   font-variant-numeric: tabular-nums;
-  font-size: 1.7rem;
-  font-weight: 700;
+  font-size: 1.6rem;
+  font-weight: 600;
   min-width: 2ch;
   text-align: right;
   color: var(--ink-soft);
 }
 
 .player-row.winner .score {
-  font-weight: 800;
+  font-weight: 700;
   color: var(--green-deep);
 }
 
@@ -792,7 +727,7 @@ label {
   flex: 1;
   text-align: center;
   padding: 13px 4px;
-  border-radius: 14px;
+  border-radius: var(--radius);
   border: 1px solid var(--line);
   color: var(--green-deep);
   text-decoration: none;
@@ -820,10 +755,6 @@ label {
   color: #fff;
 }
 
-/* Just the cream title plate sitting on the photo strip - no heavy solid
-   block behind it, so the photo still shows around it. Badges and hints
-   sit directly on the photo too, same white-plus-shadow treatment as the
-   rest of the page's on-photo text. */
 .night-header-card {
   margin: 0 0 20px;
   text-align: center;
@@ -834,15 +765,15 @@ label {
   flex-direction: column;
   gap: 2px;
   background: var(--cream);
-  border-radius: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   padding: 12px 28px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 
 .night-header-day {
   font-family: var(--font-display), Georgia, serif;
   font-size: 1.8rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--green-deep);
   line-height: 1.15;
 }
@@ -901,7 +832,7 @@ label {
   align-items: flex-start;
   gap: 10px;
   background: var(--maroon);
-  border-radius: 14px;
+  border-radius: var(--radius);
   padding: 14px 16px;
   margin-bottom: 20px;
 }
@@ -944,25 +875,20 @@ label {
   margin: 0 auto 20px;
 }
 
-/* Styled like a printed matchday programme card rather than a floating
-   glass panel - flat card-stock cream, a wood spine down the left edge
-   (like a bookmark or a torn ticket stub). The slight alternating tilt is
-   deliberate - a shade of the "pinned up by hand" look rather than a
-   perfectly uniform grid. */
+/* The wood edge is kept here only, so it marks the night list out rather
+   than repeating on every card on the site. */
 .night-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 24px 24px 24px 30px;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 22px 22px 22px 28px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
   background-color: var(--cream);
   position: relative;
   overflow: hidden;
   text-decoration: none;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .night-card::before {
@@ -971,21 +897,12 @@ label {
   top: 0;
   bottom: 0;
   left: 0;
-  width: 8px;
-  background: linear-gradient(180deg, #8a6339, var(--wood) 55%, #6b4726);
+  width: 6px;
+  background: var(--wood);
 }
 
-.night-list .night-card:nth-child(odd) {
-  transform: rotate(-0.5deg);
-}
-
-.night-list .night-card:nth-child(even) {
-  transform: rotate(0.5deg);
-}
-
-.night-list .night-card:hover {
-  transform: translateY(-3px) rotate(0deg);
-  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.4);
+.night-card:hover {
+  background-color: #fff;
 }
 
 .night-card-name {
@@ -1011,7 +928,7 @@ label {
 }
 
 .night-card-finals::before {
-  background: linear-gradient(180deg, var(--gold), var(--gold-deep) 65%, var(--gold-deep));
+  background: var(--gold);
 }
 
 .night-card-finals {
@@ -1027,31 +944,19 @@ label {
   padding: 4px 12px;
 }
 
-/* A rubber-stamp treatment for the one status that repeats on every card -
-   an outline instead of a solid fill so five of them in a row read as a
-   quiet detail, not five identical AI-template badges. */
 .night-card .status-pill.upcoming {
   background: transparent;
-  border: 1.5px solid var(--green-mid);
-  color: var(--green-mid);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
 }
 
 .champion-banner {
   text-align: center;
-  background: linear-gradient(135deg, var(--gold-pale), #fff);
-  border: 2px solid var(--gold);
-  border-radius: 20px;
-  padding: 24px;
+  background: var(--gold-pale);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 20px;
   margin-bottom: 24px;
-}
-
-.champion-banner .trophy {
-  display: block;
-  font-size: 2rem;
-  margin-bottom: 4px;
 }
 
 .champion-banner .name {
@@ -1167,11 +1072,7 @@ label {
   position: relative;
   padding: 10px 12px;
   margin-bottom: 0;
-  border-radius: 10px;
-}
-
-.match.compact::before {
-  display: none;
+  overflow: visible;
 }
 
 .match.compact::after {
@@ -1234,16 +1135,10 @@ label {
   justify-content: center;
   text-align: center;
   border: 1px dashed var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
   padding: 16px 10px;
   color: var(--ink-soft);
   background: #fff;
-}
-
-.champion-box .trophy {
-  font-size: 1.4rem;
-  margin-bottom: 4px;
-  opacity: 0.5;
 }
 
 .champion-box .label {
@@ -1253,13 +1148,9 @@ label {
 }
 
 .champion-box-decided {
-  border: 2px solid var(--gold);
-  background: linear-gradient(135deg, #fff, var(--gold-pale));
+  border: 1px solid var(--gold);
+  background: var(--gold-pale);
   color: var(--gold-deep);
-}
-
-.champion-box-decided .trophy {
-  opacity: 1;
 }
 
 .hint {

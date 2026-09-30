@@ -124,6 +124,11 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
   const liveMatches = useMemo(() => matches.filter((m) => m.status === "live"), [matches]);
   const firstLiveMatchId = liveMatches.length > 0 ? liveMatches[0].id : null;
+  // Byes and no-shows are marked complete before a bowl is played, so only
+  // a live match or a finished two-player match counts as play having begun.
+  const playStarted = matches.some(
+    (m) => m.status === "live" || (m.status === "complete" && m.player_a_id && m.player_b_id)
+  );
 
   const drawPublished = night?.draw_published ?? true;
   // Finals day updates live as it happens, same as before this feature
@@ -211,14 +216,17 @@ export default function NightPage({ params }: { params: { id: string } }) {
           <p className="night-header-hint">Live updates paused, reconnecting&hellip;</p>
         )}
 
-        {!loadError && night?.kind === "qualifier" && qualifierPlayers.length > 0 && (
-          <p className="night-header-hint">The draw will appear here once it&rsquo;s ready.</p>
+        {!loadError && night && !playStarted && (
+          <p className="night-header-hint">
+            {night.kind === "finals"
+              ? "Practice from 12:30pm, play starts at 1pm."
+              : "Practice from 6:30pm, play starts at 7pm."}
+            {night.kind === "qualifier" && qualifierPlayers.length > 0 && " Draw to follow."}
+          </p>
         )}
 
         {!loadError && night?.kind === "finals" && finalsSlots.length > 0 && (
-          <p className="night-header-hint">
-            Qualifiers confirmed so far. The lineup fills in as each qualifying night finishes.
-          </p>
+          <p className="night-header-hint">Qualifiers so far</p>
         )}
 
         {!loadError && viewMode === "list" && firstLiveMatchId && (
@@ -233,15 +241,14 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
       {!loadError && champion && (
         <div className="champion-banner">
-          <span className="trophy">\ud83c\udfc6</span>
           <span className="name">{champion.name}</span>
-          <span className="hint">wins the competition!</span>
+          <span className="hint">October Singles champion</span>
         </div>
       )}
 
       {!loadError && rounds.length === 0 && finalsSlots.length === 0 && qualifierPlayers.length === 0 && (
         <p className="empty" style={{ textAlign: "center" }}>
-          The draw hasn&rsquo;t been entered for this night yet.
+          No draw yet.
         </p>
       )}
 
@@ -322,11 +329,8 @@ export default function NightPage({ params }: { params: { id: string } }) {
       {!loadError && qualifiers.length > 0 && (
         <section>
           <div className="round-heading">
-            <h2>Advancing to finals day</h2>
+            <h2>Through to Finals Day</h2>
           </div>
-          <p className="hint" style={{ textAlign: "center" }}>
-            Tap a name to highlight their results from tonight.
-          </p>
           {qualifiers.map((p, i) => (
             <button
               key={p?.id ?? `slot-${i}`}
