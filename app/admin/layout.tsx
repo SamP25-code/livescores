@@ -30,7 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (isLoginPage) {
     return (
       <>
-        <div className="site-background" aria-hidden="true" />
+        <div className="public-background" aria-hidden="true" />
         {children}
       </>
     );
@@ -38,23 +38,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (session === "loading") {
     return (
       <>
-        <div className="site-background" aria-hidden="true" />
-        <div className="page">Loading&hellip;</div>
+        <div className="public-background" aria-hidden="true" />
+        <div className="page page-photo">
+          <p className="hint">Loading&hellip;</p>
+        </div>
       </>
     );
   }
   if (!session) {
     return (
       <>
-        <div className="site-background" aria-hidden="true" />
-        <div className="page">Redirecting to sign in&hellip;</div>
+        <div className="public-background" aria-hidden="true" />
+        <div className="page page-photo">
+          <p className="hint">Redirecting to sign in&hellip;</p>
+        </div>
       </>
     );
   }
 
   return (
     <>
-      <div className="site-background" aria-hidden="true" />
+      <div className="public-background" aria-hidden="true" />
       {children}
     </>
   );

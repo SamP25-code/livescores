@@ -8,6 +8,7 @@ import { errorMessage } from "@/lib/errors";
 import { fetchNightStatuses } from "@/lib/nightStatus";
 import { useAdminRole } from "@/lib/auth";
 import Brand from "@/components/Brand";
+import { splitNightName } from "@/components/NightNav";
 import type { NightStatus } from "@/lib/bracket";
 import type { Night } from "@/lib/types";
 
@@ -29,7 +30,7 @@ export default function AdminDashboard() {
   }
 
   useEffect(() => {
-    document.title = "Admin — Bowls Live";
+    document.title = "Admin · Penwortham Singles";
   }, []);
 
   useEffect(() => {
@@ -52,7 +53,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="page">
+    <div className="page page-photo">
       <div className="top-bar">
         <Brand />
         <nav>
@@ -99,29 +100,37 @@ export default function AdminDashboard() {
           {role === "scorer" ? "Nothing set up yet." : "Nothing set up yet — create your first night above."}
         </p>
       )}
-      {visibleNights.map((night) => {
-        const status = statuses[night.id] ?? "upcoming";
-        return (
-          <Link key={night.id} href={`/admin/night/${night.id}`} style={{ textDecoration: "none" }}>
-            <div className="card">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ color: "var(--ink)" }}>{night.name}</strong>
-                <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  {night.kind === "qualifier" && !night.draw_published && (
-                    <span className="status-pill" style={{ background: "var(--gold-pale)", color: "var(--gold-deep)" }}>
-                      draw hidden
-                    </span>
-                  )}
+      <nav className="night-list">
+        {visibleNights.map((night) => {
+          const status = statuses[night.id] ?? "upcoming";
+          const split = splitNightName(night);
+          return (
+            <Link key={night.id} href={`/admin/night/${night.id}`} className={`night-card night-card-${night.kind}`}>
+              <span className="night-card-name">
+                {split ? (
+                  <>
+                    <span className="night-card-day">{split.day}</span>
+                    <span className="night-card-date">{split.rest}</span>
+                  </>
+                ) : (
+                  night.name
+                )}
+              </span>
+              <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {night.kind === "qualifier" && !night.draw_published && (
+                  <span className="status-pill status-pill-hidden">Draw hidden</span>
+                )}
+                {status !== "upcoming" && (
                   <span className={`status-pill ${status}`}>
                     {status === "live" && <span className="live-dot" />}
-                    {status}
+                    {status === "live" ? "Live" : "Finished"}
                   </span>
-                </span>
-              </div>
-            </div>
-          </Link>
-        );
-      })}
+                )}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }

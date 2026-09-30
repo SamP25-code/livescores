@@ -59,7 +59,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
   const [pendingMatchIds, setPendingMatchIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    document.title = night ? `${night.name} — Admin — Bowls Live` : "Admin — Bowls Live";
+    document.title = night ? `${night.name} · Admin · Penwortham Singles` : "Admin · Penwortham Singles";
   }, [night]);
 
   async function refresh() {
@@ -199,12 +199,10 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
   const bracketExists = matches.length > 0;
 
   return (
-    <div className="page">
-      <div className="top-bar top-bar-plain">
-        <Link href="/admin" className="back-link">
-          &larr; All nights
-        </Link>
-      </div>
+    <div className="page page-photo">
+      <Link href="/admin" className="page-back-link">
+        <span aria-hidden="true">&lsaquo;</span> All nights
+      </Link>
 
       <h1>{night?.name ?? "Loading…"}</h1>
       {error && <p className="error">{error}</p>}
@@ -327,7 +325,7 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
           {role === "owner" && night?.kind === "qualifier" && qualifiers.length > 0 && (
             <section>
               <div className="round-heading">
-                <h2>Advancing to finals day</h2>
+                <h2>Through to Finals Day</h2>
               </div>
               <p className="hint">Drag a name onto the number they drew for finals day.</p>
               <FinalsSlotBoard

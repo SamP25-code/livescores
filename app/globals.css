@@ -43,18 +43,6 @@ body {
   background: var(--cream);
 }
 
-.site-background {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background-color: var(--cream);
-  background-image: linear-gradient(rgba(239, 235, 221, 0.88), rgba(239, 235, 221, 0.88)),
-    url("/bowls-background.jpg");
-  background-size: cover;
-  background-position: center 20%;
-  background-repeat: no-repeat;
-}
-
 .public-background {
   position: fixed;
   inset: 0;
@@ -161,6 +149,13 @@ a {
   border-bottom: 3px solid var(--green-deep);
 }
 
+.top-bar nav {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+
 .top-bar nav a {
   font-size: 0.85rem;
   color: var(--ink-soft);
@@ -238,19 +233,6 @@ a {
   font-weight: 600;
   color: var(--cream);
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
-  text-decoration: none;
-}
-
-.top-bar-plain {
-  text-align: left;
-  padding: 0 0 12px;
-}
-
-.back-link {
-  font-family: var(--font-display), Georgia, serif;
-  font-weight: 600;
-  font-size: 1.15rem;
-  color: var(--green-deep);
   text-decoration: none;
 }
 
@@ -348,11 +330,50 @@ a {
 }
 
 .card {
-  background: #fff;
+  background: var(--cream);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 14px 16px;
   margin-bottom: 12px;
+}
+
+/* Admin's scoring panel nests a .match inside a .card - the card is the
+   box there, so the match mustn't draw a second one inside it. */
+.card > .match {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+/* Text inside a cream panel on a photo page goes back to normal dark ink -
+   only text sitting directly on the photo is white. */
+.page-photo .card .hint {
+  color: var(--ink-soft);
+  text-shadow: none;
+}
+
+.page-photo .card h2 {
+  color: var(--green-deep);
+  text-shadow: none;
+}
+
+.page-photo .round-heading .count {
+  color: var(--ink-soft);
+  text-shadow: none;
+}
+
+.page-photo .empty {
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+.page-photo > .error {
+  background: var(--cream);
+  border: 1px solid var(--maroon);
+  border-radius: var(--radius);
+  padding: 10px 14px;
 }
 
 .round-heading {
@@ -700,6 +721,12 @@ a {
   color: #fff;
 }
 
+.status-pill-hidden {
+  background: var(--gold-pale);
+  color: var(--gold-deep);
+  border: 1px solid var(--gold);
+}
+
 .empty {
   color: var(--ink-soft);
   font-style: italic;
@@ -719,7 +746,7 @@ button,
 }
 
 button.secondary {
-  background: #fff;
+  background: var(--cream);
   color: var(--green-deep);
 }
 
@@ -773,7 +800,7 @@ label {
   min-width: 2.5ch;
   text-align: center;
   font-size: 1.7rem;
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
@@ -781,7 +808,7 @@ label {
   width: 64px;
   text-align: center;
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   padding: 8px 4px;
   -moz-appearance: textfield;
@@ -1301,7 +1328,7 @@ label {
   padding: 8px 12px;
   border: 1px dashed var(--line);
   border-radius: var(--radius);
-  background: #fff;
+  background: var(--cream);
 }
 
 .finals-slot.drag-over {
@@ -1358,7 +1385,7 @@ label {
   border-radius: var(--radius);
   padding: 12px;
   margin-bottom: 20px;
-  background: #fff;
+  background: var(--cream);
 }
 
 .finals-unplaced.drag-over {

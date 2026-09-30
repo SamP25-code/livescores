@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Bowls Live",
-    short_name: "Bowls Live",
+    name: "Penwortham Singles",
+    short_name: "Penwortham Singles",
     description: "Live knockout results for Penwortham Sports & Social Club's October singles",
     start_url: "/",
     display: "standalone",

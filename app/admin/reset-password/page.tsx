@@ -12,7 +12,7 @@ export default function ResetPasswordPage() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    document.title = "Reset password — Bowls Live";
+    document.title = "Reset password · Penwortham Singles";
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -31,7 +31,7 @@ export default function ResetPasswordPage() {
 
   if (done) {
     return (
-      <div className="page" style={{ maxWidth: 360 }}>
+      <div className="page page-photo" style={{ maxWidth: 360 }}>
         <h1>Password updated</h1>
         <p className="hint">Taking you to admin&hellip;</p>
       </div>
@@ -39,9 +39,9 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="page" style={{ maxWidth: 360 }}>
+    <div className="page page-photo" style={{ maxWidth: 360 }}>
       <h1>Set a new password</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="card">
         <div className="field">
           <label htmlFor="new-password">New password</label>
           <input

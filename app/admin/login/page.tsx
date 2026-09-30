@@ -15,7 +15,7 @@ export default function LoginPage() {
   const [resetSent, setResetSent] = useState(false);
 
   useEffect(() => {
-    document.title = mode === "forgot" ? "Reset password — Bowls Live" : "Sign in — Bowls Live";
+    document.title = mode === "forgot" ? "Reset password · Penwortham Singles" : "Sign in · Penwortham Singles";
   }, [mode]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -48,98 +48,98 @@ export default function LoginPage() {
 
   if (mode === "forgot") {
     return (
-      <div className="page" style={{ maxWidth: 360 }}>
-        <div className="top-bar top-bar-plain">
-          <Link href="/" className="back-link">
-            &larr; Back to results
-          </Link>
-        </div>
+      <div className="page page-photo" style={{ maxWidth: 360 }}>
+        <Link href="/" className="page-back-link">
+          <span aria-hidden="true">&lsaquo;</span> Back to results
+        </Link>
         <h1>Reset password</h1>
-        {resetSent ? (
-          <p className="hint">
-            If an account exists for {email}, a password reset link has been sent. Check your inbox.
-          </p>
-        ) : (
-          <form onSubmit={handleReset}>
-            <div className="field">
-              <label htmlFor="reset-email">Email</label>
-              <input
-                id="reset-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            {error && <p className="error">{error}</p>}
-            <button type="submit" disabled={loading}>
-              {loading ? "Sending…" : "Send reset link"}
+        <div className="card">
+          {resetSent ? (
+            <p className="hint">
+              If an account exists for {email}, a password reset link has been sent. Check your inbox.
+            </p>
+          ) : (
+            <form onSubmit={handleReset}>
+              <div className="field">
+                <label htmlFor="reset-email">Email</label>
+                <input
+                  id="reset-email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              {error && <p className="error">{error}</p>}
+              <button type="submit" disabled={loading}>
+                {loading ? "Sending…" : "Send reset link"}
+              </button>
+            </form>
+          )}
+          <p style={{ marginTop: 14 }}>
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => {
+                setMode("sign-in");
+                setError(null);
+                setResetSent(false);
+              }}
+            >
+              Back to sign in
             </button>
-          </form>
-        )}
-        <p style={{ marginTop: 14 }}>
-          <button
-            type="button"
-            className="link-button"
-            onClick={() => {
-              setMode("sign-in");
-              setError(null);
-              setResetSent(false);
-            }}
-          >
-            Back to sign in
-          </button>
-        </p>
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="page" style={{ maxWidth: 360 }}>
-      <div className="top-bar top-bar-plain">
-        <Link href="/" className="back-link">
-          &larr; Back to results
-        </Link>
-      </div>
+    <div className="page page-photo" style={{ maxWidth: 360 }}>
+      <Link href="/" className="page-back-link">
+        <span aria-hidden="true">&lsaquo;</span> Back to results
+      </Link>
       <h1>Admin sign in</h1>
-      <form onSubmit={handleSubmit}>
-        <div className="field">
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        {error && <p className="error">{error}</p>}
-        <button type="submit" disabled={loading}>
-          {loading ? "Signing in…" : "Sign in"}
-        </button>
-      </form>
-      <p style={{ marginTop: 14 }}>
-        <button
-          type="button"
-          className="link-button"
-          onClick={() => {
-            setMode("forgot");
-            setError(null);
-          }}
-        >
-          Forgot password?
-        </button>
-      </p>
+      <div className="card">
+        <form onSubmit={handleSubmit}>
+          <div className="field">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          {error && <p className="error">{error}</p>}
+          <button type="submit" disabled={loading}>
+            {loading ? "Signing in…" : "Sign in"}
+          </button>
+        </form>
+        <p style={{ marginTop: 14 }}>
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => {
+              setMode("forgot");
+              setError(null);
+            }}
+          >
+            Forgot password?
+          </button>
+        </p>
+      </div>
     </div>
   );
 }
