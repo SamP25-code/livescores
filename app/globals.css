@@ -331,7 +331,6 @@ a {
 }
 
 .page-photo .round-heading {
-  justify-content: flex-start;
   margin: 24px 0 8px;
 }
 
@@ -359,6 +358,16 @@ a {
 
 .draw-sheet .divider {
   display: none;
+}
+
+/* Same avatar-to-name spacing as the lineup sheet. */
+.draw-sheet .name-cell {
+  gap: 12px;
+}
+
+.avatar-empty {
+  background: var(--line);
+  color: var(--ink-soft);
 }
 
 .round-heading .count {
@@ -832,9 +841,10 @@ label {
   font-style: normal;
 }
 
-/* Plain notice-board text on the photo: left-aligned, normal size, with
-   just enough shadow to stay readable over the bright parts. */
+/* Plain notice-board text on the photo, normal size, with just enough
+   shadow to stay readable over the bright parts. */
 .home-hero {
+  text-align: center;
   margin: 22px 0 20px;
 }
 
@@ -1106,6 +1116,12 @@ label {
 
 .match.compact .name-cell {
   gap: 6px;
+}
+
+.match.compact .avatar {
+  width: 20px;
+  height: 20px;
+  font-size: 0.55rem;
 }
 
 .match.compact .name {

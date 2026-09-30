@@ -19,7 +19,6 @@ export default function HomePage() {
         <h1>October Singles 2026</h1>
         <p className="hint">Qualifying nights: practice from 6:30pm, play starts at 7pm.</p>
         <p className="hint">Finals Day: practice from 12:30pm, play starts at 1pm.</p>
-        <p className="hint">Four go through from each night to Finals Day.</p>
       </div>
       <LiveNowBanner />
       <NightNav variant="home" />

@@ -344,7 +344,10 @@ export default function NightPage({ params }: { params: { id: string } }) {
                 onClick={() => p && toggleHighlight(p.id)}
                 disabled={!p}
               >
-                <span className="name">{p ? p.name : "To be decided"}</span>
+                <span className="name-cell">
+                  {p ? <Avatar name={p.name} /> : <span className="avatar avatar-empty">?</span>}
+                  <span className="name">{p ? p.name : "To be decided"}</span>
+                </span>
                 <span className="qualifier-number">{p?.finals_number ?? ""}</span>
               </button>
             ))}
