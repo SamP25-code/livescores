@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { getInitials } from "@/components/Avatar";
 import type { MatchEvent } from "@/lib/types";
 
 function describeEvent(e: MatchEvent): string {
@@ -17,22 +18,24 @@ function describeEvent(e: MatchEvent): string {
   }
 }
 
+type Scorer = "a" | "b" | "correction";
+
 // Works out who each point went to by comparing it with the score before
 // it. A score going down means the scorer pressed minus to fix a mistake.
-function scorerLabels(events: MatchEvent[], nameA: string, nameB: string): Map<string, string> {
-  const labels = new Map<string, string>();
+function scorers(events: MatchEvent[]): Map<string, Scorer> {
+  const result = new Map<string, Scorer>();
   let prevA = 0;
   let prevB = 0;
   for (const e of events) {
     if (e.event_type === "score") {
-      if (e.score_a < prevA || e.score_b < prevB) labels.set(e.id, "Correction");
-      else if (e.score_a > prevA) labels.set(e.id, nameA);
-      else if (e.score_b > prevB) labels.set(e.id, nameB);
+      if (e.score_a < prevA || e.score_b < prevB) result.set(e.id, "correction");
+      else if (e.score_a > prevA) result.set(e.id, "a");
+      else if (e.score_b > prevB) result.set(e.id, "b");
     }
     prevA = e.score_a;
     prevB = e.score_b;
   }
-  return labels;
+  return result;
 }
 
 export default function MatchHistory({
@@ -87,16 +90,43 @@ export default function MatchHistory({
     return <p className="hint match-history-empty">No history yet.</p>;
   }
 
-  const labels = nameA && nameB ? scorerLabels(events, nameA, nameB) : null;
+  if (!nameA || !nameB) {
+    return (
+      <ul className="match-history">
+        {visibleEvents.map((e) => (
+          <li key={e.id}>{describeEvent(e)}</li>
+        ))}
+      </ul>
+    );
+  }
+
+  // Initials keep each line short, since the full names are shown just
+  // above - unless both players share initials, where they'd be ambiguous.
+  const initialsA = getInitials(nameA);
+  const initialsB = getInitials(nameB);
+  const labelA = initialsA === initialsB ? nameA : initialsA;
+  const labelB = initialsA === initialsB ? nameB : initialsB;
+  const scorerOf = scorers(events);
 
   return (
-    <ul className="match-history">
+    <ul className="match-history match-history-grid">
       {visibleEvents.map((e) => {
-        const who = labels?.get(e.id);
+        const scorer = scorerOf.get(e.id);
+        if (e.event_type !== "score" || scorer === "correction" || !scorer) {
+          const text = scorer === "correction" ? `Correction: ${e.score_a} - ${e.score_b}` : describeEvent(e);
+          return (
+            <li key={e.id} className="match-history-note">
+              {text}
+            </li>
+          );
+        }
         return (
-          <li key={e.id}>
-            {who && <span className="match-history-who">{who}</span>}
-            {describeEvent(e)}
+          <li key={e.id} className="match-history-line">
+            <span className={scorer === "a" ? "match-history-scorer" : ""}>{labelA}</span>
+            <span className="match-history-score">
+              {e.score_a} - {e.score_b}
+            </span>
+            <span className={scorer === "b" ? "match-history-scorer" : ""}>{labelB}</span>
           </li>
         );
       })}

@@ -301,18 +301,46 @@ a {
 }
 
 .match-history li {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
   padding: 3px 0;
   font-size: 0.85rem;
   white-space: nowrap;
 }
 
-.match-history-who {
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Player A | score | player B, one shared grid so every row's score
+   lines up in the same column. */
+.match-history-grid {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  column-gap: 14px;
+}
+
+.match-history-line {
+  display: contents;
+}
+
+.match-history-line > span {
+  padding: 3px 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.match-history-line > span:first-child {
+  text-align: right;
+}
+
+.match-history-line > .match-history-score {
+  text-align: center;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.match-history-line > .match-history-scorer {
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+.match-history-note {
+  grid-column: 1 / -1;
 }
 
 .match-history-empty {
