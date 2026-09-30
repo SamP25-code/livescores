@@ -530,8 +530,8 @@ a {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 0;
-  border-bottom: 1px dashed var(--line);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
 }
 
 .roster-row:last-child {
@@ -555,8 +555,8 @@ a {
 }
 
 .roster-name {
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--ink);
 }
 
@@ -828,17 +828,10 @@ label {
 }
 
 .night-header-hint {
-  font-family: var(--font-display), Georgia, serif;
-  font-style: italic;
   color: #fff;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
   font-size: 0.95rem;
   margin: 12px 0 0;
-}
-
-.night-header-hint-error {
-  font-family: var(--font-body), sans-serif;
-  font-style: normal;
 }
 
 /* Plain notice-board text on the photo, normal size, with just enough
@@ -855,6 +848,15 @@ label {
 .home-hero .hint {
   font-size: 0.95rem;
   margin: 2px 0;
+}
+
+.home-times {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-times + .home-times {
+  margin-top: 10px;
 }
 
 .live-now-banner {
@@ -911,7 +913,7 @@ label {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 22px 22px 22px 28px;
+  padding: 14px 18px 14px 24px;
   border-radius: var(--radius);
   border: 1px solid var(--line);
   background-color: var(--cream);
@@ -936,23 +938,19 @@ label {
 
 .night-card-name {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
   font-family: var(--font-display), Georgia, serif;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: var(--green-deep);
 }
 
-.night-card-day {
-  font-size: 1.4rem;
-}
-
 .night-card-date {
   font-family: var(--font-body), sans-serif;
-  font-size: 0.85rem;
-  font-style: italic;
-  letter-spacing: 0.02em;
+  font-size: 0.95rem;
+  font-weight: 500;
   color: var(--ink-soft);
 }
 

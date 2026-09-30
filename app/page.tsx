@@ -17,8 +17,14 @@ export default function HomePage() {
 
       <div className="home-hero">
         <h1>October Singles 2026</h1>
-        <p className="hint">Qualifying nights: practice from 6:30pm, play starts at 7pm.</p>
-        <p className="hint">Finals Day: practice from 12:30pm, play starts at 1pm.</p>
+        <p className="hint home-times">
+          <strong>Qualifying nights</strong>
+          <span>Practice 6:30pm &middot; Start 7pm</span>
+        </p>
+        <p className="hint home-times">
+          <strong>Finals Day</strong>
+          <span>Practice 12:30pm &middot; Start 1pm</span>
+        </p>
       </div>
       <LiveNowBanner />
       <NightNav variant="home" />

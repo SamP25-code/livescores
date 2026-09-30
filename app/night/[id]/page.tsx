@@ -207,7 +207,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
         </div>
 
         {loadError && (
-          <p className="night-header-hint night-header-hint-error">
+          <p className="night-header-hint">
             Having trouble loading this page? Check your connection and try refreshing.
           </p>
         )}
@@ -218,10 +218,13 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
         {!loadError && night && !playStarted && (
           <p className="night-header-hint">
-            {night.kind === "finals"
-              ? "Practice from 12:30pm, play starts at 1pm."
-              : "Practice from 6:30pm, play starts at 7pm."}
-            {night.kind === "qualifier" && qualifierPlayers.length > 0 && " Draw to follow."}
+            {night.kind === "finals" ? "Practice 12:30pm · Start 1pm" : "Practice 6:30pm · Start 7pm"}
+            {night.kind === "qualifier" && qualifierPlayers.length > 0 && (
+              <>
+                <br />
+                Draw to follow
+              </>
+            )}
           </p>
         )}
 
