@@ -322,7 +322,9 @@ export default function NightPage({ params }: { params: { id: string } }) {
                   players={players}
                   highlightPlayerId={highlightPlayerId}
                   onSelectPlayer={toggleHighlight}
-                  historyEnabled={night?.kind === "finals"}
+                  // Score history is admin-only for now; set back to
+                  // night?.kind === "finals" to show it publicly again.
+                  historyEnabled={false}
                 />
               ))}
             </div>
