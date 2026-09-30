@@ -337,6 +337,11 @@ export default function NightPage({ params }: { params: { id: string } }) {
             <h2>Through to Finals Day</h2>
           </div>
           <div className="draw-sheet">
+            {qualifiers.some((p) => p?.finals_number != null) && (
+              <div className="draw-sheet-header">
+                <span>Finals draw</span>
+              </div>
+            )}
             {qualifiers.map((p, i) => (
               <button
                 key={p?.id ?? `slot-${i}`}

@@ -46,23 +46,23 @@ export default function MatchCard({
     >
       {isBye ? (
         <div className="match-flag match-flag-muted">Bye</div>
-      ) : match.status === "live" ? (
-        <div className="match-flag match-flag-live">
-          <span className="live-dot" />
-          Live
-        </div>
       ) : (
-        upcoming && <div className="match-flag match-flag-muted">Upcoming</div>
+        match.status === "live" && (
+          <div className="match-flag match-flag-live">
+            <span className="live-dot" />
+            Live
+          </div>
+        )
       )}
       <div className="players">
         <div className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""}`}>
           <NameCell player={playerA} name={nameA} playerId={match.player_a_id} onSelectPlayer={onSelectPlayer} />
-          <FlashingScore value={scoreA} />
+          <FlashingScore value={scoreA} className={scoreA === "–" ? "score score-empty" : "score"} />
         </div>
         <hr className="divider" />
         <div className={`player-row ${winnerB ? "winner" : ""} ${spotlightB ? "spotlight" : ""}`}>
           <NameCell player={playerB} name={nameB} playerId={match.player_b_id} onSelectPlayer={onSelectPlayer} />
-          <FlashingScore value={scoreB} />
+          <FlashingScore value={scoreB} className={scoreB === "–" ? "score score-empty" : "score"} />
         </div>
       </div>
       {historyEnabled && !compact && !isBye && match.status !== "upcoming" && (

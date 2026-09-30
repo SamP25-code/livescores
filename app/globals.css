@@ -370,6 +370,16 @@ a {
   color: var(--ink-soft);
 }
 
+.draw-sheet-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
 .round-heading .count {
   font-size: 0.8rem;
   color: var(--ink-soft);
@@ -568,6 +578,13 @@ a {
   min-width: 2ch;
   text-align: right;
   color: var(--ink-soft);
+}
+
+/* A light placeholder for a score that doesn't exist yet, so it can't be
+   mistaken for a result. */
+.player-row .score.score-empty {
+  font-weight: 400;
+  color: var(--line);
 }
 
 .player-row.winner .score {
@@ -1023,10 +1040,15 @@ label {
   font-weight: 600;
   padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid var(--green-deep);
-  background: #fff;
+  border: 1px solid var(--line);
+  background: var(--cream);
   color: var(--green-deep);
   cursor: pointer;
+}
+
+.page-photo .view-toggle button.secondary {
+  background: var(--cream);
+  border-color: var(--line);
 }
 
 .bracket-scroll {
