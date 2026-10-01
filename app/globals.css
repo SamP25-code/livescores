@@ -492,6 +492,14 @@ a {
   min-width: 0;
 }
 
+/* A match in progress gets a maroon edge and the faintest warm tint, so
+   it's easy to spot while scrolling - it's what most people are looking
+   for mid-evening. */
+.match.live {
+  background: color-mix(in srgb, var(--maroon) 5%, var(--cream));
+  box-shadow: inset 4px 0 0 var(--maroon);
+}
+
 /* Finished matches have no label - the winner's bold score says it. */
 .match-flag {
   flex-basis: 100%;
@@ -657,14 +665,23 @@ a {
   color: var(--ink-soft);
 }
 
-.qualifier-number {
-  font-family: var(--font-body), sans-serif;
-  font-variant-numeric: tabular-nums;
-  font-size: 1.3rem;
+/* Finals Day draw number - a gold disc (gold is Finals Day's colour in
+   the night tabs) so it can't be read as a score or mixed up with the
+   green qualifying-night draw numbers. */
+.finals-number {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--gold-deep);
+  color: #fff;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: var(--green-deep);
-  min-width: 1.4em;
-  text-align: right;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 .roster-list {

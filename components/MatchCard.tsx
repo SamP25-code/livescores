@@ -54,8 +54,8 @@ export default function MatchCard({
     <div
       id={id}
       className={`card match ${compact ? "compact" : ""} ${match.status === "complete" ? "complete" : ""} ${
-        isBye ? "bye" : ""
-      }`}
+        match.status === "live" ? "live" : ""
+      } ${isBye ? "bye" : ""}`}
     >
       {isBye ? (
         <div className="match-flag match-flag-muted">Bye</div>

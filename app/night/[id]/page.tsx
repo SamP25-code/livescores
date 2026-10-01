@@ -371,7 +371,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
                 <span className="name-cell">
                   <span className="name">{p ? p.name : "To be decided"}</span>
                 </span>
-                <span className="qualifier-number">{p?.finals_number ?? ""}</span>
+                {p?.finals_number != null && <span className="finals-number">{p.finals_number}</span>}
               </button>
             ))}
           </div>
