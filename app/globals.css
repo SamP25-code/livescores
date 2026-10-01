@@ -72,20 +72,21 @@ body {
   margin-top: 28px;
 }
 
+/* Only the admin needs this, so it's a quiet link rather than a button -
+   still a full-height tap target. */
 .page-footer-nav a {
-  display: inline-block;
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-decoration: none;
-  padding: 9px 24px;
-  border-radius: var(--radius);
-  border: 1px solid var(--wood);
-  background: var(--cream);
-  color: var(--wood);
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 0.8rem;
+  color: var(--cream);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  opacity: 0.8;
 }
 
 .page-footer-nav a:hover {
-  background: #fff;
+  opacity: 1;
 }
 
 /* Cream rather than transparent because the sponsor logo has dark text
@@ -234,6 +235,36 @@ a {
   color: var(--cream);
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
   text-decoration: none;
+}
+
+/* One-line sponsor credit on the night pages - same cream surface as the
+   home page's sponsor card, a fraction of the height. */
+.sponsor-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-bottom: 14px;
+  padding: 6px 14px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  text-align: center;
+  text-decoration: none;
+}
+
+.sponsor-strip strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sponsor-strip-leaf {
+  flex: none;
+  width: 22px;
+  height: 22px;
 }
 
 .link-button {
@@ -952,6 +983,19 @@ label {
   margin-bottom: 6px;
 }
 
+.page-photo .home-club {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--cream);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+.home-sponsor {
+  margin: 0;
+}
+
 .home-hero .hint {
   font-size: 0.95rem;
   margin: 2px 0;
@@ -1006,37 +1050,31 @@ label {
   font-size: 0.85rem;
 }
 
+/* One panel with the nights as ruled rows, like a fixture list, rather
+   than a stack of separate cards. */
 .night-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
   margin: 0 0 20px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
-/* The wood edge is kept here only, so it marks the night list out rather
-   than repeating on every card on the site. */
 .night-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 14px 18px 14px 24px;
-  border-radius: var(--radius);
-  border: 1px solid var(--line);
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
   background-color: var(--cream);
-  position: relative;
-  overflow: hidden;
   text-decoration: none;
 }
 
-.night-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 6px;
-  background: var(--wood);
+.night-card:last-child {
+  border-bottom: none;
 }
 
 .night-card:hover {
@@ -1059,10 +1097,6 @@ label {
   font-size: 0.95rem;
   font-weight: 500;
   color: var(--ink-soft);
-}
-
-.night-card-finals::before {
-  background: var(--gold);
 }
 
 .night-card-finals {

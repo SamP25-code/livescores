@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Avatar from "@/components/Avatar";
 import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
 import type { MatchRow, Player } from "@/lib/types";
@@ -95,14 +94,12 @@ function NameCell({
   if (player && playerId && onSelectPlayer) {
     return (
       <button type="button" className="name-cell name-cell-button" onClick={() => onSelectPlayer(playerId)}>
-        <Avatar name={player.name} />
         <span className="name">{name}</span>
       </button>
     );
   }
   return (
     <span className="name-cell">
-      {player && <Avatar name={player.name} />}
       <span className="name">{name}</span>
     </span>
   );
