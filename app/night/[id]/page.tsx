@@ -270,7 +270,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
           <p style={{ margin: "14px 0 0" }}>
             <a href="#jump-to-live" className="link-button jump-to-live-link">
               <span className="live-dot" />
-              Jump to {liveMatches.length > 1 ? `${liveMatches.length} live matches` : "the live match"}
+              Jump to live matches
             </a>
           </p>
         )}
