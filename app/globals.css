@@ -572,6 +572,10 @@ a {
   border-radius: 999px;
 }
 
+.draw-number-blank {
+  visibility: hidden;
+}
+
 .avatar-sm {
   width: 20px;
   height: 20px;

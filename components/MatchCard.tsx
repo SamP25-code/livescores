@@ -34,6 +34,18 @@ export default function MatchCard({
   const winnerB = Boolean(match.winner_id) && match.winner_id === match.player_b_id;
   const spotlightA = highlightPlayerId != null && match.player_a_id === highlightPlayerId;
   const spotlightB = highlightPlayerId != null && match.player_b_id === highlightPlayerId;
+  // An empty first-round position still has its draw number, so a TBC
+  // in round one reads as "number 2, not drawn yet".
+  const numberA = match.player_a_id
+    ? drawNumbers?.[match.player_a_id]
+    : match.round === 1
+      ? match.slot * 2 + 1
+      : undefined;
+  const numberB = match.player_b_id
+    ? drawNumbers?.[match.player_b_id]
+    : match.round === 1
+      ? match.slot * 2 + 2
+      : undefined;
   const upcoming = match.status === "upcoming";
   const scoreA = !match.player_a_id || upcoming ? "–" : match.score_a;
   const scoreB = !match.player_b_id || upcoming ? "–" : match.score_b;
@@ -57,12 +69,26 @@ export default function MatchCard({
       )}
       <div className="players">
         <div className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""}`}>
-          <NameCell player={playerA} name={nameA} number={drawNumbers?.[match.player_a_id ?? ""]} playerId={match.player_a_id} onSelectPlayer={onSelectPlayer} />
+          <NameCell
+            player={playerA}
+            name={nameA}
+            showNumber={Boolean(drawNumbers)}
+            number={numberA}
+            playerId={match.player_a_id}
+            onSelectPlayer={onSelectPlayer}
+          />
           <FlashingScore value={scoreA} className={scoreA === "–" ? "score score-empty" : "score"} />
         </div>
         <hr className="divider" />
         <div className={`player-row ${winnerB ? "winner" : ""} ${spotlightB ? "spotlight" : ""}`}>
-          <NameCell player={playerB} name={nameB} number={drawNumbers?.[match.player_b_id ?? ""]} playerId={match.player_b_id} onSelectPlayer={onSelectPlayer} />
+          <NameCell
+            player={playerB}
+            name={nameB}
+            showNumber={Boolean(drawNumbers)}
+            number={numberB}
+            playerId={match.player_b_id}
+            onSelectPlayer={onSelectPlayer}
+          />
           <FlashingScore value={scoreB} className={scoreB === "–" ? "score score-empty" : "score"} />
         </div>
       </div>
@@ -86,27 +112,36 @@ function NameCell({
   player,
   name,
   number,
+  showNumber,
   playerId,
   onSelectPlayer,
 }: {
   player: Player | undefined;
   name: string;
   number?: number;
+  showNumber: boolean;
   playerId: string | null;
   onSelectPlayer?: (playerId: string) => void;
 }) {
   if (player && playerId && onSelectPlayer) {
     return (
       <button type="button" className="name-cell name-cell-button" onClick={() => onSelectPlayer(playerId)}>
-        {number != null && <span className="draw-number">{number}</span>}
+        {showNumber && <DrawNumber number={number} />}
         <span className="name">{name}</span>
       </button>
     );
   }
   return (
     <span className="name-cell">
-      {player && number != null && <span className="draw-number">{number}</span>}
+      {showNumber && <DrawNumber number={number} />}
       <span className="name">{name}</span>
     </span>
   );
+}
+
+// A blank pill keeps names lined up on rows with no number yet (a TBC in a
+// later round).
+function DrawNumber({ number }: { number?: number }) {
+  if (number == null) return <span className="draw-number draw-number-blank" aria-hidden="true" />;
+  return <span className="draw-number">{number}</span>;
 }
