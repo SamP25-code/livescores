@@ -191,6 +191,10 @@ export default function NightPage({ params }: { params: { id: string } }) {
   }, [night, rounds, players, showDraw]);
 
   const titleSplit = night ? splitNightName(night) : null;
+  // The title shrinks to a slim strip, like the sponsor line, whenever
+  // there's a list below it worth the space - the field of players before
+  // the draw, or the draw itself.
+  const slimHeader = showDraw || finalsSlots.length > 0 || qualifierPlayers.length > 0;
 
   return (
     <div className="page page-photo">
@@ -203,9 +207,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
       <NightNav currentId={nightId} />
 
       <div className="night-header-card">
-        {/* Once the draw is up, the title shrinks to one line like the
-            sponsor strip so more of the scores fit on a phone screen. */}
-        <div className={`night-header-title ${showDraw ? "night-header-title-slim" : ""}`}>
+        <div className={`night-header-title ${slimHeader ? "night-header-title-slim" : ""}`}>
           {titleSplit ? (
             <>
               <span className="night-header-day">{titleSplit.day}</span>
@@ -217,15 +219,21 @@ export default function NightPage({ params }: { params: { id: string } }) {
           {!loadError && night && !playStarted && (
             <span className="night-header-times">
               {night.kind === "finals" ? "Practice 12:30pm · Start 1pm" : "Practice 6:30pm · Start 7pm"}
-              {night.kind === "qualifier" && qualifierPlayers.length > 0 && (
-                <>
-                  <br />
-                  Draw to follow
-                </>
-              )}
+              {night.kind === "qualifier" &&
+                qualifierPlayers.length > 0 &&
+                (slimHeader ? (
+                  " · Draw to follow"
+                ) : (
+                  <>
+                    <br />
+                    Draw to follow
+                  </>
+                ))}
             </span>
           )}
-          {!loadError && viewerCount > 0 && (
+          {/* Only once the draw is up - before that it's the field of
+              players that needs the room. */}
+          {!loadError && showDraw && viewerCount > 0 && (
             <span className="night-header-viewers">{viewerCount} watching now</span>
           )}
         </div>
