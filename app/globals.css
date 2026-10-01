@@ -1014,19 +1014,21 @@ label {
   margin-top: 4px;
 }
 
-/* One line - day, date and watchers side by side - matching the sponsor
-   strip above it. Start times, shown only before play begins, drop onto
-   a second small line. */
+/* Day, date and watchers side by side, matching the sponsor strip above
+   it - one line on a qualifying night. Anything that doesn't fit (Finals
+   Day's longer date, or the start times before play begins) wraps onto a
+   small second line, with the watcher count as a pill so it reads cleanly
+   wherever it lands. */
 .night-header-title-slim {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: center;
-  gap: 2px 8px;
-  min-height: 44px;
-  padding: 8px 14px;
+  align-items: center;
   align-content: center;
+  justify-content: center;
+  gap: 4px 8px;
+  min-height: 44px;
+  padding: 7px 14px;
 }
 
 .night-header-title-slim .night-header-day {
@@ -1039,17 +1041,19 @@ label {
 
 .night-header-title-slim .night-header-times {
   order: 1;
-  flex-basis: 100%;
   margin-top: 0;
   font-size: 0.78rem;
+  white-space: nowrap;
 }
 
 .night-header-title-slim .night-header-viewers {
   margin-top: 0;
-}
-
-.night-header-title-slim .night-header-viewers::before {
-  content: "· ";
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--green-pale);
+  color: var(--green-deep);
+  font-size: 0.72rem;
+  white-space: nowrap;
 }
 
 .night-header-hint {
