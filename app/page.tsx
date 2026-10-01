@@ -11,9 +11,11 @@ export default function HomePage() {
   return (
     <div className="page page-photo">
       <div className="public-background" aria-hidden="true" />
+      <div className="top-bar">
+        <Brand />
+      </div>
 
       <div className="home-hero">
-        <p className="home-club">Penwortham Sports &amp; Social Club</p>
         <h1>October Singles 2026</h1>
         <p className="hint home-times">
           <strong>Qualifying nights</strong>
@@ -26,10 +28,6 @@ export default function HomePage() {
       </div>
       <LiveNowBanner />
       <NightNav variant="home" />
-
-      <div className="top-bar home-sponsor">
-        <Brand variant="sponsor" />
-      </div>
 
       <nav className="page-footer-nav">
         <Link href="/admin">Log in</Link>

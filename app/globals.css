@@ -2,6 +2,7 @@
   --green-deep: #1f3d2b;
   --green-mid: #3d6b4a;
   --green-pale: #e4ecdf;
+  --green-highlight: #cfe0c4;
   --cream: #efebdd;
   --wood: #7a5230;
   --maroon: #7a2e2e;
@@ -568,8 +569,12 @@ a {
   border-width: 1.5px;
 }
 
+/* A tapped player's rows - a clear green band with a solid edge so their
+   path through the draw is easy to follow, and never faded out even in a
+   match they lost. */
 .player-row.spotlight {
-  background: var(--green-pale);
+  background: var(--green-highlight);
+  box-shadow: inset 4px 0 0 var(--green-deep);
   margin: 0 -16px;
   padding-left: 16px;
   padding-right: 16px;
@@ -578,6 +583,17 @@ a {
 .player-row.spotlight .name {
   color: var(--green-deep);
   font-weight: 700;
+}
+
+.match.complete .players .player-row.spotlight .name,
+.match.complete .players .player-row.spotlight .score {
+  opacity: 1;
+}
+
+.match.compact .player-row.spotlight {
+  margin: 0 -12px;
+  padding-left: 12px;
+  padding-right: 12px;
 }
 
 .qualifier-row {
@@ -599,7 +615,9 @@ a {
 }
 
 .qualifier-row.selected {
-  background: var(--green-pale);
+  background: var(--green-highlight);
+  box-shadow: inset 4px 0 0 var(--green-deep);
+  color: var(--green-deep);
 }
 
 .qualifier-row-empty {
@@ -981,19 +999,6 @@ label {
 
 .home-hero h1 {
   margin-bottom: 6px;
-}
-
-.page-photo .home-club {
-  margin: 0 0 4px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--cream);
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
-}
-
-.home-sponsor {
-  margin: 0;
 }
 
 .home-hero .hint {
