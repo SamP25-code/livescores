@@ -1037,11 +1037,10 @@ label {
   margin-top: 4px;
 }
 
-/* Day, date and watchers side by side, matching the sponsor strip above
-   it - one line on a qualifying night. Anything that doesn't fit (Finals
-   Day's longer date, or the start times before play begins) wraps onto a
-   small second line, with the watcher count as a pill so it reads cleanly
-   wherever it lands. */
+/* Day, date and watchers side by side, the same height as the sponsor
+   strip above it. Anything that doesn't fit (the start times before play
+   begins) wraps onto a small second line, with the watcher count as a pill
+   so it reads cleanly wherever it lands. */
 .night-header-title-slim {
   display: flex;
   flex-direction: row;
@@ -1072,28 +1071,47 @@ label {
   margin-top: 0;
   padding: 1px 8px;
   border-radius: 999px;
-  background: var(--green-pale);
-  color: var(--green-deep);
   font-size: 0.72rem;
   white-space: nowrap;
 }
 
-/* Over the field list it's only the start time - filled in the same
-   colour as the highlighted night tab above (green, or gold on Finals
-   Day), and a touch bigger than the small second line on the draw pages. */
-.night-header-title-field {
+/* Filled in the same colour as the highlighted night tab above, with
+   white writing - green on a qualifying night, gold on Finals Day. */
+.night-header-title-slim {
   background: var(--green-deep);
   border-color: var(--green-deep);
 }
 
-.night-header-title-field.night-header-title-finals {
+.night-header-title-slim.night-header-title-finals {
   background: var(--gold-deep);
   border-color: var(--gold-deep);
 }
 
+.night-header-title-slim .night-header-day,
+.night-header-title-slim .night-header-times {
+  color: #fff;
+}
+
+.night-header-title-slim .night-header-date {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.night-header-title-slim .night-header-viewers {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+/* Over the field list it's only the start time, so a touch bigger than
+   the small second line on the draw pages. */
 .night-header-title-field .night-header-times {
   font-size: 0.9rem;
-  color: #fff;
+}
+
+/* Finals Day's draw page: the start time sits on the same line as the
+   date ("Saturday 17th Oct · 1pm start"), so it matches the date's size. */
+.night-header-title-slim.night-header-title-finals .night-header-times {
+  order: 0;
+  font-size: 0.9rem;
 }
 
 /* Hidden on screen, still read out by screen readers. */

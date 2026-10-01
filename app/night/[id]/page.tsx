@@ -197,6 +197,9 @@ export default function NightPage({ params }: { params: { id: string } }) {
   // highlighted night tab already says which night it is.
   const showField = !showDraw && (finalsSlots.length > 0 || qualifierPlayers.length > 0);
   const slimHeader = showDraw || showField;
+  // Finals Day's draw page just reads "Saturday 17th Oct · 1pm start" - the
+  // gold Finals tab already says which day it is.
+  const finalsDraw = night?.kind === "finals" && showDraw;
 
   return (
     <div className="page page-photo">
@@ -216,7 +219,12 @@ export default function NightPage({ params }: { params: { id: string } }) {
         >
           {/* Kept for screen readers over the field list, where it's hidden. */}
           <span className={showField ? "visually-hidden" : "night-header-name"}>
-            {titleSplit ? (
+            {titleSplit && finalsDraw ? (
+              <>
+                <span className="visually-hidden">{titleSplit.day}</span>
+                <span className="night-header-day">{shortenMonth(titleSplit.rest)}</span>
+              </>
+            ) : titleSplit ? (
               <>
                 <span className="night-header-day">{titleSplit.day}</span>
                 <span className="night-header-date">{titleSplit.rest}</span>
@@ -231,14 +239,15 @@ export default function NightPage({ params }: { params: { id: string } }) {
                 ? `Start ${night.kind === "finals" ? "1pm" : "7pm"}${
                     night.kind === "qualifier" ? " · Draw to follow" : ""
                   }`
-                : night.kind === "finals"
-                  ? "Practice 12:30pm · Start 1pm"
+                : finalsDraw
+                  ? "· 1pm start"
                   : "Practice 6:30pm · Start 7pm"}
             </span>
           )}
           {/* Only once the draw is up - before that it's the field of
-              players that needs the room. */}
-          {!loadError && showDraw && viewerCount > 0 && (
+              players that needs the room. Finals Day waits for the first
+              scores, so the strip stays one line until play begins. */}
+          {!loadError && showDraw && (night?.kind !== "finals" || playStarted) && viewerCount > 0 && (
             <span className="night-header-viewers">{viewerCount} watching now</span>
           )}
         </div>
@@ -392,4 +401,12 @@ export default function NightPage({ params }: { params: { id: string } }) {
       )}
     </div>
   );
+}
+
+const MONTHS =
+  /\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/;
+
+// "Saturday 17th October" -> "Saturday 17th Oct"
+function shortenMonth(date: string): string {
+  return date.replace(MONTHS, (month) => month.slice(0, 3));
 }
