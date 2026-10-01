@@ -192,9 +192,11 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
   const titleSplit = night ? splitNightName(night) : null;
   // The title shrinks to a slim strip, like the sponsor line, whenever
-  // there's a list below it worth the space - the field of players before
-  // the draw, or the draw itself.
-  const slimHeader = showDraw || finalsSlots.length > 0 || qualifierPlayers.length > 0;
+  // there's a list below it worth the space. Over the field of players
+  // before the draw it slims right down to just the start time - the
+  // highlighted night tab already says which night it is.
+  const showField = !showDraw && (finalsSlots.length > 0 || qualifierPlayers.length > 0);
+  const slimHeader = showDraw || showField;
 
   return (
     <div className="page page-photo">
@@ -207,28 +209,31 @@ export default function NightPage({ params }: { params: { id: string } }) {
       <NightNav currentId={nightId} />
 
       <div className="night-header-card">
-        <div className={`night-header-title ${slimHeader ? "night-header-title-slim" : ""}`}>
-          {titleSplit ? (
-            <>
-              <span className="night-header-day">{titleSplit.day}</span>
-              <span className="night-header-date">{titleSplit.rest}</span>
-            </>
-          ) : (
-            <span className="night-header-day">{night?.name ?? "Loading\u2026"}</span>
-          )}
+        <div
+          className={`night-header-title ${slimHeader ? "night-header-title-slim" : ""} ${
+            showField ? "night-header-title-field" : ""
+          }`}
+        >
+          {/* Kept for screen readers over the field list, where it's hidden. */}
+          <span className={showField ? "visually-hidden" : "night-header-name"}>
+            {titleSplit ? (
+              <>
+                <span className="night-header-day">{titleSplit.day}</span>
+                <span className="night-header-date">{titleSplit.rest}</span>
+              </>
+            ) : (
+              <span className="night-header-day">{night?.name ?? "Loading…"}</span>
+            )}
+          </span>
           {!loadError && night && !playStarted && (
             <span className="night-header-times">
-              {night.kind === "finals" ? "Practice 12:30pm · Start 1pm" : "Practice 6:30pm · Start 7pm"}
-              {night.kind === "qualifier" &&
-                qualifierPlayers.length > 0 &&
-                (slimHeader ? (
-                  " · Draw to follow"
-                ) : (
-                  <>
-                    <br />
-                    Draw to follow
-                  </>
-                ))}
+              {showField
+                ? `Start ${night.kind === "finals" ? "1pm" : "7pm"}${
+                    night.kind === "qualifier" ? " · Draw to follow" : ""
+                  }`
+                : night.kind === "finals"
+                  ? "Practice 12:30pm · Start 1pm"
+                  : "Practice 6:30pm · Start 7pm"}
             </span>
           )}
           {/* Only once the draw is up - before that it's the field of

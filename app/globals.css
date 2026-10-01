@@ -1000,6 +1000,12 @@ label {
   padding: 12px 28px;
 }
 
+/* Just groups the day and date so they can be hidden together - lays out
+   as if they were direct children of the title. */
+.night-header-name {
+  display: contents;
+}
+
 .night-header-day {
   font-family: var(--font-display), Georgia, serif;
   font-size: 1.8rem;
@@ -1069,6 +1075,22 @@ label {
   background: var(--green-pale);
   color: var(--green-deep);
   font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+/* Over the field list it's only the start time, so it can be a touch
+   bigger than the small second line it is on the draw pages. */
+.night-header-title-field .night-header-times {
+  font-size: 0.9rem;
+}
+
+/* Hidden on screen, still read out by screen readers. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
   white-space: nowrap;
 }
 
