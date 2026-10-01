@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Avatar from "@/components/Avatar";
 import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
 import type { MatchRow, Player } from "@/lib/types";
@@ -9,6 +8,7 @@ import type { MatchRow, Player } from "@/lib/types";
 export default function MatchCard({
   match,
   players,
+  drawNumbers,
   highlightPlayerId,
   onSelectPlayer,
   compact,
@@ -17,6 +17,7 @@ export default function MatchCard({
 }: {
   match: MatchRow;
   players: Record<string, Player>;
+  drawNumbers?: Record<string, number>;
   highlightPlayerId?: string | null;
   onSelectPlayer?: (playerId: string) => void;
   compact?: boolean;
@@ -56,12 +57,12 @@ export default function MatchCard({
       )}
       <div className="players">
         <div className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""}`}>
-          <NameCell player={playerA} name={nameA} playerId={match.player_a_id} onSelectPlayer={onSelectPlayer} />
+          <NameCell player={playerA} name={nameA} number={drawNumbers?.[match.player_a_id ?? ""]} playerId={match.player_a_id} onSelectPlayer={onSelectPlayer} />
           <FlashingScore value={scoreA} className={scoreA === "–" ? "score score-empty" : "score"} />
         </div>
         <hr className="divider" />
         <div className={`player-row ${winnerB ? "winner" : ""} ${spotlightB ? "spotlight" : ""}`}>
-          <NameCell player={playerB} name={nameB} playerId={match.player_b_id} onSelectPlayer={onSelectPlayer} />
+          <NameCell player={playerB} name={nameB} number={drawNumbers?.[match.player_b_id ?? ""]} playerId={match.player_b_id} onSelectPlayer={onSelectPlayer} />
           <FlashingScore value={scoreB} className={scoreB === "–" ? "score score-empty" : "score"} />
         </div>
       </div>
@@ -84,25 +85,27 @@ export default function MatchCard({
 function NameCell({
   player,
   name,
+  number,
   playerId,
   onSelectPlayer,
 }: {
   player: Player | undefined;
   name: string;
+  number?: number;
   playerId: string | null;
   onSelectPlayer?: (playerId: string) => void;
 }) {
   if (player && playerId && onSelectPlayer) {
     return (
       <button type="button" className="name-cell name-cell-button" onClick={() => onSelectPlayer(playerId)}>
-        <Avatar name={player.name} />
+        {number != null && <span className="draw-number">{number}</span>}
         <span className="name">{name}</span>
       </button>
     );
   }
   return (
     <span className="name-cell">
-      {player && <Avatar name={player.name} />}
+      {player && number != null && <span className="draw-number">{number}</span>}
       <span className="name">{name}</span>
     </span>
   );

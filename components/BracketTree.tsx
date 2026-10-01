@@ -14,6 +14,7 @@ export default function BracketTree({
   rounds,
   night,
   players,
+  drawNumbers,
   highlightPlayerId,
   onSelectPlayer,
   champion,
@@ -21,6 +22,7 @@ export default function BracketTree({
   rounds: Array<[number, MatchRow[]]>;
   night: Night;
   players: Record<string, Player>;
+  drawNumbers: Record<string, number>;
   highlightPlayerId: string | null;
   onSelectPlayer: (playerId: string) => void;
   champion: Player | null;
@@ -92,6 +94,7 @@ export default function BracketTree({
                             key={m.id}
                             match={m}
                             players={players}
+                            drawNumbers={drawNumbers}
                             highlightPlayerId={highlightPlayerId}
                             onSelectPlayer={onSelectPlayer}
                             compact
@@ -103,6 +106,7 @@ export default function BracketTree({
                         key={pair[0].id}
                         match={pair[0]}
                         players={players}
+                        drawNumbers={drawNumbers}
                         highlightPlayerId={highlightPlayerId}
                         onSelectPlayer={onSelectPlayer}
                         compact

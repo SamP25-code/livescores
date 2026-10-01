@@ -455,11 +455,6 @@ a {
   gap: 12px;
 }
 
-.avatar-empty {
-  background: var(--line);
-  color: var(--ink-soft);
-}
-
 .draw-sheet-header {
   display: flex;
   justify-content: flex-end;
@@ -560,6 +555,21 @@ a {
   font-weight: 700;
   letter-spacing: 0.02em;
   border: 2px solid rgba(0, 0, 0, 0.18);
+}
+
+/* Draw position (1-16) in front of a name - matches the numbered Finals
+   Day roster. Fixed width so names line up whether it's 1 or 16. */
+.draw-number {
+  flex: none;
+  min-width: 26px;
+  text-align: center;
+  background: var(--green-pale);
+  color: var(--green-deep);
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 3px 0;
+  border-radius: 999px;
 }
 
 .avatar-sm {
@@ -1271,6 +1281,12 @@ label {
   width: 20px;
   height: 20px;
   font-size: 0.55rem;
+}
+
+.match.compact .draw-number {
+  min-width: 20px;
+  font-size: 0.65rem;
+  padding: 2px 0;
 }
 
 .match.compact .name {

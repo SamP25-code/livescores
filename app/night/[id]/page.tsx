@@ -7,7 +7,6 @@ import { buildFinalsSlots, roundLabel } from "@/lib/bracket";
 import NightNav, { splitNightName } from "@/components/NightNav";
 import Brand from "@/components/Brand";
 import MatchCard from "@/components/MatchCard";
-import Avatar from "@/components/Avatar";
 import BracketTree from "@/components/BracketTree";
 import type { MatchRow, Night, Player } from "@/lib/types";
 
@@ -121,6 +120,19 @@ export default function NightPage({ params }: { params: { id: string } }) {
     }
     return [...byRound.entries()].sort((a, b) => a[0] - b[0]);
   }, [matches]);
+
+  // Each player's draw position, 1-16, read off the first round: slot 0 is
+  // 1 v 2, slot 1 is 3 v 4, and so on. Same on qualifying nights and Finals
+  // Day, so the number stays with a player as they move through the draw.
+  const drawNumbers = useMemo(() => {
+    const numbers: Record<string, number> = {};
+    if (rounds.length === 0) return numbers;
+    for (const m of rounds[0][1]) {
+      if (m.player_a_id) numbers[m.player_a_id] = m.slot * 2 + 1;
+      if (m.player_b_id) numbers[m.player_b_id] = m.slot * 2 + 2;
+    }
+    return numbers;
+  }, [rounds]);
 
   const liveMatches = useMemo(() => matches.filter((m) => m.status === "live"), [matches]);
   const firstLiveMatchId = liveMatches.length > 0 ? liveMatches[0].id : null;
@@ -257,7 +269,6 @@ export default function NightPage({ params }: { params: { id: string } }) {
           {finalsSlots.map((p, i) => (
             <div key={i} className={`roster-row ${p ? "" : "roster-row-empty"}`}>
               <span className="roster-number">{i + 1}</span>
-              {p && <Avatar name={p.name} />}
               <span className="roster-name">{p ? p.name : "TBC"}</span>
             </div>
           ))}
@@ -268,7 +279,6 @@ export default function NightPage({ params }: { params: { id: string } }) {
         <div className="roster-list">
           {qualifierPlayers.map((p) => (
             <div key={p.id} className="roster-row">
-              <Avatar name={p.name} />
               <span className="roster-name">{p.name}</span>
             </div>
           ))}
@@ -299,6 +309,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
           rounds={rounds}
           night={night}
           players={players}
+          drawNumbers={drawNumbers}
           highlightPlayerId={highlightPlayerId}
           onSelectPlayer={toggleHighlight}
           champion={champion}
@@ -318,6 +329,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
                   id={m.id === firstLiveMatchId ? "jump-to-live" : undefined}
                   match={m}
                   players={players}
+                  drawNumbers={drawNumbers}
                   highlightPlayerId={highlightPlayerId}
                   onSelectPlayer={toggleHighlight}
                   // Score history is admin-only for now; set back to
@@ -352,7 +364,6 @@ export default function NightPage({ params }: { params: { id: string } }) {
                 disabled={!p}
               >
                 <span className="name-cell">
-                  {p ? <Avatar name={p.name} /> : <span className="avatar avatar-empty">?</span>}
                   <span className="name">{p ? p.name : "To be decided"}</span>
                 </span>
                 <span className="qualifier-number">{p?.finals_number ?? ""}</span>
