@@ -212,7 +212,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
         <div
           className={`night-header-title ${slimHeader ? "night-header-title-slim" : ""} ${
             showField ? "night-header-title-field" : ""
-          }`}
+          } ${night?.kind === "finals" ? "night-header-title-finals" : ""}`}
         >
           {/* Kept for screen readers over the field list, where it's hidden. */}
           <span className={showField ? "visually-hidden" : "night-header-name"}>

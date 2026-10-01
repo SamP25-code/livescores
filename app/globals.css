@@ -1078,10 +1078,22 @@ label {
   white-space: nowrap;
 }
 
-/* Over the field list it's only the start time, so it can be a touch
-   bigger than the small second line it is on the draw pages. */
+/* Over the field list it's only the start time - filled in the same
+   colour as the highlighted night tab above (green, or gold on Finals
+   Day), and a touch bigger than the small second line on the draw pages. */
+.night-header-title-field {
+  background: var(--green-deep);
+  border-color: var(--green-deep);
+}
+
+.night-header-title-field.night-header-title-finals {
+  background: var(--gold-deep);
+  border-color: var(--gold-deep);
+}
+
 .night-header-title-field .night-header-times {
   font-size: 0.9rem;
+  color: #fff;
 }
 
 /* Hidden on screen, still read out by screen readers. */
