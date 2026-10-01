@@ -557,19 +557,29 @@ a {
   border: 2px solid rgba(0, 0, 0, 0.18);
 }
 
-/* Draw position (1-16) in front of a name - matches the numbered Finals
-   Day roster. Fixed width so names line up whether it's 1 or 16. */
+/* Draw position (1-16) in front of a name. A solid green disc with a
+   light number, so it reads as a label and never as a score (scores are
+   big bare numbers on the right). Fixed size so names line up whether
+   it's 1 or 16. */
 .draw-number {
   flex: none;
-  min-width: 26px;
-  text-align: center;
-  background: var(--green-pale);
-  color: var(--green-deep);
-  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--green-mid);
+  color: var(--cream);
+  font-size: 0.75rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  padding: 3px 0;
-  border-radius: 999px;
+  line-height: 1;
+}
+
+/* Fades with the name when a player has lost. */
+.match.complete .player-row:not(.winner) .draw-number {
+  opacity: 0.5;
 }
 
 .draw-number-blank {
@@ -1288,9 +1298,9 @@ label {
 }
 
 .match.compact .draw-number {
-  min-width: 20px;
-  font-size: 0.65rem;
-  padding: 2px 0;
+  width: 20px;
+  height: 20px;
+  font-size: 0.62rem;
 }
 
 .match.compact .name {
