@@ -68,7 +68,7 @@ export default function MatchCard({
         )
       )}
       <div className="players">
-        <div className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""}`}>
+        <div className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""} ${nameA === "TBC" ? "tbc" : ""}`}>
           <NameCell
             player={playerA}
             name={nameA}
@@ -80,7 +80,7 @@ export default function MatchCard({
           <FlashingScore value={scoreA} className={scoreA === "–" ? "score score-empty" : "score"} />
         </div>
         <hr className="divider" />
-        <div className={`player-row ${winnerB ? "winner" : ""} ${spotlightB ? "spotlight" : ""}`}>
+        <div className={`player-row ${winnerB ? "winner" : ""} ${spotlightB ? "spotlight" : ""} ${nameB === "TBC" ? "tbc" : ""}`}>
           <NameCell
             player={playerB}
             name={nameB}

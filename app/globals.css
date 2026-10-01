@@ -577,6 +577,13 @@ a {
   line-height: 1;
 }
 
+/* A position nobody's in yet - faded right back so the players who are
+   actually through stand out. */
+.player-row.tbc .name,
+.player-row.tbc .draw-number {
+  opacity: 0.4;
+}
+
 /* Fades with the name when a player has lost. */
 .match.complete .player-row:not(.winner) .draw-number {
   opacity: 0.5;

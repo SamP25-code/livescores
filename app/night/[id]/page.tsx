@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, roundLabel } from "@/lib/bracket";
 import NightNav, { splitNightName } from "@/components/NightNav";
 import Brand from "@/components/Brand";
+import Avatar from "@/components/Avatar";
 import MatchCard from "@/components/MatchCard";
 import BracketTree from "@/components/BracketTree";
 import type { MatchRow, Night, Player } from "@/lib/types";
@@ -269,6 +270,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
           {finalsSlots.map((p, i) => (
             <div key={i} className={`roster-row ${p ? "" : "roster-row-empty"}`}>
               <span className="roster-number">{i + 1}</span>
+              {p && <Avatar name={p.name} />}
               <span className="roster-name">{p ? p.name : "TBC"}</span>
             </div>
           ))}
@@ -279,6 +281,7 @@ export default function NightPage({ params }: { params: { id: string } }) {
         <div className="roster-list">
           {qualifierPlayers.map((p) => (
             <div key={p.id} className="roster-row">
+              <Avatar name={p.name} />
               <span className="roster-name">{p.name}</span>
             </div>
           ))}
