@@ -203,7 +203,9 @@ export default function NightPage({ params }: { params: { id: string } }) {
       <NightNav currentId={nightId} />
 
       <div className="night-header-card">
-        <div className="night-header-title">
+        {/* Once the draw is up, the title shrinks to one line like the
+            sponsor strip so more of the scores fit on a phone screen. */}
+        <div className={`night-header-title ${showDraw ? "night-header-title-slim" : ""}`}>
           {titleSplit ? (
             <>
               <span className="night-header-day">{titleSplit.day}</span>

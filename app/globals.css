@@ -1014,6 +1014,44 @@ label {
   margin-top: 4px;
 }
 
+/* One line - day, date and watchers side by side - matching the sponsor
+   strip above it. Start times, shown only before play begins, drop onto
+   a second small line. */
+.night-header-title-slim {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px 8px;
+  min-height: 44px;
+  padding: 8px 14px;
+  align-content: center;
+}
+
+.night-header-title-slim .night-header-day {
+  font-size: 1.15rem;
+}
+
+.night-header-title-slim .night-header-date {
+  font-size: 0.85rem;
+}
+
+.night-header-title-slim .night-header-times {
+  order: 1;
+  flex-basis: 100%;
+  margin-top: 0;
+  font-size: 0.78rem;
+}
+
+.night-header-title-slim .night-header-viewers {
+  margin-top: 0;
+}
+
+.night-header-title-slim .night-header-viewers::before {
+  content: "· ";
+}
+
 .night-header-hint {
   color: #fff;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
