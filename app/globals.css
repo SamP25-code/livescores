@@ -1310,12 +1310,20 @@ label {
   margin: 20px 0;
 }
 
+/* A faint dark band behind the round links so they stay readable over
+   the busy parts of the photo (the clubhouse, the fireworks) without
+   going back to a pill per link. */
 .round-tabs {
   display: flex;
   gap: 4px 16px;
   flex-wrap: wrap;
   justify-content: center;
   margin-bottom: 14px;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
 }
 
 .round-tab {
