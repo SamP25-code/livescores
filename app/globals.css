@@ -1604,3 +1604,157 @@ label {
   gap: 8px;
   margin-top: 8px;
 }
+
+/* Admin viewer log - how many had a night's public page open, minute by
+   minute. A single series, so no legend: the heading says what it is. */
+.viewer-log {
+  margin-top: 24px;
+}
+
+.viewer-log-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.viewer-log-stats strong,
+.viewer-log-readout strong {
+  font-size: 1.2rem;
+  color: var(--ink);
+}
+
+.viewer-log-readout {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 10px;
+}
+
+.viewer-log-readout label {
+  margin: 0;
+}
+
+.viewer-log-readout input {
+  width: auto;
+  padding: 6px 8px;
+}
+
+.viewer-log-plot {
+  position: relative;
+  height: 140px;
+  cursor: crosshair;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.viewer-log-plot:focus-visible {
+  outline: 2px solid var(--green-mid);
+  outline-offset: 4px;
+}
+
+.viewer-log-plot svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.viewer-log-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.viewer-log-area {
+  fill: var(--green-mid);
+  fill-opacity: 0.12;
+}
+
+.viewer-log-line {
+  fill: none;
+  stroke: var(--green-mid);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.viewer-log-cursor {
+  stroke: var(--ink);
+  stroke-opacity: 0.55;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.viewer-log-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--green-deep);
+  box-shadow: 0 0 0 2px var(--cream);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* The top gridline's value, so the height of the chart has a scale. */
+.viewer-log-max {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+
+.viewer-log-axis {
+  position: relative;
+  height: 18px;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.viewer-log-axis span {
+  position: absolute;
+  top: 0;
+}
+
+.viewer-log-axis .viewer-log-axis-mid {
+  transform: translateX(-50%);
+}
+
+.viewer-log-hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+}
+
+.viewer-log-table summary {
+  margin-top: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--green-deep);
+}
+
+.viewer-log-table table {
+  width: 100%;
+  margin-top: 6px;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.viewer-log-table th,
+.viewer-log-table td {
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+.viewer-log-table th:last-child,
+.viewer-log-table td:last-child {
+  text-align: right;
+}

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, roundLabel } from "@/lib/bracket";
+import { startViewerPings } from "@/lib/viewerLog";
 import NightNav, { splitNightName } from "@/components/NightNav";
 import Brand from "@/components/Brand";
 import Avatar from "@/components/Avatar";
@@ -105,6 +106,9 @@ export default function NightPage({ params }: { params: { id: string } }) {
       supabase.removeChannel(channel);
     };
   }, [nightId]);
+
+  // Feeds the admin's viewer log - see lib/viewerLog.ts.
+  useEffect(() => startViewerPings(nightId), [nightId]);
 
   const [highlightPlayerId, setHighlightPlayerId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "bracket">("list");

@@ -47,6 +47,7 @@ import Avatar from "@/components/Avatar";
 import FinalsSlotBoard from "@/components/FinalsSlotBoard";
 import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
+import ViewerLog from "@/components/ViewerLog";
 import type { MatchRow, Night, Player } from "@/lib/types";
 
 export default function AdminNightPage({ params }: { params: { id: string } }) {
@@ -340,6 +341,8 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
           )}
         </>
       )}
+
+      {role === "owner" && <ViewerLog nightId={nightId} />}
     </div>
   );
 }
