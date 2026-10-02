@@ -248,7 +248,7 @@ a {
   gap: 8px;
   margin-bottom: 14px;
   padding: 2px 0;
-  font-size: 0.8rem;
+  font-size: 0.92rem;
   color: rgba(255, 255, 255, 0.85);
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
   text-align: center;
@@ -262,8 +262,8 @@ a {
 
 .sponsor-strip-leaf {
   flex: none;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
 }
 
 .link-button {
@@ -277,20 +277,25 @@ a {
   cursor: pointer;
 }
 
+/* Only there while a game is being played, and it's what most people
+   want, so it keeps a solid box - filled maroon to match the live
+   match's edge, so it holds up over the bright part of the photo. */
 .jump-to-live-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  background: var(--maroon);
   color: #fff;
   font-weight: 600;
-  font-size: 0.85rem;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  font-size: 0.9rem;
+  text-decoration: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 .jump-to-live-link .live-dot {
-  background: #ff6b6b;
+  background: #fff;
 }
 
 .match-history-toggle-wrap {
@@ -655,6 +660,11 @@ a {
   background: var(--green-highlight);
   box-shadow: inset 4px 0 0 var(--green-deep);
   color: var(--green-deep);
+}
+
+/* Same size as the names in the draw above. */
+.qualifier-row .name {
+  font-size: 1.05rem;
 }
 
 .qualifier-row-empty {
