@@ -44,7 +44,7 @@ import { buildFinalsSlots, isMatchComplete, nextPowerOfTwo, roundLabel } from "@
 import { useAdminRole } from "@/lib/auth";
 import { errorMessage } from "@/lib/errors";
 import Avatar from "@/components/Avatar";
-import FinalsSlotBoard from "@/components/FinalsSlotBoard";
+import FinalsNumberPicker from "@/components/FinalsNumberPicker";
 import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
 import ViewerLog from "@/components/ViewerLog";
@@ -249,10 +249,10 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
           </div>
           <p className="hint">
             Fills in on its own as qualifiers are confirmed on each qualifying night, nothing to add here
-            normally. Drag a name onto a number to place them, or back down to &ldquo;Not yet placed&rdquo; to
-            clear it.
+            normally. To change someone&rsquo;s number, pick a new one beside their name, or &ldquo;No
+            number&rdquo; to take them out.
           </p>
-          <FinalsSlotBoard
+          <FinalsNumberPicker
             slots={finalsSlots}
             pool={orderedPlayers}
             currentSeedOf={(p) => p.seed}
@@ -329,8 +329,8 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
               <div className="round-heading">
                 <h2>Through to Finals Day</h2>
               </div>
-              <p className="hint">Drag a name onto the number they drew for finals day.</p>
-              <FinalsSlotBoard
+              <p className="hint">Pick the number each player drew for finals day.</p>
+              <FinalsNumberPicker
                 slots={finalsSlots}
                 pool={qualifiers}
                 currentSeedOf={(p) => p.finals_number}

@@ -1564,98 +1564,52 @@ label {
   border-bottom-color: var(--ink-soft);
 }
 
-.finals-board {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-@media (min-width: 480px) {
-  .finals-board {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.finals-slot {
+/* Finals draw numbers: a row per player with a number picker beside
+   their name. */
+.finals-picker {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 48px;
-  padding: 8px 12px;
-  border: 1px dashed var(--line);
-  border-radius: var(--radius);
-  background: var(--cream);
-}
-
-.finals-slot.drag-over {
-  border-color: var(--green-mid);
-  border-style: solid;
-  background: var(--green-pale);
-}
-
-.finals-slot-number {
-  flex: none;
-  min-width: 20px;
-  color: var(--ink-soft);
-  font-weight: 700;
-}
-
-.finals-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--green-deep);
-  color: #fff;
-  font-size: 0.9rem;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-}
-
-.finals-chip.dragging {
-  opacity: 0.35;
-}
-
-.finals-chip-overlay {
-  cursor: grabbing;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
-}
-
-.finals-chip-readonly {
-  background: none;
-  color: var(--ink-soft);
-  border: 1px dashed var(--line);
-  cursor: default;
-}
-
-.finals-chip-empty {
-  color: var(--ink-soft);
-  font-size: 0.85rem;
-  font-style: italic;
-}
-
-.finals-unplaced {
-  border: 1px dashed var(--line);
-  border-radius: var(--radius);
-  padding: 12px;
+  flex-direction: column;
   margin-bottom: 20px;
   background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
 }
 
-.finals-unplaced.drag-over {
-  border-color: var(--green-mid);
-  border-style: solid;
-  background: var(--green-pale);
-}
-
-.finals-unplaced-chips {
+.finals-picker-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.finals-picker-row:last-child {
+  border-bottom: none;
+}
+
+.finals-picker-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.finals-picker-row select {
+  flex: none;
+  width: auto;
+  max-width: 55%;
+  padding: 6px 8px;
+}
+
+/* Still waiting for a number - the picker stands out so it's not missed. */
+.finals-picker-unset select {
+  border-color: var(--gold);
+  background: var(--gold-pale);
 }
 
 /* Admin viewer log - how many had a night's public page open, minute by
