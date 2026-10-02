@@ -202,8 +202,8 @@ export default function NightPage({ params }: { params: { id: string } }) {
   const showField = !showDraw && (finalsSlots.length > 0 || qualifierPlayers.length > 0);
   const slimHeader = showDraw || showField;
   // Finals Day's strip shows its date, since there's no date in the Finals
-  // tab: "Saturday 17th October · Start 1pm" over the qualifiers, then just
-  // "Saturday 17th Oct" once the draw is up.
+  // tab: "Saturday 17th October" over the qualifiers, then "Saturday 17th
+  // Oct" once the draw is up.
   const finalsDraw = night?.kind === "finals" && showDraw;
   const finalsField = night?.kind === "finals" && showField;
   // A qualifying night's draw page drops the strip altogether - the night
@@ -247,12 +247,10 @@ export default function NightPage({ params }: { params: { id: string } }) {
               <span className="night-header-day">{night?.name ?? "Loading…"}</span>
             )}
           </span>
-          {!loadError && night && !playStarted && !showDraw && (
+          {!loadError && night && !playStarted && !showDraw && !finalsField && (
             <span className="night-header-times">
               {showField
-                ? night.kind === "finals"
-                  ? "· Start 1pm"
-                  : "Start 7pm · Draw to follow"
+                ? "Start 7pm · Draw to follow"
                 : night.kind === "finals"
                   ? "Practice 12:30pm · Start 1pm"
                   : "Practice 6:30pm · Start 7pm"}
@@ -274,10 +272,6 @@ export default function NightPage({ params }: { params: { id: string } }) {
 
         {!loadError && connectionLost && (
           <p className="night-header-hint">Live updates paused, reconnecting&hellip;</p>
-        )}
-
-        {!loadError && night?.kind === "finals" && finalsSlots.length > 0 && (
-          <p className="night-header-hint">Qualifiers so far</p>
         )}
 
         {!loadError && viewMode === "list" && firstLiveMatchId && (
