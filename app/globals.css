@@ -1133,6 +1133,24 @@ label {
   color: #fff;
 }
 
+/* A qualifying night's draw page: no strip, just the watcher count as a
+   see-through dark pill on the photo, like the band behind the bracket's
+   round links. */
+.night-header-title-slim.night-header-title-bare {
+  min-height: 0;
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+.night-header-title-bare .night-header-viewers {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
 /* Over the field list it's only the start time, so a touch bigger than
    the small second line on the draw pages. */
 .night-header-title-field .night-header-times {

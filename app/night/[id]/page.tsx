@@ -201,9 +201,15 @@ export default function NightPage({ params }: { params: { id: string } }) {
   // highlighted night tab already says which night it is.
   const showField = !showDraw && (finalsSlots.length > 0 || qualifierPlayers.length > 0);
   const slimHeader = showDraw || showField;
-  // Finals Day's draw page just reads "Saturday 17th Oct · 1pm start" - the
-  // gold Finals tab already says which day it is.
+  // Finals Day's strip shows its date, since there's no date in the Finals
+  // tab: "Saturday 17th October · Start 1pm" over the qualifiers, then just
+  // "Saturday 17th Oct" once the draw is up.
   const finalsDraw = night?.kind === "finals" && showDraw;
+  const finalsField = night?.kind === "finals" && showField;
+  // A qualifying night's draw page drops the strip altogether - the night
+  // tab says which night it is - leaving only the watcher count.
+  const qualifierDraw = night?.kind === "qualifier" && showDraw;
+  const hideName = (showField && !finalsField) || qualifierDraw;
 
   return (
     <div className="page page-photo">
@@ -219,14 +225,18 @@ export default function NightPage({ params }: { params: { id: string } }) {
         <div
           className={`night-header-title ${slimHeader ? "night-header-title-slim" : ""} ${
             showField ? "night-header-title-field" : ""
-          } ${night?.kind === "finals" ? "night-header-title-finals" : ""}`}
+          } ${night?.kind === "finals" ? "night-header-title-finals" : ""} ${
+            qualifierDraw ? "night-header-title-bare" : ""
+          }`}
         >
-          {/* Kept for screen readers over the field list, where it's hidden. */}
-          <span className={showField ? "visually-hidden" : "night-header-name"}>
-            {titleSplit && finalsDraw ? (
+          {/* Kept for screen readers wherever it's hidden on screen. */}
+          <span className={hideName ? "visually-hidden" : "night-header-name"}>
+            {titleSplit && (finalsDraw || finalsField) ? (
               <>
                 <span className="visually-hidden">{titleSplit.day}</span>
-                <span className="night-header-day">{shortenMonth(titleSplit.rest)}</span>
+                <span className="night-header-day">
+                  {finalsDraw ? shortenMonth(titleSplit.rest) : titleSplit.rest}
+                </span>
               </>
             ) : titleSplit ? (
               <>
@@ -237,14 +247,14 @@ export default function NightPage({ params }: { params: { id: string } }) {
               <span className="night-header-day">{night?.name ?? "Loading…"}</span>
             )}
           </span>
-          {!loadError && night && !playStarted && (
+          {!loadError && night && !playStarted && !showDraw && (
             <span className="night-header-times">
               {showField
-                ? `Start ${night.kind === "finals" ? "1pm" : "7pm"}${
-                    night.kind === "qualifier" ? " · Draw to follow" : ""
-                  }`
-                : finalsDraw
-                  ? "· 1pm start"
+                ? night.kind === "finals"
+                  ? "· Start 1pm"
+                  : "Start 7pm · Draw to follow"
+                : night.kind === "finals"
+                  ? "Practice 12:30pm · Start 1pm"
                   : "Practice 6:30pm · Start 7pm"}
             </span>
           )}
