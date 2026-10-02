@@ -1,16 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Zilla_Slab, Inter } from "next/font/google";
+import { Barlow_Condensed, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 import SentryInit from "@/components/SentryInit";
 
-const display = Zilla_Slab({
+// A narrow scoreboard-style face for headings, scores and numbers, and a
+// plain humanist sans for names and everything else.
+const display = Barlow_Condensed({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
   variable: "--font-display",
 });
 
-const body = Inter({
+const body = Source_Sans_3({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-body",

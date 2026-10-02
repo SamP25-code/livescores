@@ -9,7 +9,7 @@
   --ink: #1b211c;
   --ink-soft: #4a5148;
   --line: #cfc8b3;
-  --radius: 10px;
+  --radius: 4px;
   --gold: #c9972c;
   --gold-deep: #8a6a12;
   --gold-pale: #fbf1d6;
@@ -109,8 +109,9 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display), Georgia, serif;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   margin: 0 0 0.4em;
   color: var(--green-deep);
 }
@@ -120,7 +121,7 @@ h1 {
 }
 
 h2 {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
 }
 
 a {
@@ -245,21 +246,18 @@ a {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 44px;
   margin-bottom: 14px;
-  padding: 6px 14px;
-  background: var(--cream);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  padding: 2px 0;
   font-size: 0.8rem;
-  color: var(--ink-soft);
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
   text-align: center;
   text-decoration: none;
 }
 
 .sponsor-strip strong {
   font-weight: 600;
-  color: var(--ink);
+  color: #fff;
 }
 
 .sponsor-strip-leaf {
@@ -283,18 +281,16 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 18px;
-  border-radius: var(--radius);
-  border: 1px solid var(--maroon);
-  background: var(--cream);
-  color: var(--maroon);
+  color: #fff;
   font-weight: 600;
   font-size: 0.85rem;
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
 }
 
-.jump-to-live-link:hover {
-  background: #fff;
+.jump-to-live-link .live-dot {
+  background: #ff6b6b;
 }
 
 .match-history-toggle-wrap {
@@ -535,6 +531,7 @@ a {
 }
 
 .player-row .name {
+  font-size: 1.05rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -579,7 +576,8 @@ a {
   border-radius: 50%;
   background: var(--green-mid);
   color: var(--cream);
-  font-size: 0.75rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: 0.85rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -678,7 +676,8 @@ a {
   border-radius: 50%;
   background: var(--gold-deep);
   color: #fff;
-  font-size: 0.8rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: 0.9rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -713,22 +712,24 @@ a {
   text-align: center;
   background: var(--green-pale);
   color: var(--green-deep);
-  font-size: 0.8rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: 0.9rem;
   font-weight: 700;
   padding: 3px 6px;
   border-radius: 999px;
 }
 
 .roster-name {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--ink);
 }
 
 .player-row .score {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--font-display), sans-serif;
   font-variant-numeric: tabular-nums;
-  font-size: 1.6rem;
+  font-size: 1.9rem;
+  letter-spacing: 0.01em;
   font-weight: 600;
   min-width: 2ch;
   text-align: right;
@@ -962,7 +963,9 @@ label {
   color: var(--green-deep);
   text-decoration: none;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
   background: var(--cream);
   white-space: nowrap;
 }
@@ -1054,7 +1057,8 @@ label {
 }
 
 .night-header-title-slim .night-header-day {
-  font-size: 1.15rem;
+  font-size: 1.3rem;
+  letter-spacing: 0.02em;
 }
 
 .night-header-title-slim .night-header-date {
@@ -1298,7 +1302,7 @@ label {
 
 .round-tabs {
   display: flex;
-  gap: 8px;
+  gap: 4px 16px;
   flex-wrap: wrap;
   justify-content: center;
   margin-bottom: 14px;
@@ -1308,17 +1312,26 @@ label {
   font-family: var(--font-body), sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--cream);
-  color: var(--green-deep);
+  padding: 2px 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(255, 255, 255, 0.45);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
   cursor: pointer;
 }
 
 .page-photo .view-toggle button.secondary {
   background: var(--cream);
   border-color: var(--line);
+}
+
+/* List/Bracket keeps its original rounder buttons. */
+.view-toggle button {
+  border-radius: 10px;
 }
 
 .bracket-scroll {
@@ -1348,7 +1361,9 @@ label {
   text-align: center;
   font-family: var(--font-display), Georgia, serif;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   color: var(--green-deep);
   padding-bottom: 8px;
   margin-bottom: 10px;
@@ -1439,7 +1454,9 @@ label {
   text-align: center;
   font-family: var(--font-display), Georgia, serif;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   color: var(--gold-deep);
   padding-bottom: 8px;
   margin-bottom: 10px;
