@@ -156,6 +156,40 @@ create policy "scorer insert match events" on match_events for insert
     and exists (select 1 from nights n where n.id = match_events.night_id and n.draw_published)
   );
 
+-- Viewer log: one row per viewer per minute they had a night's public page
+-- open, so the admin can look back at how many were watching at any point.
+-- The page pings every 30 seconds; the minute is stamped by the database
+-- (never the viewer's own clock) and repeat pings within a minute are
+-- ignored by the primary key.
+create table viewer_pings (
+  night_id uuid not null references nights(id) on delete cascade,
+  viewer_id uuid not null,             -- random id kept in the viewer's browser, so one phone counts once
+  minute timestamptz not null default date_trunc('minute', now()),
+  primary key (night_id, minute, viewer_id)
+);
+
+alter table viewer_pings enable row level security;
+
+-- Anyone viewing can add a ping for the current minute, but nobody outside
+-- the owner can read the log, and nobody can change or remove a ping.
+create policy "public insert viewer_pings" on viewer_pings for insert
+  with check (minute = date_trunc('minute', now()));
+
+create policy "owner read viewer_pings" on viewer_pings for select
+  using (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer');
+
+-- Viewers per minute, and distinct phones/browsers per night. security_invoker
+-- means they follow the policies above, so only the owner can read them.
+create view viewer_counts with (security_invoker = true) as
+  select night_id, minute, count(*)::int as viewers
+  from viewer_pings
+  group by night_id, minute;
+
+create view viewer_totals with (security_invoker = true) as
+  select night_id, count(distinct viewer_id)::int as unique_viewers
+  from viewer_pings
+  group by night_id;
+
 -- Enable realtime so the public page updates live
 alter publication supabase_realtime add table matches;
 alter publication supabase_realtime add table players;
@@ -263,3 +297,25 @@ alter publication supabase_realtime add table match_events;
 -- To turn a scorer back into a full owner:
 -- update auth.users set raw_app_meta_data = raw_app_meta_data - 'role'
 --   where email = 'their-email@example.com';
+
+-- If you already ran this schema before the viewer log was added above,
+-- run this once instead of the whole file:
+-- create table viewer_pings (
+--   night_id uuid not null references nights(id) on delete cascade,
+--   viewer_id uuid not null,
+--   minute timestamptz not null default date_trunc('minute', now()),
+--   primary key (night_id, minute, viewer_id)
+-- );
+-- alter table viewer_pings enable row level security;
+-- create policy "public insert viewer_pings" on viewer_pings for insert
+--   with check (minute = date_trunc('minute', now()));
+-- create policy "owner read viewer_pings" on viewer_pings for select
+--   using (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer');
+-- create view viewer_counts with (security_invoker = true) as
+--   select night_id, minute, count(*)::int as viewers
+--   from viewer_pings
+--   group by night_id, minute;
+-- create view viewer_totals with (security_invoker = true) as
+--   select night_id, count(distinct viewer_id)::int as unique_viewers
+--   from viewer_pings
+--   group by night_id;
