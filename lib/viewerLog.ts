@@ -28,13 +28,10 @@ function viewerId(): string {
 export function startViewerPings(nightId: string): () => void {
   const id = viewerId();
 
+  // Through log_viewer() rather than an insert on the table - see schema.sql.
   function ping() {
     supabase
-      .from("viewer_pings")
-      .upsert(
-        { night_id: nightId, viewer_id: id },
-        { onConflict: "night_id,minute,viewer_id", ignoreDuplicates: true, defaultToNull: false }
-      )
+      .rpc("log_viewer", { p_night_id: nightId, p_viewer_id: id })
       .then(
         () => {},
         () => {}

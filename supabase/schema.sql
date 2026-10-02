@@ -170,10 +170,23 @@ create table viewer_pings (
 
 alter table viewer_pings enable row level security;
 
--- Anyone viewing can add a ping for the current minute, but nobody outside
--- the owner can read the log, and nobody can change or remove a ping.
-create policy "public insert viewer_pings" on viewer_pings for insert
-  with check (minute = date_trunc('minute', now()));
+-- Viewers add pings only through log_viewer() below, which always stamps
+-- the current minute and skips repeats. Nobody outside the owner can read
+-- the log, and nobody can change or remove a ping. (A plain insert policy
+-- isn't enough: the "skip if already there" insert is refused by row-level
+-- security for anyone who can't also read the table.)
+create or replace function log_viewer(p_night_id uuid, p_viewer_id uuid)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  insert into viewer_pings (night_id, viewer_id)
+  values (p_night_id, p_viewer_id)
+  on conflict do nothing;
+$$;
+
+grant execute on function log_viewer(uuid, uuid) to anon, authenticated;
 
 create policy "owner read viewer_pings" on viewer_pings for select
   using (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer');
@@ -307,8 +320,17 @@ alter publication supabase_realtime add table match_events;
 --   primary key (night_id, minute, viewer_id)
 -- );
 -- alter table viewer_pings enable row level security;
--- create policy "public insert viewer_pings" on viewer_pings for insert
---   with check (minute = date_trunc('minute', now()));
+-- create or replace function log_viewer(p_night_id uuid, p_viewer_id uuid)
+-- returns void
+-- language sql
+-- security definer
+-- set search_path = public
+-- as $$
+--   insert into viewer_pings (night_id, viewer_id)
+--   values (p_night_id, p_viewer_id)
+--   on conflict do nothing;
+-- $$;
+-- grant execute on function log_viewer(uuid, uuid) to anon, authenticated;
 -- create policy "owner read viewer_pings" on viewer_pings for select
 --   using (auth.role() = 'authenticated' and coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'owner') <> 'scorer');
 -- create view viewer_counts with (security_invoker = true) as
@@ -319,3 +341,18 @@ alter publication supabase_realtime add table match_events;
 --   select night_id, count(distinct viewer_id)::int as unique_viewers
 --   from viewer_pings
 --   group by night_id;
+
+-- If you ran the first version of the viewer log (with the "public insert
+-- viewer_pings" policy), run this once to switch to log_viewer():
+-- create or replace function log_viewer(p_night_id uuid, p_viewer_id uuid)
+-- returns void
+-- language sql
+-- security definer
+-- set search_path = public
+-- as $$
+--   insert into viewer_pings (night_id, viewer_id)
+--   values (p_night_id, p_viewer_id)
+--   on conflict do nothing;
+-- $$;
+-- grant execute on function log_viewer(uuid, uuid) to anon, authenticated;
+-- drop policy "public insert viewer_pings" on viewer_pings;
