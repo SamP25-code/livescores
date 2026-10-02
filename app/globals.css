@@ -809,6 +809,24 @@ a {
   animation: live-dot-flash 1.1s ease-in-out infinite;
 }
 
+/* Red on maroon barely shows, so on a filled maroon pill the dot is white
+   (the jump button and the home page's live banner do the same). */
+.status-pill.live .live-dot {
+  background: #fff;
+}
+
+/* A match that's live: "● Live" in maroon text, no pill - the same label
+   the public match cards use, so admin scoring looks like what viewers see. */
+.live-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--maroon);
+  white-space: nowrap;
+}
+
 @keyframes live-dot-flash {
   0%,
   100% {

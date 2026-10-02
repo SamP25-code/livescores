@@ -690,10 +690,14 @@ function MatchEditor({
             />
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", gap: 8 }}>
-            <span className={`status-pill ${match.status}`}>
-              {match.status === "live" && <span className="live-dot" />}
-              {match.status}
-            </span>
+            {match.status === "live" ? (
+              <span className="live-flag">
+                <span className="live-dot" />
+                Live
+              </span>
+            ) : (
+              <span className={`status-pill ${match.status}`}>{match.status}</span>
+            )}
             {!complete && (
               <button onClick={onComplete} disabled={!canComplete}>
                 Mark complete
@@ -932,10 +936,14 @@ function ResultEntry({
         </p>
       )}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-        <span className={`status-pill ${status}`}>
-          {status === "live" && <span className="live-dot" />}
-          {status === "upcoming" ? "result pending" : status}
-        </span>
+        {status === "live" ? (
+          <span className="live-flag">
+            <span className="live-dot" />
+            Live
+          </span>
+        ) : (
+          <span className={`status-pill ${status}`}>{status === "upcoming" ? "result pending" : status}</span>
+        )}
         <button disabled={!canSave || pending} onClick={() => onSave(numA, numB)}>
           {complete ? "Update result" : "Save result"}
         </button>
