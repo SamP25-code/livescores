@@ -1,20 +1,31 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow_Condensed, Source_Sans_3 } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 import SentryInit from "@/components/SentryInit";
 
 // A narrow scoreboard-style face for headings, scores and numbers, and a
-// plain humanist sans for names and everything else.
-const display = Barlow_Condensed({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+// plain humanist sans for names and everything else. Both come from the
+// Fontsource packages (the same Google fonts, open licence) rather than
+// being fetched from Google during the build, so a Google Fonts hiccup can
+// never stop the site deploying.
+const display = localFont({
+  src: [
+    { path: "../node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-500-normal.woff2", weight: "500" },
+    { path: "../node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-600-normal.woff2", weight: "600" },
+    { path: "../node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-700-normal.woff2", weight: "700" },
+  ],
+  style: "normal",
+  display: "swap",
   variable: "--font-display",
 });
 
-const body = Source_Sans_3({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+// One variable-weight file covers 400-700.
+const body = localFont({
+  src: "../node_modules/@fontsource-variable/source-sans-3/files/source-sans-3-latin-wght-normal.woff2",
+  weight: "200 900",
+  style: "normal",
+  display: "swap",
   variable: "--font-body",
 });
 
