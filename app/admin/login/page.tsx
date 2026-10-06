@@ -130,7 +130,7 @@ export default function LoginPage() {
               autoCapitalize="words"
               autoCorrect="off"
               spellCheck={false}
-              placeholder="e.g. Sam Patterson"
+              placeholder="Full Name"
               value={login}
               onChange={(e) => setLogin(e.target.value)}
             />

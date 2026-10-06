@@ -56,13 +56,6 @@ export default function AdminDashboard() {
     <div className="page page-photo">
       <div className="top-bar">
         <Brand />
-        <nav>
-          {role && <span>You are logged in as {role === "scorer" ? "Scorer" : "Admin"}</span>}
-          <Link href="/">Public site</Link>
-          <a href="#" onClick={() => supabase.auth.signOut()}>
-            Sign out
-          </a>
-        </nav>
       </div>
 
       {role === "owner" && (

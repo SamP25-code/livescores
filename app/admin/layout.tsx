@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import AdminNav from "@/components/AdminNav";
 import type { Session } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
@@ -56,10 +57,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
+  // Setting a new password from a reset email is a one-off step, so it
+  // stays a plain page without the menu.
+  if (pathname === "/admin/reset-password") {
+    return (
+      <>
+        <div className="public-background" aria-hidden="true" />
+        {children}
+      </>
+    );
+  }
+
   return (
     <>
       <div className="public-background" aria-hidden="true" />
-      {children}
+      <div className="admin-shell">
+        <AdminNav />
+        <div className="admin-main">{children}</div>
+      </div>
     </>
   );
 }

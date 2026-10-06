@@ -1783,3 +1783,225 @@ label {
 .viewer-log-table td:last-child {
   text-align: right;
 }
+
+/* Admin "Admins and scorers" list. */
+.user-list {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.user-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.user-row:last-child {
+  border-bottom: none;
+}
+
+.user-row-who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.user-row-who .hint {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.user-you {
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.user-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-row-actions select {
+  width: auto;
+  padding: 6px 8px;
+}
+
+.user-remove {
+  color: var(--maroon);
+}
+
+/* Admin menu - a row of tabs across the top on a phone, a column down the
+   left on a wider screen. Same look as the night tabs: cream, with the
+   current page filled green. */
+.admin-nav {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: calc(14px + env(safe-area-inset-top)) 16px 0;
+}
+
+.admin-nav-who {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  font-size: 0.9rem;
+}
+
+.admin-nav-who span {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.admin-nav-links {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-nav-links li {
+  flex: 1;
+}
+
+.admin-nav-link {
+  display: block;
+  padding: 11px 8px;
+  text-align: center;
+  text-decoration: none;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--green-deep);
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.admin-nav-link.active {
+  background: var(--green-deep);
+  border-color: var(--green-deep);
+  color: #fff;
+}
+
+.admin-nav-extra {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 10px;
+  font-size: 0.85rem;
+}
+
+.admin-nav-extra a,
+.admin-nav-extra .link-button {
+  font-size: 0.85rem;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+
+/* The page below the menu doesn't need its own gap for the status bar. */
+.admin-main .page-photo {
+  padding-top: 16px;
+}
+
+@media (min-width: 960px) {
+  .admin-shell {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    max-width: 1000px;
+    margin: 0 auto;
+    gap: 16px;
+  }
+
+  .admin-nav {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-width: none;
+    margin: 0;
+    padding: 24px 0 0 16px;
+  }
+
+  .admin-nav-who {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .admin-nav-links {
+    flex-direction: column;
+  }
+
+  .admin-nav-link {
+    text-align: left;
+    padding: 11px 14px;
+  }
+
+  .admin-nav-extra {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 16px;
+    padding-left: 2px;
+  }
+
+  .admin-main .page-photo {
+    padding-top: 24px;
+  }
+}
+
+/* Users page. */
+.user-row-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-role {
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.user-role-owner {
+  background: var(--green-deep);
+  color: #fff;
+}
+
+.user-role-scorer {
+  background: var(--green-pale);
+  color: var(--green-deep);
+}
+
+/* A generated password, shown once to pass on. */
+.password-handover {
+  border-color: var(--gold);
+  background: var(--gold-pale);
+}
+
+.password-handover-value {
+  font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  user-select: all;
+}
+
+.password-handover-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
