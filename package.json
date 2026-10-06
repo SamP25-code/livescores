@@ -12,9 +12,11 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@fontsource-variable/source-sans-3": "^5.3.0",
+    "@fontsource/barlow-condensed": "^5.3.0",
     "@sentry/browser": "^10.74.0",
     "@supabase/supabase-js": "^2.45.4",
-    "next": "14.2.34",
+    "next": "14.2.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
