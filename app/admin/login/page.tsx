@@ -4,9 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { isNameLogin, loginEmailFor } from "@/lib/loginName";
 
 export default function LoginPage() {
   const router = useRouter();
+  // A full name or an email address - see lib/loginName.ts.
+  const [login, setLogin] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -21,11 +24,22 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    const loginEmail = loginEmailFor(login);
+    if (!loginEmail) {
+      setError("Enter your full name or email address.");
+      return;
+    }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
     setLoading(false);
     if (error) {
-      setError(error.message);
+      setError(
+        error.message === "Invalid login credentials"
+          ? isNameLogin(login)
+            ? "That name and password don't match. Check you've typed your full name as the admin set it up."
+            : "That email and password don't match."
+          : error.message
+      );
       return;
     }
     router.replace("/admin");
@@ -60,6 +74,10 @@ export default function LoginPage() {
             </p>
           ) : (
             <form onSubmit={handleReset}>
+              <p className="hint" style={{ marginTop: 0 }}>
+                Sign in with your name rather than an email? There&rsquo;s no inbox to send a link to, so ask the
+                club admin to set you a new password.
+              </p>
               <div className="field">
                 <label htmlFor="reset-email">Email</label>
                 <input
@@ -103,13 +121,18 @@ export default function LoginPage() {
       <div className="card">
         <form onSubmit={handleSubmit}>
           <div className="field">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="login">Full name or email</label>
             <input
-              id="email"
-              type="email"
+              id="login"
+              type="text"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
+              autoCapitalize="words"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="e.g. Sam Patterson"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
             />
           </div>
           <div className="field">
@@ -134,6 +157,8 @@ export default function LoginPage() {
             onClick={() => {
               setMode("forgot");
               setError(null);
+              // Carry a typed email address over to the reset form.
+              setEmail(isNameLogin(login) ? "" : login.trim());
             }}
           >
             Forgot password?

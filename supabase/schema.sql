@@ -311,6 +311,25 @@ alter publication supabase_realtime add table match_events;
 -- update auth.users set raw_app_meta_data = raw_app_meta_data - 'role'
 --   where email = 'their-email@example.com';
 
+-- Name logins (no email needed): admins and scorers can sign in with their
+-- full name instead of an email address. Supabase still needs an address
+-- behind each account, so the app turns the name into a stand-in one
+-- nobody receives mail at - lowercase, with dots between the words:
+--   Sam Patterson   ->  sam.patterson@names.pssc-bowls.example.com
+--   Seán O'Neill    ->  sean.o.neill@names.pssc-bowls.example.com
+-- (lib/loginName.ts does the conversion.) To set someone up:
+--   1. Authentication > Users > Add user > Create new user
+--   2. Email: their stand-in address as above. Password: theirs.
+--      Tick "Auto Confirm User" - there's no inbox to confirm from.
+--   3. To make them a scorer, run the scorer update above with that address.
+-- They then sign in by typing their full name and password.
+--
+-- A name login can't use "Forgot password?" (there's no inbox), so to set
+-- them a new password, run:
+-- update auth.users
+--   set encrypted_password = extensions.crypt('their-new-password', extensions.gen_salt('bf'))
+--   where email = 'sam.patterson@names.pssc-bowls.example.com';
+
 -- If you already ran this schema before the viewer log was added above,
 -- run this once instead of the whole file:
 -- create table viewer_pings (
