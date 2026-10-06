@@ -35,8 +35,15 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+// The live site uses its own domain for link-preview images; preview
+// deployments keep using their own Vercel address.
+const siteUrl =
+  process.env.VERCEL_ENV === "production"
+    ? "https://www.pssc-bowls.co.uk"
+    : `https://${process.env.VERCEL_URL ?? "localhost:3000"}`;
+
 export const metadata: Metadata = {
-  metadataBase: new URL(`https://${process.env.VERCEL_URL ?? "localhost:3000"}`),
+  metadataBase: new URL(siteUrl),
   title: "Penwortham Singles",
   description: "Live scores from the October Singles at Penwortham Sports & Social Club",
   openGraph: {
