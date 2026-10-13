@@ -48,13 +48,30 @@ export type ViewerCount = { minute: string; viewers: number };
 export async function fetchViewerLog(
   nightId: string
 ): Promise<{ counts: ViewerCount[]; uniqueViewers: number }> {
+  // Newest first: the database hands back at most 1000 rows per request, and
+  // a page left open across days of testing easily logs more minutes than
+  // that - oldest-first would cut off the night itself.
   const [{ data: counts, error: countsError }, { data: totals, error: totalsError }] = await Promise.all([
-    supabase.from("viewer_counts").select("minute, viewers").eq("night_id", nightId).order("minute"),
+    supabase
+      .from("viewer_counts")
+      .select("minute, viewers")
+      .eq("night_id", nightId)
+      .order("minute", { ascending: false })
+      .limit(1000),
     supabase.from("viewer_totals").select("unique_viewers").eq("night_id", nightId).maybeSingle(),
   ]);
   if (countsError) throw countsError;
   if (totalsError) throw totalsError;
-  return { counts: counts ?? [], uniqueViewers: totals?.unique_viewers ?? 0 };
+  return { counts: latestDay(counts ?? []), uniqueViewers: totals?.unique_viewers ?? 0 };
+}
+
+// Only the minutes on the same day as the most recent ping, oldest first -
+// the night itself, not earlier days the page happened to be open.
+export function latestDay(counts: ViewerCount[]): ViewerCount[] {
+  if (counts.length === 0) return [];
+  const sorted = [...counts].sort((a, b) => new Date(a.minute).getTime() - new Date(b.minute).getTime());
+  const lastDay = new Date(sorted[sorted.length - 1].minute).toDateString();
+  return sorted.filter((c) => new Date(c.minute).toDateString() === lastDay);
 }
 
 const MINUTE_MS = 60_000;
