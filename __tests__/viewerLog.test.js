@@ -1,20 +1,20 @@
 jest.mock("../lib/supabaseClient.ts", () => ({ supabase: {} }));
 
-const { buildViewerSeries, latestDay, peakOf, pointAt } = require("../lib/viewerLog.ts");
+const { buildViewerSeries, busiestDay, peakOf, pointAt } = require("../lib/viewerLog.ts");
 
-describe("latestDay", () => {
+describe("busiestDay", () => {
   test("returns nothing for an empty log", () => {
-    expect(latestDay([])).toEqual([]);
+    expect(busiestDay([])).toEqual([]);
   });
 
-  test("keeps only the day of the most recent ping, oldest first", () => {
+  test("keeps only the busiest day, oldest first, even if a later day was viewed", () => {
     const counts = [
+      { minute: "2026-10-13T09:15:00.000Z", viewers: 1 },
       { minute: "2026-10-12T19:31:00.000Z", viewers: 9 },
       { minute: "2026-10-12T19:30:00.000Z", viewers: 8 },
-      { minute: "2026-10-01T12:08:00.000Z", viewers: 1 },
-      { minute: "2026-09-30T10:27:00.000Z", viewers: 4 },
+      { minute: "2026-10-01T12:08:00.000Z", viewers: 4 },
     ];
-    expect(latestDay(counts)).toEqual([
+    expect(busiestDay(counts)).toEqual([
       { minute: "2026-10-12T19:30:00.000Z", viewers: 8 },
       { minute: "2026-10-12T19:31:00.000Z", viewers: 9 },
     ]);

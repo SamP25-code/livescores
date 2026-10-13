@@ -48,30 +48,44 @@ export type ViewerCount = { minute: string; viewers: number };
 export async function fetchViewerLog(
   nightId: string
 ): Promise<{ counts: ViewerCount[]; uniqueViewers: number }> {
-  // Newest first: the database hands back at most 1000 rows per request, and
-  // a page left open across days of testing easily logs more minutes than
-  // that - oldest-first would cut off the night itself.
-  const [{ data: counts, error: countsError }, { data: totals, error: totalsError }] = await Promise.all([
-    supabase
+  const [counts, { data: totals, error: totalsError }] = await Promise.all([
+    fetchAllCounts(nightId),
+    supabase.from("viewer_totals").select("unique_viewers").eq("night_id", nightId).maybeSingle(),
+  ]);
+  if (totalsError) throw totalsError;
+  return { counts: busiestDay(counts), uniqueViewers: totals?.unique_viewers ?? 0 };
+}
+
+const PAGE_SIZE = 1000;
+
+// The database hands back at most 1000 rows per request, so read the whole
+// log a page at a time rather than silently getting only part of it.
+async function fetchAllCounts(nightId: string): Promise<ViewerCount[]> {
+  const all: ViewerCount[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await supabase
       .from("viewer_counts")
       .select("minute, viewers")
       .eq("night_id", nightId)
-      .order("minute", { ascending: false })
-      .limit(1000),
-    supabase.from("viewer_totals").select("unique_viewers").eq("night_id", nightId).maybeSingle(),
-  ]);
-  if (countsError) throw countsError;
-  if (totalsError) throw totalsError;
-  return { counts: latestDay(counts ?? []), uniqueViewers: totals?.unique_viewers ?? 0 };
+      .order("minute")
+      .range(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    all.push(...(data ?? []));
+    if (!data || data.length < PAGE_SIZE) return all;
+  }
 }
 
-// Only the minutes on the same day as the most recent ping, oldest first -
-// the night itself, not earlier days the page happened to be open.
-export function latestDay(counts: ViewerCount[]): ViewerCount[] {
+// Only the minutes on the day the page was busiest, oldest first - the
+// night it was actually played, not a later day someone looked back at it.
+export function busiestDay(counts: ViewerCount[]): ViewerCount[] {
   if (counts.length === 0) return [];
-  const sorted = [...counts].sort((a, b) => new Date(a.minute).getTime() - new Date(b.minute).getTime());
-  const lastDay = new Date(sorted[sorted.length - 1].minute).toDateString();
-  return sorted.filter((c) => new Date(c.minute).toDateString() === lastDay);
+  const dayOf = (c: ViewerCount) => new Date(c.minute).toDateString();
+  const totals = new Map<string, number>();
+  for (const c of counts) totals.set(dayOf(c), (totals.get(dayOf(c)) ?? 0) + c.viewers);
+  const busiest = [...totals.entries()].reduce((best, entry) => (entry[1] > best[1] ? entry : best))[0];
+  return counts
+    .filter((c) => dayOf(c) === busiest)
+    .sort((a, b) => new Date(a.minute).getTime() - new Date(b.minute).getTime());
 }
 
 const MINUTE_MS = 60_000;
