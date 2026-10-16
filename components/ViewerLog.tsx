@@ -34,7 +34,11 @@ export default function ViewerLog({ nightId }: { nightId: string }) {
       }
     }
     load();
-    const timer = setInterval(load, REFRESH_MS);
+    // Only while the page is on screen - no point fetching for a locked
+    // phone or a background tab.
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") load();
+    }, REFRESH_MS);
     return () => {
       cancelled = true;
       clearInterval(timer);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   DndContext,
@@ -40,7 +40,7 @@ import {
   setFinalsPlayerSeed,
   setPlayerBye,
 } from "@/lib/adminActions";
-import { buildFinalsSlots, isMatchComplete, nextPowerOfTwo, roundLabel } from "@/lib/bracket";
+import { buildFinalsSlots, computeNightStatus, isMatchComplete, nextPowerOfTwo, roundLabel } from "@/lib/bracket";
 import { useAdminRole } from "@/lib/auth";
 import { errorMessage } from "@/lib/errors";
 import Avatar from "@/components/Avatar";
@@ -64,16 +64,27 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
     document.title = night ? `${night.name} · Admin · Penwortham Singles` : "Admin · Penwortham Singles";
   }, [night]);
 
+  // What the last refresh found, for the background checks below without
+  // re-running them on every render.
+  const kindRef = useRef<Night["kind"] | null>(null);
+  const completeRef = useRef(false);
+
   async function refresh() {
+    // The finals lineup is only needed on a qualifying night (for its
+    // "Through to Finals Day" picker); Finals Day itself shows its own
+    // players, so skip those two lookups there.
+    const needRoster = kindRef.current !== "finals";
     const [{ data: nightData }, { data: playerData }, { data: matchData }, roster] = await Promise.all([
       supabase.from("nights").select("*").eq("id", nightId).single(),
       supabase.from("players").select("*").eq("night_id", nightId).order("sort_order").order("created_at"),
       supabase.from("matches").select("*").eq("night_id", nightId).order("round").order("slot"),
-      getFinalsRoster(),
+      needRoster ? getFinalsRoster() : Promise.resolve(undefined),
     ]);
+    kindRef.current = nightData?.kind ?? null;
+    completeRef.current = (matchData ?? []).length > 0 && computeNightStatus(matchData ?? []) === "complete";
     setNight(nightData ?? null);
     setPlayers(playerData ?? []);
-    setFinalsRoster(roster?.players ?? []);
+    if (roster !== undefined) setFinalsRoster(roster?.players ?? []);
 
     if (nightData?.kind === "finals" && (matchData ?? []).length === 0) {
       try {
@@ -101,33 +112,57 @@ export default function AdminNightPage({ params }: { params: { id: string } }) {
   // never sits on a stale view of what's actually been scored. Backed up
   // by a plain poll too: realtime delivery between two authenticated admin
   // sessions has proven less reliable in practice than to the public page,
-  // so this guarantees the view corrects itself within a few seconds even
-  // if a change event never arrives.
+  // so this corrects the view even if a change event never arrives.
+  //
+  // Kept light on requests (Supabase's free plan caps its request logs):
+  // a burst of change events (several score taps) becomes one refresh;
+  // the backup poll is every 15 seconds and only while the page is on
+  // screen, catching up straight away when it comes back; and a finished
+  // night doesn't poll at all - it's done, and a change event still
+  // refreshes it if a match is reopened.
   useEffect(() => {
+    let pending: ReturnType<typeof setTimeout> | null = null;
+    function refreshSoon() {
+      if (pending) return;
+      pending = setTimeout(() => {
+        pending = null;
+        refresh();
+      }, 500);
+    }
+
     const channel = supabase
       .channel(`admin-night-${nightId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "matches", filter: `night_id=eq.${nightId}` },
-        () => refresh()
+        refreshSoon
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "players", filter: `night_id=eq.${nightId}` },
-        () => refresh()
+        refreshSoon
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "nights", filter: `id=eq.${nightId}` },
-        () => refresh()
+        refreshSoon
       )
       .subscribe();
 
-    const poll = setInterval(() => refresh(), 4000);
+    const poll = setInterval(() => {
+      if (document.visibilityState === "visible" && !completeRef.current) refresh();
+    }, 15_000);
+
+    function onVisible() {
+      if (document.visibilityState === "visible") refreshSoon();
+    }
+    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
       supabase.removeChannel(channel);
       clearInterval(poll);
+      if (pending) clearTimeout(pending);
+      document.removeEventListener("visibilitychange", onVisible);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nightId]);

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { buildFinalsSlots, roundLabel } from "@/lib/bracket";
+import { buildFinalsSlots, computeNightStatus, roundLabel } from "@/lib/bracket";
 import { startViewerPings } from "@/lib/viewerLog";
 import NightNav, { splitNightName } from "@/components/NightNav";
 import Brand from "@/components/Brand";
@@ -108,7 +108,15 @@ export default function NightPage({ params }: { params: { id: string } }) {
   }, [nightId]);
 
   // Feeds the admin's viewer log - see lib/viewerLog.ts.
-  useEffect(() => startViewerPings(nightId), [nightId]);
+  // Only while the night is still to play or in play - once every match is
+  // finished there's nothing live to watch, and the log for the night is
+  // already complete. Waits for the first load so a finished night never
+  // pings at all. If a match is reopened, pinging starts again.
+  const nightFinished = matches.length > 0 && computeNightStatus(matches) === "complete";
+  useEffect(() => {
+    if (!night || nightFinished) return;
+    return startViewerPings(nightId);
+  }, [nightId, Boolean(night), nightFinished]);
 
   const [highlightPlayerId, setHighlightPlayerId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "bracket">("list");
