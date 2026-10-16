@@ -1,9 +1,20 @@
 import { supabase } from "@/lib/supabaseClient";
 
-// How often an open public page tells the database it's still being watched.
-// Twice a minute so every minute gets at least one ping even if a timer runs
-// late; the database keeps one row per viewer per minute regardless.
-export const PING_INTERVAL_MS = 30_000;
+// An open public page tells the database it's still being watched once a
+// minute - halved from twice a minute to keep Supabase's free-plan log
+// allowance in hand. Each ping lands near the middle of a minute rather than
+// on a plain 60-second timer, which drifts and would now and then put two
+// pings in one minute and none in the next (a false dip on the chart).
+const MINUTE_MS = 60_000;
+
+// Milliseconds from `now` until this viewer's next ping: the next time the
+// clock reaches `offsetMs` past a minute. Each phone has its own offset
+// (15-45s) so pings are spread out and stay well clear of the minute edges.
+export function msUntilNextPing(now: number, offsetMs: number): number {
+  const intoMinute = now % MINUTE_MS;
+  const wait = offsetMs - intoMinute;
+  return wait > 0 ? wait : wait + MINUTE_MS;
+}
 
 const VIEWER_ID_KEY = "bowls-viewer-id";
 
@@ -38,9 +49,18 @@ export function startViewerPings(nightId: string): () => void {
       );
   }
 
+  // Counted straight away for the minute they arrive, then once a minute.
   ping();
-  const timer = setInterval(ping, PING_INTERVAL_MS);
-  return () => clearInterval(timer);
+  const offsetMs = 15_000 + Math.floor(Math.random() * 30_000);
+  let timer: ReturnType<typeof setTimeout>;
+  function scheduleNext() {
+    timer = setTimeout(() => {
+      ping();
+      scheduleNext();
+    }, msUntilNextPing(Date.now(), offsetMs));
+  }
+  scheduleNext();
+  return () => clearTimeout(timer);
 }
 
 export type ViewerCount = { minute: string; viewers: number };
@@ -87,8 +107,6 @@ export function busiestDay(counts: ViewerCount[]): ViewerCount[] {
     .filter((c) => dayOf(c) === busiest)
     .sort((a, b) => new Date(a.minute).getTime() - new Date(b.minute).getTime());
 }
-
-const MINUTE_MS = 60_000;
 
 export type ViewerPoint = { time: number; viewers: number };
 

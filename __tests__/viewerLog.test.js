@@ -1,6 +1,29 @@
 jest.mock("../lib/supabaseClient.ts", () => ({ supabase: {} }));
 
-const { buildViewerSeries, busiestDay, peakOf, pointAt } = require("../lib/viewerLog.ts");
+const { buildViewerSeries, busiestDay, msUntilNextPing, peakOf, pointAt } = require("../lib/viewerLog.ts");
+
+describe("msUntilNextPing", () => {
+  const minute = (m, s = 0) => Date.UTC(2026, 9, 17, 13, m, s);
+
+  test("waits until this viewer's second within the current minute", () => {
+    expect(msUntilNextPing(minute(5, 10), 30_000)).toBe(20_000);
+  });
+
+  test("rolls over to the next minute once that second has passed", () => {
+    expect(msUntilNextPing(minute(5, 40), 30_000)).toBe(50_000);
+    expect(msUntilNextPing(minute(5, 30), 30_000)).toBe(60_000);
+  });
+
+  test("a run of pings lands exactly once in every minute", () => {
+    let now = minute(5, 12);
+    const minutes = [];
+    for (let i = 0; i < 10; i++) {
+      now += msUntilNextPing(now, 27_000) + 150; // a timer firing slightly late
+      minutes.push(Math.floor(now / 60_000));
+    }
+    for (let i = 1; i < minutes.length; i++) expect(minutes[i] - minutes[i - 1]).toBe(1);
+  });
+});
 
 describe("busiestDay", () => {
   test("returns nothing for an empty log", () => {
