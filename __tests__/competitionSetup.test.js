@@ -46,7 +46,7 @@ describe("settingsProblems", () => {
 
   test("asks for missing numbers", () => {
     expect(settingsProblems({ ...october, qualifying_nights: null })).toEqual([
-      "Enter how many qualifying nights there are.",
+      "Enter how many qualifying sessions there are.",
     ]);
     expect(settingsProblems({ ...march, draw_size: null })).toEqual(["Enter the size of the draw (at least 2)."]);
   });
@@ -69,7 +69,7 @@ describe("finalsFill", () => {
 });
 
 describe("planSessions", () => {
-  test("qualifying nights then a Finals Day", () => {
+  test("qualifying sessions then a Finals Day", () => {
     expect(planSessions("qualifying_and_finals", 4)).toEqual([
       { kind: "qualifier", session_number: 1 },
       { kind: "qualifier", session_number: 2 },
@@ -100,7 +100,7 @@ describe("dates and names", () => {
     expect(sessionName("qualifier", 1, "2026-10-12")).toBe("Monday 12th October");
     expect(sessionName("finals", 5, "2026-10-17")).toBe("Finals Day - Saturday 17th October");
     expect(sessionName("single_day", 1, "2027-03-13")).toBe("Saturday 13th March");
-    expect(sessionName("qualifier", 2, null)).toBe("Qualifying night 2");
+    expect(sessionName("qualifier", 2, null)).toBe("Qualifying session 2");
     expect(sessionName("finals", 5, null)).toBe("Finals Day");
   });
 
@@ -111,7 +111,7 @@ describe("dates and names", () => {
   });
 
   test("summaries", () => {
-    expect(settingsSummary(october)).toBe("Singles · 4 nights of 16 · 4 through · 16 on Finals Day · 21 up");
+    expect(settingsSummary(october)).toBe("Singles · 4 sessions of 16 · 4 through · 16 on Finals Day · 21 up");
     expect(settingsSummary(march)).toBe("Doubles · 32 pairs, one day · 21 up");
     expect(settingsSummary({ ...march, team_size: 1, label: "Ladies" })).toBe("Singles · Ladies · 32 players, one day · 21 up");
   });

@@ -2186,3 +2186,44 @@ label {
     grid-column: 1 / -1;
   }
 }
+
+.admin-night-group {
+  margin-top: 18px;
+}
+
+.comp-form-sponsors {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.comp-form-sponsors-title {
+  font-weight: 600;
+}
+
+.comp-form-sponsor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0 12px;
+  width: 100%;
+}
+
+.comp-form-remove {
+  margin-bottom: 18px;
+  color: var(--maroon);
+}
+
+@media (max-width: 480px) {
+  .comp-form-sponsor {
+    grid-template-columns: minmax(0, 1fr);
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  .comp-form-remove {
+    justify-self: start;
+    margin: -6px 0 6px;
+  }
+}

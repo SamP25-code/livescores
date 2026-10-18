@@ -15,6 +15,9 @@ import type { Night } from "@/lib/types";
 export default function AdminDashboard() {
   const role = useAdminRole();
   const [nights, setNights] = useState<Night[]>([]);
+  // Competition names for grouping the list (2027 structure); empty on a
+  // database not yet moved over, where the list is one group as before.
+  const [competitionNames, setCompetitionNames] = useState<Record<string, { title: string; order: number }>>({});
   const [statuses, setStatuses] = useState<Record<string, NightStatus>>({});
   const [name, setName] = useState("");
   const [kind, setKind] = useState<"qualifier" | "finals">("qualifier");
@@ -25,8 +28,30 @@ export default function AdminDashboard() {
       supabase.from("nights").select("*").order("created_at", { ascending: true }),
       fetchNightStatuses(),
     ]);
-    setNights(data ?? []);
+    const all = (data ?? []) as Night[];
+    setNights(all);
     setStatuses(statusesByNight);
+    if (all.some((n) => n.competition_id)) {
+      const { data: comps } = await supabase
+        .from("competitions")
+        .select("id, year, status, series:series_id(name)")
+        .order("year", { ascending: false });
+      const rank = { active: 0, planned: 1, archived: 2 } as const;
+      setCompetitionNames(
+        Object.fromEntries(
+          (comps ?? []).map((c) => {
+            const series = c.series as unknown as { name: string } | null;
+            return [
+              c.id,
+              {
+                title: `${series?.name ?? "Competition"} ${c.year}`,
+                order: rank[c.status as keyof typeof rank] * 10000 - c.year,
+              },
+            ];
+          })
+        )
+      );
+    }
   }
 
   useEffect(() => {
@@ -38,6 +63,26 @@ export default function AdminDashboard() {
   }, []);
 
   const visibleNights = role === null ? [] : nights;
+
+  // Nights grouped by competition: active first, then planned, then
+  // finished; nights not in a competition last. In order within each.
+  const groups = (() => {
+    const byKey = new Map<string, Night[]>();
+    for (const night of visibleNights) {
+      const key = night.competition_id ?? "";
+      if (!byKey.has(key)) byKey.set(key, []);
+      byKey.get(key)!.push(night);
+    }
+    return [...byKey.entries()]
+      .map(([key, list]) => ({
+        key,
+        title: key ? competitionNames[key]?.title ?? null : null,
+        order: key ? competitionNames[key]?.order ?? 99999 : 999999,
+        nights: list.sort((a, b) => (a.session_number ?? a.sort_order) - (b.session_number ?? b.sort_order)),
+      }))
+      .sort((a, b) => a.order - b.order);
+  })();
+  const grouped = groups.some((g) => g.title);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -93,37 +138,42 @@ export default function AdminDashboard() {
           {role === "scorer" ? "Nothing set up yet." : "Nothing set up yet — create your first night above."}
         </p>
       )}
-      <nav className="night-list">
-        {visibleNights.map((night) => {
-          const status = statuses[night.id] ?? "upcoming";
-          const split = splitNightName(night);
-          return (
-            <Link key={night.id} href={`/admin/night/${night.id}`} className={`night-card night-card-${night.kind}`}>
-              <span className="night-card-name">
-                {split ? (
-                  <>
-                    <span className="night-card-day">{split.day}</span>
-                    <span className="night-card-date">{split.rest}</span>
-                  </>
-                ) : (
-                  night.name
-                )}
-              </span>
-              <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                {night.kind === "qualifier" && !night.draw_published && (
-                  <span className="status-pill status-pill-hidden">Draw hidden</span>
-                )}
-                {status !== "upcoming" && (
-                  <span className={`status-pill ${status}`}>
-                    {status === "live" && <span className="live-dot" />}
-                    {status === "live" ? "Live" : "Finished"}
+      {groups.map((group) => (
+        <section key={group.key || "none"}>
+          {grouped && <h2 className="admin-night-group">{group.title ?? "Not in a competition"}</h2>}
+          <nav className="night-list">
+            {group.nights.map((night) => {
+              const status = statuses[night.id] ?? "upcoming";
+              const split = splitNightName(night);
+              return (
+                <Link key={night.id} href={`/admin/night/${night.id}`} className={`night-card night-card-${night.kind}`}>
+                  <span className="night-card-name">
+                    {split ? (
+                      <>
+                        <span className="night-card-day">{split.day}</span>
+                        <span className="night-card-date">{split.rest}</span>
+                      </>
+                    ) : (
+                      night.name
+                    )}
                   </span>
-                )}
-              </span>
-            </Link>
-          );
-        })}
-      </nav>
+                  <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    {night.kind === "qualifier" && !night.draw_published && (
+                      <span className="status-pill status-pill-hidden">Draw hidden</span>
+                    )}
+                    {status !== "upcoming" && (
+                      <span className={`status-pill ${status}`}>
+                        {status === "live" && <span className="live-dot" />}
+                        {status === "live" ? "Live" : "Finished"}
+                      </span>
+                    )}
+                  </span>
+                </Link>
+              );
+            })}
+          </nav>
+        </section>
+      ))}
     </div>
   );
 }

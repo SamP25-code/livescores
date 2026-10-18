@@ -11,8 +11,13 @@ import type { Night } from "@/lib/types";
 
 const STATUS_LABEL = { planned: "Planned", active: "Active", archived: "Archived" } as const;
 
+// "A", "A and B", "A, B and C"
+function sponsorList(names: string[]): string {
+  return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
 function sessionTitle(night: Night): string {
-  if (night.kind === "qualifier") return `Qualifying night ${night.session_number}`;
+  if (night.kind === "qualifier") return `Qualifying session ${night.session_number}`;
   if (night.kind === "finals") return "Finals Day";
   if (night.kind === "final") return "The final";
   return "The day";
@@ -74,7 +79,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
             <p>
               <span className={`status-pill comp-status-${c.status}`}>{STATUS_LABEL[c.status]}</span>{" "}
               Run by {c.series.organiser.short_name}
-              {c.sponsor_name ? ` · Sponsored by ${c.sponsor_name}` : ""}
+              {c.sponsors.length > 0 ? ` · Sponsored by ${sponsorList(c.sponsors.map((s) => s.name))}` : ""}
             </p>
             <p className="hint">{settingsSummary(c)}</p>
             <p className="hint">

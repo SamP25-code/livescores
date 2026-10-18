@@ -21,18 +21,18 @@ export function settingsProblems(s: StructureSettings): string[] {
   const whole = (n: number | null, min: number) => n != null && Number.isInteger(n) && n >= min;
 
   if (s.format === "qualifying_and_finals") {
-    if (!whole(s.qualifying_nights, 1)) problems.push("Enter how many qualifying nights there are.");
-    if (!whole(s.entries_per_night, 2)) problems.push("Enter how many play on each qualifying night (at least 2).");
-    if (!whole(s.qualifiers_per_night, 1)) problems.push("Enter how many go through from each night.");
+    if (!whole(s.qualifying_nights, 1)) problems.push("Enter how many qualifying sessions there are.");
+    if (!whole(s.entries_per_night, 2)) problems.push("Enter how many play in each qualifying session (at least 2).");
+    if (!whole(s.qualifiers_per_night, 1)) problems.push("Enter how many go through from each session.");
     if (!whole(s.draw_size, 2)) problems.push("Enter the size of the Finals Day draw (at least 2).");
     if (problems.length === 0) {
       const through = s.qualifying_nights! * s.qualifiers_per_night!;
       if (s.qualifiers_per_night! >= s.entries_per_night!) {
-        problems.push("Fewer have to go through from each night than play on it.");
+        problems.push("Fewer have to go through from each session than play in it.");
       }
       if (through > s.draw_size!) {
         problems.push(
-          `${s.qualifying_nights} nights × ${s.qualifiers_per_night} through is ${through}, more than the Finals Day draw of ${s.draw_size}.`
+          `${s.qualifying_nights} sessions × ${s.qualifiers_per_night} through is ${through}, more than the Finals Day draw of ${s.draw_size}.`
         );
       }
     }
@@ -43,7 +43,7 @@ export function settingsProblems(s: StructureSettings): string[] {
 }
 
 // What the settings imply for the qualifying side, so the form can say it
-// back ("4 nights × 4 through = 16, filling the Finals Day draw").
+// back ("4 sessions × 4 through = 16, filling the Finals Day draw").
 export function finalsFill(s: StructureSettings): { through: number; byes: number } | null {
   if (s.format !== "qualifying_and_finals" || settingsProblems(s).length > 0) return null;
   const through = s.qualifying_nights! * s.qualifiers_per_night!;
@@ -91,7 +91,7 @@ export function sessionName(kind: SessionKind, sessionNumber: number, date: stri
   if (kind === "finals") return date ? `Finals Day - ${longDate(date)}` : "Finals Day";
   if (kind === "final") return date ? `Final - ${longDate(date)}` : "Final";
   if (date) return longDate(date);
-  return kind === "qualifier" ? `Qualifying night ${sessionNumber}` : "Competition day";
+  return kind === "qualifier" ? `Qualifying session ${sessionNumber}` : "Competition day";
 }
 
 // "October Singles" -> "october-singles", the competition's year-less address.
@@ -105,7 +105,7 @@ export function slugify(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-// A one-line summary for lists: "Singles · 4 nights of 16 · 4 through · 16 on Finals Day · 21 up"
+// A one-line summary for lists: "Singles · 4 sessions of 16 · 4 through · 16 on Finals Day · 21 up"
 export function settingsSummary(
   s: StructureSettings & { label?: string | null }
 ): string {
@@ -113,7 +113,7 @@ export function settingsSummary(
   if (s.label) parts.push(s.label);
   if (s.format === "qualifying_and_finals") {
     if (s.qualifying_nights && s.entries_per_night) {
-      parts.push(`${s.qualifying_nights} night${s.qualifying_nights === 1 ? "" : "s"} of ${s.entries_per_night}`);
+      parts.push(`${s.qualifying_nights} session${s.qualifying_nights === 1 ? "" : "s"} of ${s.entries_per_night}`);
     }
     if (s.qualifiers_per_night) parts.push(`${s.qualifiers_per_night} through`);
     if (s.draw_size) parts.push(`${s.draw_size} on Finals Day`);

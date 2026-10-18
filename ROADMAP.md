@@ -14,6 +14,15 @@ open it up.
 
 ## Formats
 
+**Wording (agreed 2026-10-18):** on screen it's a **qualifying session**, not a "qualifying night",
+since some will be played in the daytime. (The October Singles 2026 nights keep their names; the
+database column names don't change.) Older notes below still say "night" in places - read it as
+"session".
+
+**Sponsors (agreed 2026-10-18):** a competition can have **more than one sponsor** - each with a
+name and website, added one under another ("+ Add another sponsor") on the set-up form, shown in
+that order.
+
 Not every tournament will look like Penwortham's. The formats known so far:
 
 - **Qualifying nights + Finals Day** - today's format (e.g. 4 nights of 16, top 4 each through

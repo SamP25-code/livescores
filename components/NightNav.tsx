@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { fetchNightStatuses } from "@/lib/nightStatus";
+import { sessionsShown } from "@/lib/sessionsShown";
 import type { Night } from "@/lib/types";
 import type { NightStatus } from "@/lib/bracket";
 
@@ -66,13 +67,23 @@ export default function NightNav({
   const [statuses, setStatuses] = useState<Record<string, NightStatus>>({});
 
   useEffect(() => {
-    supabase
-      .from("nights")
-      .select("*")
-      .order("sort_order")
-      .order("created_at")
-      .then(({ data }) => setNights(data ?? []));
-  }, []);
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from("nights").select("*").order("sort_order").order("created_at");
+      const all = (data ?? []) as Night[];
+      // Only look up competitions once sessions belong to them (2027
+      // structure); a database not yet moved over shows every night.
+      let competitions: Array<{ id: string; status: "planned" | "active" | "archived"; year: number }> = [];
+      if (all.some((n) => n.competition_id)) {
+        const { data: comps } = await supabase.from("competitions").select("id, status, year");
+        competitions = comps ?? [];
+      }
+      if (!cancelled) setNights(sessionsShown(all, competitions, currentId));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentId]);
 
   useEffect(() => {
     if (variant !== "home") return;

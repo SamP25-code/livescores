@@ -44,6 +44,15 @@ export type Series = {
   created_at: string;
 };
 
+export type CompetitionSponsor = {
+  id: string;
+  competition_id: string;
+  position: number;
+  name: string;
+  url: string | null;
+  created_at: string;
+};
+
 export type Competition = {
   id: string;
   series_id: string;

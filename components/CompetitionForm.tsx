@@ -15,10 +15,12 @@ import {
   createSeries,
   createVenue,
   listChoices,
+  saveSponsors,
   updateCompetition,
   type CompetitionInput,
   type CompetitionWithSeries,
   type SessionDetails,
+  type SponsorInput,
 } from "@/lib/competitionsApi";
 import { errorMessage } from "@/lib/errors";
 import type { Night, Organiser, Series, Venue } from "@/lib/types";
@@ -31,7 +33,7 @@ const DEFAULT_START: Record<SessionKind, string> = {
 };
 
 const SESSION_LABEL: Record<SessionKind, string> = {
-  qualifier: "Qualifying night",
+  qualifier: "Qualifying session",
   finals: "Finals Day",
   single_day: "The day",
   final: "The final",
@@ -78,8 +80,10 @@ export default function CompetitionForm({
   const [nights, setNights] = useState(c?.qualifying_nights?.toString() ?? "4");
   const [perNight, setPerNight] = useState(c?.entries_per_night?.toString() ?? "16");
   const [through, setThrough] = useState(c?.qualifiers_per_night?.toString() ?? "4");
-  const [sponsorName, setSponsorName] = useState(c?.sponsor_name ?? "");
-  const [sponsorUrl, setSponsorUrl] = useState(c?.sponsor_url ?? "");
+  // Sponsors, in the order shown - one empty row to start with
+  const [sponsors, setSponsors] = useState<SponsorInput[]>(() =>
+    c?.sponsors?.length ? c.sponsors.map((s) => ({ name: s.name, url: s.url ?? "" })) : [{ name: "", url: "" }]
+  );
 
   // Venue
   const [venueId, setVenueId] = useState<string>(c?.venue_id ?? "");
@@ -132,6 +136,10 @@ export default function CompetitionForm({
 
   const seriesForOrganiser = allSeries.filter((s) => s.organiser_id === organiserId);
 
+  function setSponsor(i: number, field: keyof SponsorInput, value: string) {
+    setSponsors((current) => current.map((s, j) => (j === i ? { ...s, [field]: value } : s)));
+  }
+
   function setSession(i: number, field: keyof SessionDetails, value: string) {
     setSessions((current) => current.map((s, j) => (j === i ? { ...s, [field]: value || null } : s)));
   }
@@ -161,8 +169,6 @@ export default function CompetitionForm({
         year,
         status,
         label: label.trim() || null,
-        sponsor_name: sponsorName.trim() || null,
-        sponsor_url: sponsorUrl.trim() || null,
         venue_id: chosenVenueId,
         ...(locked
           ? {}
@@ -176,6 +182,7 @@ export default function CompetitionForm({
 
       if (existing && c) {
         await updateCompetition(c, settings, existing.sessions, sessions);
+        await saveSponsors(c.id, sponsors);
         onSaved(c.id);
         return;
       }
@@ -202,9 +209,11 @@ export default function CompetitionForm({
       }
 
       const created = await createCompetition(
-        { ...(settings as CompetitionInput), series_id: chosenSeriesId, colour: null },
+        // Sponsors live in their own list now; the old single-sponsor columns stay empty
+        { ...(settings as CompetitionInput), series_id: chosenSeriesId, colour: null, sponsor_name: null, sponsor_url: null },
         sessions
       );
+      await saveSponsors(created.id, sponsors);
       onSaved(created.id);
     } catch (err) {
       setError(errorMessage(err));
@@ -341,7 +350,7 @@ export default function CompetitionForm({
           <legend>Format</legend>
           {(
             [
-              ["qualifying_and_finals", "Qualifying nights + Finals Day"],
+              ["qualifying_and_finals", "Qualifying sessions + Finals Day"],
               ["single_day", "Single day"],
               ["final_only", "Final only (results from elsewhere)"],
             ] as const
@@ -367,15 +376,15 @@ export default function CompetitionForm({
         {format === "qualifying_and_finals" && (
           <div className="comp-form-grid">
             <div className="field">
-              <label htmlFor="cf-nights">Qualifying nights</label>
+              <label htmlFor="cf-nights">Qualifying sessions</label>
               <input id="cf-nights" type="number" min={1} disabled={locked} value={nights} onChange={(e) => setNights(e.target.value)} />
             </div>
             <div className="field">
-              <label htmlFor="cf-per-night">{teamSize === 2 ? "Pairs" : "Players"} each night</label>
+              <label htmlFor="cf-per-night">{teamSize === 2 ? "Pairs" : "Players"} each session</label>
               <input id="cf-per-night" type="number" min={2} disabled={locked} value={perNight} onChange={(e) => setPerNight(e.target.value)} />
             </div>
             <div className="field">
-              <label htmlFor="cf-through">Go through each night</label>
+              <label htmlFor="cf-through">Go through each session</label>
               <input id="cf-through" type="number" min={1} disabled={locked} value={through} onChange={(e) => setThrough(e.target.value)} />
             </div>
             <div className="field">
@@ -501,21 +510,43 @@ export default function CompetitionForm({
             </div>
           </div>
         )}
-        <div className="comp-form-grid">
-          <div className="field">
-            <label htmlFor="cf-sponsor">Sponsor (optional)</label>
-            <input id="cf-sponsor" value={sponsorName} onChange={(e) => setSponsorName(e.target.value)} />
-          </div>
-          <div className="field">
-            <label htmlFor="cf-sponsor-url">Sponsor&rsquo;s website (optional)</label>
-            <input
-              id="cf-sponsor-url"
-              type="url"
-              placeholder="https://"
-              value={sponsorUrl}
-              onChange={(e) => setSponsorUrl(e.target.value)}
-            />
-          </div>
+        <div className="comp-form-sponsors">
+          <span className="comp-form-sponsors-title">Sponsors (optional)</span>
+          {sponsors.map((sponsor, i) => (
+            <div key={i} className="comp-form-sponsor">
+              <div className="field">
+                <label htmlFor={`cf-sponsor-${i}`}>{sponsors.length > 1 ? `Sponsor ${i + 1}` : "Sponsor"}</label>
+                <input id={`cf-sponsor-${i}`} value={sponsor.name} onChange={(e) => setSponsor(i, "name", e.target.value)} />
+              </div>
+              <div className="field">
+                <label htmlFor={`cf-sponsor-url-${i}`}>Website</label>
+                <input
+                  id={`cf-sponsor-url-${i}`}
+                  type="url"
+                  placeholder="https://"
+                  value={sponsor.url}
+                  onChange={(e) => setSponsor(i, "url", e.target.value)}
+                />
+              </div>
+              {sponsors.length > 1 && (
+                <button
+                  type="button"
+                  className="link-button comp-form-remove"
+                  onClick={() => setSponsors((current) => current.filter((_, j) => j !== i))}
+                  aria-label={`Remove ${sponsor.name || `sponsor ${i + 1}`}`}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => setSponsors((current) => [...current, { name: "", url: "" }])}
+          >
+            + Add another sponsor
+          </button>
         </div>
         <div className="field">
           <label htmlFor="cf-status">Status</label>

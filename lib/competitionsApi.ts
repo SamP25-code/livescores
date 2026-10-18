@@ -3,11 +3,21 @@
 // a Super login can do any of this.
 import { supabase } from "@/lib/supabaseClient";
 import { planSessions, sessionName, type SessionKind } from "@/lib/competitionSetup";
-import type { Competition, Night, Organiser, Series, Venue } from "@/lib/types";
+import type { Competition, CompetitionSponsor, Night, Organiser, Series, Venue } from "@/lib/types";
 
 export type CompetitionWithSeries = Competition & {
   series: Series & { organiser: Organiser };
+  sponsors: CompetitionSponsor[];
 };
+
+export type SponsorInput = { name: string; url: string };
+
+const WITH_SERIES = "*, series:series_id(*, organiser:organiser_id(*)), sponsors:competition_sponsors(*)";
+
+// Sponsors in the order they were added (position 1 first)
+function sortSponsors<T extends { sponsors?: CompetitionSponsor[] }>(c: T): T {
+  return { ...c, sponsors: [...(c.sponsors ?? [])].sort((a, b) => a.position - b.position) };
+}
 
 export type SessionDetails = { date: string | null; start_time: string | null };
 
@@ -15,23 +25,23 @@ export type SessionDetails = { date: string | null; start_time: string | null };
 export async function listCompetitions(): Promise<CompetitionWithSeries[]> {
   const { data, error } = await supabase
     .from("competitions")
-    .select("*, series:series_id(*, organiser:organiser_id(*))")
+    .select(WITH_SERIES)
     .order("year", { ascending: false })
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return (data ?? []) as CompetitionWithSeries[];
+  return ((data ?? []) as CompetitionWithSeries[]).map(sortSponsors);
 }
 
 export async function getCompetition(
   id: string
 ): Promise<{ competition: CompetitionWithSeries; sessions: Night[] }> {
   const [{ data: competition, error }, { data: sessions, error: sessionsError }] = await Promise.all([
-    supabase.from("competitions").select("*, series:series_id(*, organiser:organiser_id(*))").eq("id", id).single(),
+    supabase.from("competitions").select(WITH_SERIES).eq("id", id).single(),
     supabase.from("nights").select("*").eq("competition_id", id).order("session_number"),
   ]);
   if (error) throw error;
   if (sessionsError) throw sessionsError;
-  return { competition: competition as CompetitionWithSeries, sessions: (sessions ?? []) as Night[] };
+  return { competition: sortSponsors(competition as CompetitionWithSeries), sessions: (sessions ?? []) as Night[] };
 }
 
 export async function listChoices(): Promise<{ organisers: Organiser[]; series: Series[]; venues: Venue[] }> {
@@ -66,6 +76,20 @@ export async function createVenue(v: Pick<Venue, "name" | "address" | "postcode"
 }
 
 export type CompetitionInput = Omit<Competition, "id" | "created_at" | "structure_locked">;
+
+// Replaces a competition's sponsors with this list, in this order. Rows with
+// no name are left out.
+export async function saveSponsors(competitionId: string, sponsors: SponsorInput[]): Promise<void> {
+  const rows = sponsors
+    .map((s) => ({ name: s.name.trim(), url: s.url.trim() || null }))
+    .filter((s) => s.name)
+    .map((s, i) => ({ ...s, competition_id: competitionId, position: i + 1 }));
+  const { error: removeError } = await supabase.from("competition_sponsors").delete().eq("competition_id", competitionId);
+  if (removeError) throw removeError;
+  if (rows.length === 0) return;
+  const { error } = await supabase.from("competition_sponsors").insert(rows);
+  if (error) throw error;
+}
 
 // Creates the competition and its sessions together. If the sessions can't
 // be created, the competition is removed again so nothing half-made is left.
