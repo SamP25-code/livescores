@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useIsSuper } from "@/lib/auth";
 import { createOrganiser } from "@/lib/competitionsApi";
 import { errorMessage } from "@/lib/errors";
 import { newPersonProblem, personDetailsLine, tidyName, type PersonDetails } from "@/lib/people";
@@ -47,6 +48,8 @@ export default function PersonPicker({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const latest = useRef("");
+  // Adding a club is part of the set-up, so Super only
+  const canAddClub = Boolean(useIsSuper());
 
   // Search as they type, a moment after they stop
   useEffect(() => {
@@ -246,7 +249,7 @@ export default function PersonPicker({
                   {c.short_name}
                 </option>
               ))}
-              <option value="new">+ A club not listed</option>
+              {canAddClub && <option value="new">+ A club not listed</option>}
             </select>
           </div>
           {clubId === "new" && (

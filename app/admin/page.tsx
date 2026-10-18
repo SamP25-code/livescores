@@ -6,14 +6,14 @@ import { supabase } from "@/lib/supabaseClient";
 import { createNight } from "@/lib/adminActions";
 import { errorMessage } from "@/lib/errors";
 import { fetchNightStatuses } from "@/lib/nightStatus";
-import { useAdminRole } from "@/lib/auth";
+import { isAnyAdmin, pageRoleFor, useAccess, visibleCompetition } from "@/lib/access";
 import Brand from "@/components/Brand";
 import { splitNightName } from "@/components/NightNav";
 import type { NightStatus } from "@/lib/bracket";
 import type { Night } from "@/lib/types";
 
 export default function AdminDashboard() {
-  const role = useAdminRole();
+  const access = useAccess();
   const [nights, setNights] = useState<Night[]>([]);
   // Competition names for grouping the list (2027 structure); empty on a
   // database not yet moved over, where the list is one group as before.
@@ -62,7 +62,17 @@ export default function AdminDashboard() {
     refresh();
   }, []);
 
-  const visibleNights = role === null ? [] : nights;
+  // Super sees every session; anyone else the competitions they're assigned
+  // to. Old nights from before the 2027 move (no competition) show as before.
+  const visibleNights =
+    access === null
+      ? []
+      : nights.filter((n) => !n.competition_id || visibleCompetition(access, n.competition_id));
+  // Making a night by hand is the old way, before competitions existed; now
+  // sessions come from a competition's set-up
+  const oldStyle = !nights.some((n) => n.competition_id);
+  const canCreateNight = access !== null && oldStyle && pageRoleFor(access, null) === "owner";
+  const scorerOnly = access !== null && !isAnyAdmin(access) && (access.roles.size > 0 || access.legacyRole === "scorer");
 
   // Nights grouped by competition: active first, then planned, then
   // finished; nights not in a competition last. In order within each.
@@ -103,7 +113,7 @@ export default function AdminDashboard() {
         <Brand />
       </div>
 
-      {role === "owner" && (
+      {canCreateNight && (
         <>
           <h1>New competition night</h1>
           <form onSubmit={handleCreate} className="card">
@@ -130,12 +140,14 @@ export default function AdminDashboard() {
       )}
 
       <h1>All nights</h1>
-      {role === "scorer" && (
-        <p className="hint">You can score a night once its draw has been published.</p>
-      )}
-      {visibleNights.length === 0 && (
+      {scorerOnly && <p className="hint">You can score a session once its draw has been published.</p>}
+      {access !== null && visibleNights.length === 0 && (
         <p className="empty">
-          {role === "scorer" ? "Nothing set up yet." : "Nothing set up yet — create your first night above."}
+          {canCreateNight
+            ? "Nothing set up yet - create your first night above."
+            : access.isSuper
+              ? "Nothing set up yet - start with a new competition."
+              : "You're not assigned to a competition yet - ask its organiser to add you."}
         </p>
       )}
       {groups.map((group) => (

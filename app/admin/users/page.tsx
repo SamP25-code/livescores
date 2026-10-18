@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAdminRole } from "@/lib/auth";
+import { isAnyAdmin, useAccess } from "@/lib/access";
 import UserManager from "@/components/UserManager";
 
 export default function AdminUsersPage() {
-  const role = useAdminRole();
+  const access = useAccess();
 
   useEffect(() => {
     document.title = "Users · Admin · Penwortham Singles";
@@ -14,14 +14,15 @@ export default function AdminUsersPage() {
   return (
     <div className="page page-photo">
       <h1>Users</h1>
-      {role === "scorer" ? (
-        <p className="hint">Only an admin can add or change users.</p>
+      {access && !isAnyAdmin(access) ? (
+        <p className="hint">Only a competition&rsquo;s admin can add or change users.</p>
       ) : (
-        role === "owner" && (
+        access && (
           <>
             <p className="hint">
-              Everyone who can sign in to the admin side. A changed role takes effect the next time that person
-              signs in (or within the hour).
+              {access.isSuper
+                ? "Who runs and scores each competition. Add an admin to run one; admins add their own scorers."
+                : "The scorers for the competitions you run."}
             </p>
             <UserManager />
           </>

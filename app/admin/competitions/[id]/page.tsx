@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { useIsSuper } from "@/lib/auth";
+import { pageRoleFor, useAccess } from "@/lib/access";
 import { getCompetition, type CompetitionWithSeries } from "@/lib/competitionsApi";
 import { longDate, settingsSummary } from "@/lib/competitionSetup";
 import { errorMessage } from "@/lib/errors";
@@ -25,10 +25,13 @@ function sessionTitle(night: Night): string {
 }
 
 // One competition: its settings at a glance, its sessions (each opens the
-// existing night admin page), and the settings form to change them.
+// session's page), its entries, and - for Super - the settings form. Open to
+// Super and the competition's admins.
 export default function CompetitionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const isSuper = useIsSuper();
+  const access = useAccess();
+  const isSuper = Boolean(access?.isSuper);
+  const canRun = access ? pageRoleFor(access, id) === "owner" : null;
   const [data, setData] = useState<{ competition: CompetitionWithSeries; sessions: Night[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
@@ -43,9 +46,9 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
   }
 
   useEffect(() => {
-    if (isSuper) load();
+    if (canRun) load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, isSuper]);
+  }, [id, canRun]);
 
   useEffect(() => {
     document.title = data
@@ -53,10 +56,10 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
       : "Competition · Admin · Penwortham Singles";
   }, [data]);
 
-  if (isSuper === false) {
+  if (canRun === false) {
     return (
       <div className="page page-photo">
-        <p className="hint">Only Sam (Super) can set up competitions.</p>
+        <p className="hint">Only this competition&rsquo;s admins can open it.</p>
       </div>
     );
   }
@@ -109,9 +112,14 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
 
           <EntriesManager competition={c} sessions={data.sessions} />
 
-          <h2>Settings</h2>
+          <h2>Admins and scorers</h2>
+          <p className="hint">
+            <Link href="/admin/users">Add or change who runs and scores it</Link> on the Users page.
+          </p>
+
+          {isSuper && <h2>Settings</h2>}
           {saved && !editing && <p className="hint">Changes saved.</p>}
-          {!editing ? (
+          {!isSuper ? null : !editing ? (
             <button type="button" className="secondary" onClick={() => setEditing(true)}>
               Change settings or dates
             </button>

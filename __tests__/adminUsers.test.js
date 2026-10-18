@@ -1,15 +1,8 @@
-const { roleOf, displayNameOf, isStandInEmail, toAdminUser } = require("../lib/adminUsers.ts");
+const { displayNameOf, isStandInEmail } = require("../lib/adminUsers.ts");
+const { toStaffUser } = require("../lib/staffUsers.ts");
 const { NAME_LOGIN_DOMAIN } = require("../lib/loginName.ts");
 
 const standIn = (local) => `${local}@${NAME_LOGIN_DOMAIN}`;
-
-describe("roleOf", () => {
-  test("is scorer only when marked as one", () => {
-    expect(roleOf({ app_metadata: { role: "scorer" } })).toBe("scorer");
-    expect(roleOf({ app_metadata: {} })).toBe("owner");
-    expect(roleOf({ app_metadata: { role: null } })).toBe("owner");
-  });
-});
 
 describe("displayNameOf", () => {
   test("prefers the full name saved when the login was added", () => {
@@ -27,26 +20,39 @@ describe("displayNameOf", () => {
   });
 });
 
-describe("toAdminUser", () => {
+describe("toStaffUser", () => {
   test("hides stand-in addresses and keeps real ones", () => {
-    const named = toAdminUser({
+    const named = toStaffUser(
+      {
+        id: "1",
+        email: standIn("tim.hodge"),
+        app_metadata: {},
+        user_metadata: { full_name: "Tim Hodge" },
+        last_sign_in_at: null,
+      },
+      [{ competition_id: "march", role: "scorer" }]
+    );
+    expect(named).toEqual({
       id: "1",
-      email: standIn("tim.hodge"),
-      app_metadata: { role: "scorer" },
-      user_metadata: { full_name: "Tim Hodge" },
-      last_sign_in_at: null,
+      name: "Tim Hodge",
+      email: null,
+      isSuper: false,
+      lastSignInAt: null,
+      assignments: [{ competition_id: "march", role: "scorer" }],
     });
-    expect(named).toEqual({ id: "1", name: "Tim Hodge", email: null, role: "scorer", lastSignInAt: null });
     expect(isStandInEmail(standIn("tim.hodge"))).toBe(true);
 
-    const emailed = toAdminUser({
-      id: "2",
-      email: "someone@example.org",
-      app_metadata: {},
-      user_metadata: {},
-      last_sign_in_at: "2026-10-05T19:00:00Z",
-    });
+    const emailed = toStaffUser(
+      {
+        id: "2",
+        email: "someone@example.org",
+        app_metadata: { role: "super" },
+        user_metadata: {},
+        last_sign_in_at: "2026-10-05T19:00:00Z",
+      },
+      []
+    );
     expect(emailed.email).toBe("someone@example.org");
-    expect(emailed.role).toBe("owner");
+    expect(emailed.isSuper).toBe(true);
   });
 });

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import type { AdminUser } from "@/lib/adminUsers";
-import type { AdminRole } from "@/lib/auth";
+import { forgetAccess } from "@/lib/access";
+import { canAssign, canResetPassword, type CompetitionChoice, type StaffUser } from "@/lib/staffUsers";
 
 // Calls one of the /api/admin/users routes as the signed-in admin.
 async function callApi<T>(path: string, method: string, body?: unknown): Promise<T> {
@@ -26,27 +26,43 @@ async function callApi<T>(path: string, method: string, body?: unknown): Promise
 }
 
 type Handover = { name: string; password: string; isNew: boolean };
+type Role = "admin" | "scorer";
 
-// Everyone who can sign in, with their role - add, change role, give a new
-// password, or remove. Passwords are generated here and shown once so the
-// admin can pass them on.
+const ROLE_LABEL: Record<Role, string> = { admin: "Admin", scorer: "Scorer" };
+
+// Who runs and scores each competition. Super sees everyone and can add
+// admins or scorers anywhere; an admin sees the people in their own
+// competitions and adds scorers to them. Someone new gets a login with a
+// generated password, shown once to pass on; someone with a login already is
+// just added to the competition.
 export default function UserManager() {
-  const [users, setUsers] = useState<AdminUser[] | null>(null);
+  const [users, setUsers] = useState<StaffUser[] | null>(null);
+  const [competitions, setCompetitions] = useState<CompetitionChoice[]>([]);
   const [callerId, setCallerId] = useState<string | null>(null);
+  const [isSuper, setIsSuper] = useState(false);
   const [notConfigured, setNotConfigured] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [handover, setHandover] = useState<Handover | null>(null);
+  const [filter, setFilter] = useState(""); // competition id, or "" for all
 
   const [login, setLogin] = useState("");
-  const [role, setRole] = useState<AdminRole>("scorer");
+  const [competitionId, setCompetitionId] = useState("");
+  const [role, setRole] = useState<Role>("scorer");
   const [adding, setAdding] = useState(false);
 
   async function refresh() {
     try {
-      const result = await callApi<{ users: AdminUser[]; callerId: string }>("/api/admin/users", "GET");
+      const result = await callApi<{
+        users: StaffUser[];
+        competitions: CompetitionChoice[];
+        callerId: string;
+        isSuper: boolean;
+      }>("/api/admin/users", "GET");
       setUsers(result.users);
+      setCompetitions(result.competitions);
       setCallerId(result.callerId);
+      setIsSuper(result.isSuper);
     } catch (err) {
       if ((err as { code?: string }).code === "not_configured") setNotConfigured(true);
       else setError((err as Error).message);
@@ -57,17 +73,23 @@ export default function UserManager() {
     refresh();
   }, []);
 
+  const viewer = { id: callerId ?? "", isSuper, adminOf: new Set(competitions.map((c) => c.id)) };
+  const titleOf = (id: string) => competitions.find((c) => c.id === id)?.title ?? "Another competition";
+  const chosenCompetition = competitionId || filter || competitions[0]?.id || "";
+
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setHandover(null);
     setAdding(true);
     try {
-      const result = await callApi<{ user: AdminUser; password: string }>("/api/admin/users", "POST", {
+      const result = await callApi<{ user: StaffUser; password: string | null }>("/api/admin/users", "POST", {
         login,
-        role,
+        competitionId: chosenCompetition,
+        role: isSuper ? role : "scorer",
       });
-      setHandover({ name: result.user.name, password: result.password, isNew: true });
+      if (result.password) setHandover({ name: result.user.name, password: result.password, isNew: true });
+      if (result.user.id === callerId) forgetAccess();
       setLogin("");
       await refresh();
     } catch (err) {
@@ -90,11 +112,7 @@ export default function UserManager() {
     }
   }
 
-  function changeRole(user: AdminUser, newRole: AdminRole) {
-    withBusy(user.id, () => callApi(`/api/admin/users/${user.id}`, "PATCH", { role: newRole }));
-  }
-
-  function newPassword(user: AdminUser) {
+  function newPassword(user: StaffUser) {
     if (!confirm(`Give ${user.name} a new password? Their old one will stop working.`)) return;
     setHandover(null);
     withBusy(user.id, async () => {
@@ -105,8 +123,13 @@ export default function UserManager() {
     });
   }
 
-  function remove(user: AdminUser) {
-    if (!confirm(`Remove ${user.name}? They won't be able to sign in any more.`)) return;
+  function unassign(user: StaffUser, compId: string) {
+    if (!confirm(`Take ${user.name} off ${titleOf(compId)}?`)) return;
+    withBusy(user.id, () => callApi(`/api/admin/users/${user.id}?competition=${compId}`, "DELETE"));
+  }
+
+  function removeLogin(user: StaffUser) {
+    if (!confirm(`Remove ${user.name}'s login? They won't be able to sign in any more.`)) return;
     withBusy(user.id, () => callApi(`/api/admin/users/${user.id}`, "DELETE"));
   }
 
@@ -121,25 +144,64 @@ export default function UserManager() {
     );
   }
 
+  const shown = (users ?? []).filter(
+    (u) => !filter || u.assignments.some((a) => a.competition_id === filter) || (u.isSuper && isSuper)
+  );
+
   return (
     <>
       {handover && <PasswordHandover handover={handover} onDone={() => setHandover(null)} />}
       {error && <p className="error">{error}</p>}
 
+      {competitions.length > 1 && (
+        <div className="field user-filter">
+          <label htmlFor="user-filter">Competition</label>
+          <select id="user-filter" value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <option value="">{isSuper ? "Everyone" : "All my competitions"}</option>
+            {competitions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.title}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="card user-list">
         {users === null && !error && <p className="hint">Loading&hellip;</p>}
-        {users?.map((user) => {
+        {users !== null && shown.length === 0 && <p className="hint">Nobody assigned yet.</p>}
+        {shown.map((user) => {
           const isYou = user.id === callerId;
           const busy = busyId === user.id;
+          const assignments = filter ? user.assignments.filter((a) => a.competition_id === filter) : user.assignments;
           return (
             <div key={user.id} className="user-row">
               <div className="user-row-who">
                 <span className="user-row-name">
                   <strong>{user.name}</strong>
                   {isYou && <span className="user-you"> (you)</span>}
-                  <span className={`user-role user-role-${user.role}`}>
-                    {user.role === "scorer" ? "Scorer" : "Admin"}
-                  </span>
+                  {user.isSuper && <span className="user-role user-role-owner">Super</span>}
+                </span>
+                <span className="user-assignments">
+                  {assignments.map((a) => (
+                    <span key={a.competition_id} className={`user-assignment user-assignment-${a.role}`}>
+                      {titleOf(a.competition_id)} · {ROLE_LABEL[a.role]}
+                      {canAssign(a.competition_id, a.role, viewer) && (
+                        <button
+                          type="button"
+                          className="user-assignment-remove"
+                          disabled={busy}
+                          aria-label={`Take ${user.name} off ${titleOf(a.competition_id)}`}
+                          onClick={() => unassign(user, a.competition_id)}
+                        >
+                          &times;
+                        </button>
+                      )}
+                    </span>
+                  ))}
+                  {assignments.length === 0 && !user.isSuper && (
+                    <span className="hint">Not assigned to anything</span>
+                  )}
                 </span>
                 <span className="hint">
                   {user.email && user.email !== user.name ? `${user.email} · ` : ""}
@@ -152,23 +214,14 @@ export default function UserManager() {
                 </span>
               </div>
               <div className="user-row-actions">
-                {!isYou && (
-                  <select
-                    value={user.role}
-                    disabled={busy}
-                    onChange={(e) => changeRole(user, e.target.value as AdminRole)}
-                    aria-label={`Change ${user.name}'s role`}
-                  >
-                    <option value="owner">Make admin</option>
-                    <option value="scorer">Make scorer</option>
-                  </select>
+                {canResetPassword(user, viewer) && (
+                  <button type="button" className="link-button" disabled={busy} onClick={() => newPassword(user)}>
+                    New password
+                  </button>
                 )}
-                <button type="button" className="link-button" disabled={busy} onClick={() => newPassword(user)}>
-                  New password
-                </button>
-                {!isYou && (
-                  <button type="button" className="link-button user-remove" disabled={busy} onClick={() => remove(user)}>
-                    Remove
+                {isSuper && !isYou && (
+                  <button type="button" className="link-button user-remove" disabled={busy} onClick={() => removeLogin(user)}>
+                    Remove login
                   </button>
                 )}
               </div>
@@ -177,35 +230,53 @@ export default function UserManager() {
         })}
       </div>
 
-      <form onSubmit={handleAdd} className="card">
-        <h2>Add someone</h2>
-        <div className="field">
-          <label htmlFor="new-user-login">Full name</label>
-          <input
-            id="new-user-login"
-            required
-            autoCapitalize="words"
-            autoComplete="off"
-            placeholder="Full Name"
-            value={login}
-            onChange={(e) => setLogin(e.target.value)}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="new-user-role">Role</label>
-          <select id="new-user-role" value={role} onChange={(e) => setRole(e.target.value as AdminRole)}>
-            <option value="scorer">Scorer - can score matches once a night&rsquo;s draw is published</option>
-            <option value="owner">Admin - can do everything, including adding users</option>
-          </select>
-        </div>
-        <p className="hint">
-          A password is made for them when you add them. Pass it on and they sign in with their full name and that
-          password.
-        </p>
-        <button type="submit" disabled={adding}>
-          {adding ? "Adding…" : "Add user"}
-        </button>
-      </form>
+      {competitions.length > 0 && (
+        <form onSubmit={handleAdd} className="card">
+          <h2>{isSuper ? "Add someone to a competition" : "Add a scorer"}</h2>
+          <div className="field">
+            <label htmlFor="new-user-login">Full name</label>
+            <input
+              id="new-user-login"
+              required
+              autoCapitalize="words"
+              autoComplete="off"
+              placeholder="Full Name"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="new-user-competition">Competition</label>
+            <select
+              id="new-user-competition"
+              value={chosenCompetition}
+              onChange={(e) => setCompetitionId(e.target.value)}
+            >
+              {competitions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
+          </div>
+          {isSuper && (
+            <div className="field">
+              <label htmlFor="new-user-role">Role</label>
+              <select id="new-user-role" value={role} onChange={(e) => setRole(e.target.value as Role)}>
+                <option value="scorer">Scorer - scores matches once the draw is published</option>
+                <option value="admin">Admin - runs the competition and adds its scorers</option>
+              </select>
+            </div>
+          )}
+          <p className="hint">
+            Someone new gets a password when you add them - pass it on and they sign in with their full name and that
+            password. Someone who already has a login is just added to this competition.
+          </p>
+          <button type="submit" disabled={adding}>
+            {adding ? "Adding…" : "Add"}
+          </button>
+        </form>
+      )}
     </>
   );
 }

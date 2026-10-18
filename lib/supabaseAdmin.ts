@@ -2,7 +2,6 @@
 // service role key, which can do anything in the project, so it must only
 // ever run in an API route on the server.
 import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
-import { roleOf } from "@/lib/adminUsers";
 
 export function supabaseAdmin(): SupabaseClient | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -15,12 +14,18 @@ export function jsonError(status: number, error: string, code?: string) {
   return Response.json({ error, code }, { status });
 }
 
-// Checks the request comes from a signed-in full admin (not a scorer), using
-// the access token the admin page sends. Returns the admin client and the
-// caller, or a ready-made error response.
-export async function requireOwner(
-  request: Request
-): Promise<{ admin: SupabaseClient; caller: User } | { response: Response }> {
+export type Staff = {
+  admin: SupabaseClient;
+  caller: User;
+  isSuper: boolean;
+  // Competitions the caller is an admin of (every one, for Super)
+  adminOf: Set<string>;
+};
+
+// Checks the request comes from Super or an admin of at least one
+// competition, using the access token the page sends. Returns the admin
+// client, the caller and what they run, or a ready-made error response.
+export async function requireStaff(request: Request): Promise<Staff | { response: Response }> {
   const admin = supabaseAdmin();
   if (!admin) {
     return {
@@ -35,8 +40,22 @@ export async function requireOwner(
   if (!token) return { response: jsonError(401, "Please sign in again.") };
   const { data, error } = await admin.auth.getUser(token);
   if (error || !data.user) return { response: jsonError(401, "Please sign in again.") };
-  if (roleOf(data.user) !== "owner") {
-    return { response: jsonError(403, "Only a full admin can manage logins.") };
+
+  const isSuper = data.user.app_metadata?.role === "super";
+  let adminOf: string[];
+  if (isSuper) {
+    const { data: all } = await admin.from("competitions").select("id");
+    adminOf = (all ?? []).map((c) => c.id);
+  } else {
+    const { data: mine } = await admin
+      .from("assignments")
+      .select("competition_id")
+      .eq("user_id", data.user.id)
+      .eq("role", "admin");
+    adminOf = (mine ?? []).map((a) => a.competition_id);
   }
-  return { admin, caller: data.user };
+  if (!isSuper && adminOf.length === 0) {
+    return { response: jsonError(403, "Only Super or a competition's admin can manage logins.") };
+  }
+  return { admin, caller: data.user, isSuper, adminOf: new Set(adminOf) };
 }

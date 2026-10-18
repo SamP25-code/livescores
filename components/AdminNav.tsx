@@ -4,16 +4,17 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { useAdminRole, useIsSuper } from "@/lib/auth";
+import { accessLabel, isAnyAdmin, useAccess } from "@/lib/access";
 import { displayNameOf } from "@/lib/adminUsers";
 
 // The admin menu: down the left on a computer, a row of tabs across the
-// top on a phone. Users is only there for full admins; Competitions and People
-// for Super.
+// top on a phone. Competitions and Users are there for Super and for admins
+// (their own competitions); People - the shared list of players - for Super.
 export default function AdminNav() {
   const pathname = usePathname();
-  const role = useAdminRole();
-  const isSuper = useIsSuper();
+  const access = useAccess();
+  const isSuper = Boolean(access?.isSuper);
+  const admin = access ? isAnyAdmin(access) : false;
   const [name, setName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,22 +25,20 @@ export default function AdminNav() {
 
   const links = [
     { href: "/admin", label: "Home", active: pathname === "/admin" || pathname.startsWith("/admin/night") },
-    ...(isSuper
-      ? [
-          { href: "/admin/competitions", label: "Competitions", active: pathname.startsWith("/admin/competitions") },
-          { href: "/admin/people", label: "People", active: pathname === "/admin/people" },
-        ]
+    ...(admin
+      ? [{ href: "/admin/competitions", label: "Competitions", active: pathname.startsWith("/admin/competitions") }]
       : []),
-    ...(role === "owner" ? [{ href: "/admin/users", label: "Users", active: pathname === "/admin/users" }] : []),
+    ...(isSuper ? [{ href: "/admin/people", label: "People", active: pathname === "/admin/people" }] : []),
+    ...(admin ? [{ href: "/admin/users", label: "Users", active: pathname === "/admin/users" }] : []),
     { href: "/admin/settings", label: "Settings", active: pathname === "/admin/settings" },
   ];
 
   return (
     <nav className="admin-nav" aria-label="Admin">
-      {name && role && (
+      {name && access && (
         <p className="admin-nav-who">
           <strong>{name}</strong>
-          <span>{isSuper ? "Super" : role === "scorer" ? "Scorer" : "Admin"}</span>
+          <span>{accessLabel(access)}</span>
         </p>
       )}
       <ul className="admin-nav-links">

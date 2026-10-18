@@ -2661,3 +2661,51 @@ label {
   margin: 0;
   font-size: 0.85rem;
 }
+
+/* Users: which competitions each person runs or scores */
+.user-filter {
+  max-width: 420px;
+}
+
+.user-assignments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin: 4px 0;
+}
+
+.user-assignment {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 4px 1px 9px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.user-assignment-admin {
+  background: var(--green-deep);
+  color: #fff;
+}
+
+.user-assignment-scorer {
+  background: var(--green-pale);
+  color: var(--green-deep);
+}
+
+.user-assignment-remove {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 5px;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.user-assignment-remove:hover {
+  opacity: 1;
+}

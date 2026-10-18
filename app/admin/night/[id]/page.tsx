@@ -58,7 +58,7 @@ import {
 } from "@/lib/bracket";
 import { drawSizeFor, randomDrawNumbers } from "@/lib/draw";
 import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
-import { useAdminRole } from "@/lib/auth";
+import { pageRoleFor, useAccess } from "@/lib/access";
 import { errorMessage } from "@/lib/errors";
 import { deleteEntry, listClubs, listEntries, type EntryWithPeople } from "@/lib/peopleApi";
 import Avatar from "@/components/Avatar";
@@ -110,9 +110,12 @@ async function loadCompetitionContext(competitionId: string, nightId: string): P
 }
 
 export default function AdminNightPage({ params }: { params: Promise<{ id: string }> }) {
-  const role = useAdminRole();
+  const access = useAccess();
   const { id: nightId } = use(params);
   const [night, setNight] = useState<Night | null>(null);
+  // "owner" runs this session (Super, or an admin of its competition);
+  // "scorer" only scores; null - not theirs
+  const role = access && night ? pageRoleFor(access, night.competition_id) : null;
   const [players, setPlayers] = useState<Player[]>([]);
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [finalsRoster, setFinalsRoster] = useState<Player[]>([]);
@@ -379,6 +382,9 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
 
       <h1>{night?.name ?? "Loading…"}</h1>
       {error && <p className="error">{error}</p>}
+      {access && night && role === null && (
+        <p className="hint">You&rsquo;re not assigned to this competition - ask its organiser if you should be.</p>
+      )}
 
       {role === "owner" && night && !isFinals && (!newFlow || bracketExists) && (
         <div
@@ -522,7 +528,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
         <p className="empty">This draw isn&rsquo;t published yet &mdash; nothing to score.</p>
       )}
 
-      {bracketExists && (role === "owner" || night?.draw_published) && (
+      {bracketExists && role !== null && (role === "owner" || night?.draw_published) && (
         <>
           {rounds.map(([round, roundMatches]) => (
             <section key={round}>
