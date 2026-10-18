@@ -7,6 +7,7 @@ import { getCompetition, type CompetitionWithSeries } from "@/lib/competitionsAp
 import { longDate, settingsSummary } from "@/lib/competitionSetup";
 import { errorMessage } from "@/lib/errors";
 import CompetitionForm from "@/components/CompetitionForm";
+import EntriesManager from "@/components/EntriesManager";
 import type { Night } from "@/lib/types";
 
 const STATUS_LABEL = { planned: "Planned", active: "Active", archived: "Archived" } as const;
@@ -106,6 +107,9 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
             ))}
           </div>
 
+          <EntriesManager competition={c} />
+
+          <h2>Settings</h2>
           {saved && !editing && <p className="hint">Changes saved.</p>}
           {!editing ? (
             <button type="button" className="secondary" onClick={() => setEditing(true)}>
@@ -113,7 +117,6 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
             </button>
           ) : (
             <>
-              <h2>Settings</h2>
               <CompetitionForm
                 existing={data}
                 onSaved={async () => {

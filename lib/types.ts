@@ -77,6 +77,25 @@ export type Competition = {
   created_at: string;
 };
 
+export type Person = {
+  id: string;
+  full_name: string;
+  note: string | null;
+  club_id: string | null;
+  hidden: boolean;
+  merged_into_id: string | null;
+  created_at: string;
+};
+
+export type Entry = {
+  id: string;
+  competition_id: string;
+  person_id: string;
+  partner_id: string | null;
+  status: "entered" | "withdrawn";
+  created_at: string;
+};
+
 export type Player = {
   id: string;
   night_id: string;

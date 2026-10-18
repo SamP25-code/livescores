@@ -8,7 +8,8 @@ import { useAdminRole, useIsSuper } from "@/lib/auth";
 import { displayNameOf } from "@/lib/adminUsers";
 
 // The admin menu: down the left on a computer, a row of tabs across the
-// top on a phone. Users is only there for full admins, Competitions for Super.
+// top on a phone. Users is only there for full admins; Competitions and People
+// for Super.
 export default function AdminNav() {
   const pathname = usePathname();
   const role = useAdminRole();
@@ -24,7 +25,10 @@ export default function AdminNav() {
   const links = [
     { href: "/admin", label: "Home", active: pathname === "/admin" || pathname.startsWith("/admin/night") },
     ...(isSuper
-      ? [{ href: "/admin/competitions", label: "Competitions", active: pathname.startsWith("/admin/competitions") }]
+      ? [
+          { href: "/admin/competitions", label: "Competitions", active: pathname.startsWith("/admin/competitions") },
+          { href: "/admin/people", label: "People", active: pathname === "/admin/people" },
+        ]
       : []),
     ...(role === "owner" ? [{ href: "/admin/users", label: "Users", active: pathname === "/admin/users" }] : []),
     { href: "/admin/settings", label: "Settings", active: pathname === "/admin/settings" },
