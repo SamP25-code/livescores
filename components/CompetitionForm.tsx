@@ -1,0 +1,536 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import {
+  finalsFill,
+  planSessions,
+  settingsProblems,
+  slugify,
+  type CompetitionFormat,
+  type SessionKind,
+} from "@/lib/competitionSetup";
+import {
+  createCompetition,
+  createOrganiser,
+  createSeries,
+  createVenue,
+  listChoices,
+  updateCompetition,
+  type CompetitionInput,
+  type CompetitionWithSeries,
+  type SessionDetails,
+} from "@/lib/competitionsApi";
+import { errorMessage } from "@/lib/errors";
+import type { Night, Organiser, Series, Venue } from "@/lib/types";
+
+const DEFAULT_START: Record<SessionKind, string> = {
+  qualifier: "19:00",
+  finals: "13:00",
+  single_day: "10:00",
+  final: "14:00",
+};
+
+const SESSION_LABEL: Record<SessionKind, string> = {
+  qualifier: "Qualifying night",
+  finals: "Finals Day",
+  single_day: "The day",
+  final: "The final",
+};
+
+const numberOrNull = (v: string) => (v.trim() === "" ? null : Number(v));
+
+// Set up a new competition, or change an existing one's settings. Super only.
+// Once a draw has been made the structure is locked and only the details
+// (status, label, sponsor, venue, dates) can change.
+export default function CompetitionForm({
+  existing,
+  onSaved,
+}: {
+  existing?: { competition: CompetitionWithSeries; sessions: Night[] };
+  onSaved: (competitionId: string) => void;
+}) {
+  const c = existing?.competition;
+  const locked = Boolean(c?.structure_locked);
+
+  const [organisers, setOrganisers] = useState<Organiser[]>([]);
+  const [allSeries, setAllSeries] = useState<Series[]>([]);
+  const [venues, setVenues] = useState<Venue[]>([]);
+
+  // Who runs it and which competition (new only)
+  const [organiserId, setOrganiserId] = useState<string>("");
+  const [newOrganiser, setNewOrganiser] = useState({ name: "", short_name: "", kind: "club" as "club" | "event" });
+  const [seriesId, setSeriesId] = useState<string>("");
+  const [newSeriesName, setNewSeriesName] = useState("");
+  const [newSeriesSlug, setNewSeriesSlug] = useState("");
+  const [slugEdited, setSlugEdited] = useState(false);
+
+  // Settings
+  const [year, setYear] = useState<number>(c?.year ?? new Date().getFullYear() + 1);
+  const [status, setStatus] = useState<CompetitionInput["status"]>(c?.status ?? "planned");
+  const [format, setFormat] = useState<CompetitionFormat>(c?.format ?? "qualifying_and_finals");
+  const [teamSize, setTeamSize] = useState<1 | 2>(c?.team_size ?? 1);
+  const [targetScore, setTargetScore] = useState<21 | 31>(c?.target_score ?? 21);
+  const [scoringStyle, setScoringStyle] = useState<CompetitionInput["scoring_style"]>(c?.scoring_style ?? "live");
+  const [entryMethod, setEntryMethod] = useState<CompetitionInput["entry_method"]>(c?.entry_method ?? "open");
+  const [drawMethod, setDrawMethod] = useState<CompetitionInput["draw_method"]>(c?.draw_method ?? "in_advance");
+  const [label, setLabel] = useState(c?.label ?? "");
+  const [drawSize, setDrawSize] = useState(c?.draw_size?.toString() ?? "16");
+  const [nights, setNights] = useState(c?.qualifying_nights?.toString() ?? "4");
+  const [perNight, setPerNight] = useState(c?.entries_per_night?.toString() ?? "16");
+  const [through, setThrough] = useState(c?.qualifiers_per_night?.toString() ?? "4");
+  const [sponsorName, setSponsorName] = useState(c?.sponsor_name ?? "");
+  const [sponsorUrl, setSponsorUrl] = useState(c?.sponsor_url ?? "");
+
+  // Venue
+  const [venueId, setVenueId] = useState<string>(c?.venue_id ?? "");
+  const [newVenue, setNewVenue] = useState({ name: "", address: "", postcode: "", notes: "" });
+
+  // Sessions' dates and start times, in plan order
+  const [sessions, setSessions] = useState<SessionDetails[]>(() =>
+    (existing?.sessions ?? []).map((s) => ({ date: s.date ?? null, start_time: s.start_time?.slice(0, 5) ?? null }))
+  );
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    listChoices()
+      .then((choices) => {
+        setOrganisers(choices.organisers);
+        setAllSeries(choices.series);
+        setVenues(choices.venues);
+      })
+      .catch((err) => setError(errorMessage(err)));
+  }, []);
+
+  const structure = {
+    format,
+    team_size: teamSize,
+    target_score: targetScore,
+    draw_size: format === "final_only" ? 2 : numberOrNull(drawSize),
+    qualifying_nights: format === "qualifying_and_finals" ? numberOrNull(nights) : null,
+    entries_per_night: format === "qualifying_and_finals" ? numberOrNull(perNight) : null,
+    qualifiers_per_night: format === "qualifying_and_finals" ? numberOrNull(through) : null,
+  };
+  const problems = settingsProblems(structure);
+  const fill = finalsFill(structure);
+  const plan = useMemo(
+    () => planSessions(format, structure.qualifying_nights),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [format, structure.qualifying_nights]
+  );
+
+  // Keep one date/time row per planned session, with sensible start times
+  useEffect(() => {
+    setSessions((current) =>
+      plan.map((p, i) => ({
+        date: current[i]?.date ?? null,
+        start_time: current[i]?.start_time ?? DEFAULT_START[p.kind],
+      }))
+    );
+  }, [plan]);
+
+  const seriesForOrganiser = allSeries.filter((s) => s.organiser_id === organiserId);
+
+  function setSession(i: number, field: keyof SessionDetails, value: string) {
+    setSessions((current) => current.map((s, j) => (j === i ? { ...s, [field]: value || null } : s)));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (problems.length > 0) {
+      setError(problems[0]);
+      return;
+    }
+    setSaving(true);
+    try {
+      let chosenVenueId: string | null = venueId || null;
+      if (venueId === "new") {
+        if (!newVenue.name.trim()) throw new Error("Enter the new venue's name.");
+        const v = await createVenue({
+          name: newVenue.name.trim(),
+          address: newVenue.address.trim() || null,
+          postcode: newVenue.postcode.trim() || null,
+          notes: newVenue.notes.trim() || null,
+        });
+        chosenVenueId = v.id;
+      }
+
+      const settings: Partial<CompetitionInput> = {
+        year,
+        status,
+        label: label.trim() || null,
+        sponsor_name: sponsorName.trim() || null,
+        sponsor_url: sponsorUrl.trim() || null,
+        venue_id: chosenVenueId,
+        ...(locked
+          ? {}
+          : {
+              ...structure,
+              scoring_style: scoringStyle,
+              entry_method: entryMethod,
+              draw_method: drawMethod,
+            }),
+      };
+
+      if (existing && c) {
+        await updateCompetition(c, settings, existing.sessions, sessions);
+        onSaved(c.id);
+        return;
+      }
+
+      let chosenOrganiserId = organiserId;
+      if (!organiserId && organisers.length > 0) throw new Error("Choose who runs it.");
+      if (organiserId === "new" || !organiserId) {
+        if (!newOrganiser.name.trim() || !newOrganiser.short_name.trim()) {
+          throw new Error("Enter who runs it - the full name and the short name.");
+        }
+        const o = await createOrganiser({
+          name: newOrganiser.name.trim(),
+          short_name: newOrganiser.short_name.trim(),
+          kind: newOrganiser.kind,
+        });
+        chosenOrganiserId = o.id;
+      }
+      let chosenSeriesId = seriesId;
+      if (seriesId === "new" || !seriesId) {
+        const slug = slugify(newSeriesSlug || newSeriesName);
+        if (!newSeriesName.trim() || !slug) throw new Error("Enter the competition's name.");
+        const s = await createSeries({ organiser_id: chosenOrganiserId, name: newSeriesName.trim(), slug });
+        chosenSeriesId = s.id;
+      }
+
+      const created = await createCompetition(
+        { ...(settings as CompetitionInput), series_id: chosenSeriesId, colour: null },
+        sessions
+      );
+      onSaved(created.id);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="comp-form">
+      {!existing && (
+        <section className="card">
+          <h2>Competition</h2>
+          <div className="field">
+            <label htmlFor="cf-organiser">Run by</label>
+            <select
+              id="cf-organiser"
+              value={organiserId || (organisers.length ? "" : "new")}
+              onChange={(e) => {
+                setOrganiserId(e.target.value);
+                setSeriesId("");
+              }}
+            >
+              <option value="" disabled>
+                Choose a club or event
+              </option>
+              {organisers.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.short_name} ({o.kind === "club" ? "club" : "event"})
+                </option>
+              ))}
+              <option value="new">+ A new club or event</option>
+            </select>
+          </div>
+          {(organiserId === "new" || organisers.length === 0) && (
+            <div className="comp-form-sub">
+              <div className="field">
+                <label htmlFor="cf-org-name">Full name</label>
+                <input
+                  id="cf-org-name"
+                  placeholder="Penwortham Sports & Social Club"
+                  value={newOrganiser.name}
+                  onChange={(e) => setNewOrganiser({ ...newOrganiser, name: e.target.value })}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="cf-org-short">Short name</label>
+                <input
+                  id="cf-org-short"
+                  placeholder="Penwortham"
+                  value={newOrganiser.short_name}
+                  onChange={(e) => setNewOrganiser({ ...newOrganiser, short_name: e.target.value })}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="cf-org-kind">Type</label>
+                <select
+                  id="cf-org-kind"
+                  value={newOrganiser.kind}
+                  onChange={(e) => setNewOrganiser({ ...newOrganiser, kind: e.target.value as "club" | "event" })}
+                >
+                  <option value="club">Club</option>
+                  <option value="event">Standalone event (e.g. Blackpool Masters)</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          <div className="field">
+            <label htmlFor="cf-series">Competition</label>
+            <select id="cf-series" value={seriesId || "new"} onChange={(e) => setSeriesId(e.target.value)}>
+              {seriesForOrganiser.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} - a new year
+                </option>
+              ))}
+              <option value="new">+ A new competition</option>
+            </select>
+          </div>
+          {(seriesId === "new" || !seriesId) && (
+            <div className="comp-form-sub">
+              <div className="field">
+                <label htmlFor="cf-series-name">Name</label>
+                <input
+                  id="cf-series-name"
+                  placeholder="Spring Doubles"
+                  value={newSeriesName}
+                  onChange={(e) => {
+                    setNewSeriesName(e.target.value);
+                    if (!slugEdited) setNewSeriesSlug(slugify(e.target.value));
+                  }}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="cf-series-slug">Web address</label>
+                <div className="comp-form-slug">
+                  <span>/</span>
+                  <input
+                    id="cf-series-slug"
+                    value={newSeriesSlug}
+                    onChange={(e) => {
+                      setSlugEdited(true);
+                      setNewSeriesSlug(e.target.value);
+                    }}
+                  />
+                </div>
+                <p className="hint">Always opens the latest year. Can&rsquo;t be changed later.</p>
+              </div>
+            </div>
+          )}
+
+          <div className="field">
+            <label htmlFor="cf-year">Year</label>
+            <input
+              id="cf-year"
+              type="number"
+              min={2000}
+              max={2100}
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+            />
+          </div>
+        </section>
+      )}
+
+      <section className="card">
+        <h2>Format</h2>
+        {locked && (
+          <p className="comp-form-locked">
+            A draw has been made, so the format is locked. Dates, venue, sponsor and status can still change.
+          </p>
+        )}
+        <fieldset className="comp-form-choice" disabled={locked}>
+          <legend>Format</legend>
+          {(
+            [
+              ["qualifying_and_finals", "Qualifying nights + Finals Day"],
+              ["single_day", "Single day"],
+              ["final_only", "Final only (results from elsewhere)"],
+            ] as const
+          ).map(([value, text]) => (
+            <label key={value}>
+              <input type="radio" name="cf-format" checked={format === value} onChange={() => setFormat(value)} />
+              {text}
+            </label>
+          ))}
+        </fieldset>
+        <fieldset className="comp-form-choice" disabled={locked}>
+          <legend>Singles or doubles</legend>
+          <label>
+            <input type="radio" name="cf-team" checked={teamSize === 1} onChange={() => setTeamSize(1)} />
+            Singles
+          </label>
+          <label>
+            <input type="radio" name="cf-team" checked={teamSize === 2} onChange={() => setTeamSize(2)} />
+            Doubles (pairs)
+          </label>
+        </fieldset>
+
+        {format === "qualifying_and_finals" && (
+          <div className="comp-form-grid">
+            <div className="field">
+              <label htmlFor="cf-nights">Qualifying nights</label>
+              <input id="cf-nights" type="number" min={1} disabled={locked} value={nights} onChange={(e) => setNights(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="cf-per-night">{teamSize === 2 ? "Pairs" : "Players"} each night</label>
+              <input id="cf-per-night" type="number" min={2} disabled={locked} value={perNight} onChange={(e) => setPerNight(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="cf-through">Go through each night</label>
+              <input id="cf-through" type="number" min={1} disabled={locked} value={through} onChange={(e) => setThrough(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="cf-draw">Finals Day draw</label>
+              <input id="cf-draw" type="number" min={2} disabled={locked} value={drawSize} onChange={(e) => setDrawSize(e.target.value)} />
+            </div>
+          </div>
+        )}
+        {format === "single_day" && (
+          <div className="field">
+            <label htmlFor="cf-draw-single">{teamSize === 2 ? "Pairs" : "Players"} in the draw</label>
+            <input id="cf-draw-single" type="number" min={2} disabled={locked} value={drawSize} onChange={(e) => setDrawSize(e.target.value)} />
+          </div>
+        )}
+        {fill && (
+          <p className="hint">
+            {fill.through} go through to Finals Day
+            {fill.byes > 0 ? `, leaving ${fill.byes} bye${fill.byes === 1 ? "" : "s"} in the draw of ${structure.draw_size}` : ", filling the draw"}.
+          </p>
+        )}
+        {problems.length > 0 && <p className="error">{problems[0]}</p>}
+
+        <div className="comp-form-grid">
+          <div className="field">
+            <label htmlFor="cf-target">Winning score</label>
+            <select id="cf-target" disabled={locked} value={targetScore} onChange={(e) => setTargetScore(Number(e.target.value) as 21 | 31)}>
+              <option value={21}>21 up</option>
+              <option value={31}>31 up</option>
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="cf-scoring">Scoring</label>
+            <select id="cf-scoring" disabled={locked} value={scoringStyle} onChange={(e) => setScoringStyle(e.target.value as typeof scoringStyle)}>
+              <option value="live">Live, point by point</option>
+              <option value="results">Results only</option>
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="cf-entry">Entry</label>
+            <select id="cf-entry" disabled={locked} value={entryMethod} onChange={(e) => setEntryMethod(e.target.value as typeof entryMethod)}>
+              <option value="open">Open - the organiser enters players</option>
+              <option value="qualification">By qualification and wildcards</option>
+              <option value="on_the_night">Entered on the night</option>
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="cf-drawmethod">Draw</label>
+            <select id="cf-drawmethod" disabled={locked} value={drawMethod} onChange={(e) => setDrawMethod(e.target.value as typeof drawMethod)}>
+              <option value="in_advance">Made in advance</option>
+              <option value="on_the_day">Made on the day</option>
+            </select>
+          </div>
+        </div>
+        <div className="field">
+          <label htmlFor="cf-label">Label (optional)</label>
+          <input id="cf-label" placeholder="e.g. Ladies" value={label} onChange={(e) => setLabel(e.target.value)} />
+        </div>
+      </section>
+
+      <section className="card">
+        <h2>Dates</h2>
+        <p className="hint">Leave a date empty if it isn&rsquo;t known yet - it shows as &ldquo;Dates to be confirmed&rdquo;.</p>
+        <div className="comp-form-sessions">
+          {plan.map((p, i) => (
+            <div key={`${p.kind}-${p.session_number}`} className="comp-form-session">
+              <span className="comp-form-session-name">
+                {p.kind === "qualifier" ? `${SESSION_LABEL.qualifier} ${p.session_number}` : SESSION_LABEL[p.kind]}
+              </span>
+              <input
+                type="date"
+                aria-label={`Date for ${SESSION_LABEL[p.kind]} ${p.session_number}`}
+                value={sessions[i]?.date ?? ""}
+                onChange={(e) => setSession(i, "date", e.target.value)}
+              />
+              <input
+                type="time"
+                aria-label={`Start time for ${SESSION_LABEL[p.kind]} ${p.session_number}`}
+                value={sessions[i]?.start_time ?? ""}
+                onChange={(e) => setSession(i, "start_time", e.target.value)}
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="card">
+        <h2>Venue and sponsor</h2>
+        <div className="field">
+          <label htmlFor="cf-venue">Venue</label>
+          <select id="cf-venue" value={venueId} onChange={(e) => setVenueId(e.target.value)}>
+            <option value="">Not set yet</option>
+            {venues.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
+                {v.postcode ? ` (${v.postcode})` : ""}
+              </option>
+            ))}
+            <option value="new">+ A new venue</option>
+          </select>
+        </div>
+        {venueId === "new" && (
+          <div className="comp-form-sub">
+            <div className="field">
+              <label htmlFor="cf-venue-name">Venue name</label>
+              <input id="cf-venue-name" value={newVenue.name} onChange={(e) => setNewVenue({ ...newVenue, name: e.target.value })} />
+            </div>
+            <div className="field">
+              <label htmlFor="cf-venue-address">Address</label>
+              <input id="cf-venue-address" value={newVenue.address} onChange={(e) => setNewVenue({ ...newVenue, address: e.target.value })} />
+            </div>
+            <div className="field">
+              <label htmlFor="cf-venue-postcode">Postcode</label>
+              <input id="cf-venue-postcode" value={newVenue.postcode} onChange={(e) => setNewVenue({ ...newVenue, postcode: e.target.value })} />
+            </div>
+            <div className="field">
+              <label htmlFor="cf-venue-notes">Notes for spectators (optional)</label>
+              <input
+                id="cf-venue-notes"
+                placeholder="Parking on site. Bar open, seating available"
+                value={newVenue.notes}
+                onChange={(e) => setNewVenue({ ...newVenue, notes: e.target.value })}
+              />
+            </div>
+          </div>
+        )}
+        <div className="comp-form-grid">
+          <div className="field">
+            <label htmlFor="cf-sponsor">Sponsor (optional)</label>
+            <input id="cf-sponsor" value={sponsorName} onChange={(e) => setSponsorName(e.target.value)} />
+          </div>
+          <div className="field">
+            <label htmlFor="cf-sponsor-url">Sponsor&rsquo;s website (optional)</label>
+            <input
+              id="cf-sponsor-url"
+              type="url"
+              placeholder="https://"
+              value={sponsorUrl}
+              onChange={(e) => setSponsorUrl(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="field">
+          <label htmlFor="cf-status">Status</label>
+          <select id="cf-status" value={status} onChange={(e) => setStatus(e.target.value as typeof status)}>
+            <option value="planned">Planned - shown with its dates, nothing to open yet</option>
+            <option value="active">Active - the current one</option>
+            <option value="archived">Archived - finished, results kept</option>
+          </select>
+        </div>
+      </section>
+
+      {error && <p className="error">{error}</p>}
+      <button type="submit" disabled={saving}>
+        {saving ? "Saving…" : existing ? "Save changes" : "Create competition"}
+      </button>
+    </form>
+  );
+}

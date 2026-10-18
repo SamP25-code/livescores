@@ -27,8 +27,10 @@ export function roundName(playersInRound: number): string {
   }
 }
 
+// Qualifying nights number their rounds; Finals Day, a single day and a
+// final name them by how many are left ("Round of 32", "Quarter-Final"...).
 export function roundLabel(
-  kind: "qualifier" | "finals",
+  kind: "qualifier" | "finals" | "single_day" | "final",
   round: number,
   matchesInRound: number
 ): string {

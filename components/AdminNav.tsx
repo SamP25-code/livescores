@@ -4,14 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { useAdminRole } from "@/lib/auth";
+import { useAdminRole, useIsSuper } from "@/lib/auth";
 import { displayNameOf } from "@/lib/adminUsers";
 
 // The admin menu: down the left on a computer, a row of tabs across the
-// top on a phone. Users is only there for full admins.
+// top on a phone. Users is only there for full admins, Competitions for Super.
 export default function AdminNav() {
   const pathname = usePathname();
   const role = useAdminRole();
+  const isSuper = useIsSuper();
   const [name, setName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,6 +23,9 @@ export default function AdminNav() {
 
   const links = [
     { href: "/admin", label: "Home", active: pathname === "/admin" || pathname.startsWith("/admin/night") },
+    ...(isSuper
+      ? [{ href: "/admin/competitions", label: "Competitions", active: pathname.startsWith("/admin/competitions") }]
+      : []),
     ...(role === "owner" ? [{ href: "/admin/users", label: "Users", active: pathname === "/admin/users" }] : []),
     { href: "/admin/settings", label: "Settings", active: pathname === "/admin/settings" },
   ];
@@ -31,7 +35,7 @@ export default function AdminNav() {
       {name && role && (
         <p className="admin-nav-who">
           <strong>{name}</strong>
-          <span>{role === "scorer" ? "Scorer" : "Admin"}</span>
+          <span>{isSuper ? "Super" : role === "scorer" ? "Scorer" : "Admin"}</span>
         </p>
       )}
       <ul className="admin-nav-links">
