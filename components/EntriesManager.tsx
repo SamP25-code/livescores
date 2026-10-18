@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import PersonPicker from "@/components/PersonPicker";
+import PersonDetailsEditor from "@/components/PersonDetailsEditor";
 import { syncSessionPlaces } from "@/lib/adminActions";
 import { longDate } from "@/lib/competitionSetup";
 import { errorMessage } from "@/lib/errors";
@@ -199,7 +200,15 @@ export default function EntriesManager({ competition, sessions }: { competition:
     if (editing === e.id) {
       return (
         <div key={e.id} className="entries-edit">
-          <p className="hint">Change who this entry is. Anything already played moves with it.</p>
+          <p className="hint">
+            Picked the wrong person? Change who this entry is - anything already played moves with it. Right person,
+            wrong spelling? Correct their details instead.
+          </p>
+          <div className="person-details-list">
+            {[e.person, e.partner].filter((p): p is PersonDetails => Boolean(p)).map((p) => (
+              <PersonDetailsEditor key={p.id} person={p} clubs={clubs} onSaved={load} />
+            ))}
+          </div>
           <PersonPicker
             id={`edit-person-${e.id}`}
             label={pairs ? "First player" : "Player"}

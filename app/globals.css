@@ -2709,3 +2709,16 @@ label {
 .user-assignment-remove:hover {
   opacity: 1;
 }
+
+/* Correcting a player's details from their entry */
+.person-details-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.person-details {
+  align-self: stretch;
+}

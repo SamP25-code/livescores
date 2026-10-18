@@ -103,13 +103,20 @@ export async function createPerson(p: { full_name: string; club_id: string | nul
   return toDetails(data as PersonRow, new Map());
 }
 
-// Super: correct a person's name, club or note
+// Correct a person's name, club or note. Super can for anyone; an admin for
+// someone entered only in competitions they run (the database checks).
 export async function updatePerson(id: string, p: { full_name: string; club_id: string | null; note: string | null }): Promise<void> {
-  const { error } = await supabase
+  if (!tidyName(p.full_name)) throw new Error("Enter their full name.");
+  const { data, error } = await supabase
     .from("people")
     .update({ full_name: tidyName(p.full_name), club_id: p.club_id, note: p.note?.trim() || null })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
   if (error) throw error;
+  // Not allowed: the database changes nothing rather than refusing
+  if (!data || data.length === 0) {
+    throw new Error("They also play in a competition you don't run, so only Sam can correct their details.");
+  }
 }
 
 // Super: two records are the same person. Everything moves to keepId.
