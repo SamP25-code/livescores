@@ -16,6 +16,14 @@ describe("getInitials", () => {
     expect(getInitials("Dave")).toBe("DA");
   });
 
+  test("a pair uses each surname", () => {
+    expect(getInitials("Wayne Ditchfield & Lee Hanson")).toBe("DH");
+  });
+
+  test("a club or note in brackets is left out", () => {
+    expect(getInitials("John Smith (Penwortham)")).toBe("JS");
+  });
+
   test("blank name", () => {
     expect(getInitials("   ")).toBe("?");
   });

@@ -8,6 +8,7 @@ import { startViewerPings } from "@/lib/viewerLog";
 import NightNav, { splitNightName } from "@/components/NightNav";
 import Brand from "@/components/Brand";
 import Avatar from "@/components/Avatar";
+import PlayerName from "@/components/PlayerName";
 import MatchCard from "@/components/MatchCard";
 import BracketTree from "@/components/BracketTree";
 import type { MatchRow, Night, Player } from "@/lib/types";
@@ -294,7 +295,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
 
       {!loadError && champion && (
         <div className="champion-banner">
-          <span className="name">{champion.name}</span>
+          <PlayerName name={champion.name} />
           <span className="hint">October Singles champion</span>
         </div>
       )}
@@ -311,7 +312,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
             <div key={i} className={`roster-row ${p ? "" : "roster-row-empty"}`}>
               <span className="roster-number">{i + 1}</span>
               {p && <Avatar name={p.name} />}
-              <span className="roster-name">{p ? p.name : "TBC"}</span>
+              {p ? <PlayerName name={p.name} className="roster-name" /> : <span className="roster-name">TBC</span>}
             </div>
           ))}
         </div>
@@ -322,7 +323,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
           {qualifierPlayers.map((p) => (
             <div key={p.id} className="roster-row">
               <Avatar name={p.name} />
-              <span className="roster-name">{p.name}</span>
+              <PlayerName name={p.name} className="roster-name" />
             </div>
           ))}
         </div>
@@ -407,7 +408,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
                 disabled={!p}
               >
                 <span className="name-cell">
-                  <span className="name">{p ? p.name : "To be decided"}</span>
+                  {p ? <PlayerName name={p.name} /> : <span className="name">To be decided</span>}
                 </span>
                 {p?.finals_number != null && <span className="finals-number">{p.finals_number}</span>}
               </button>

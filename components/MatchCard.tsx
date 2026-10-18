@@ -3,6 +3,7 @@
 import { useState } from "react";
 import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
+import PlayerName from "@/components/PlayerName";
 import type { MatchRow, Player } from "@/lib/types";
 
 export default function MatchCard({
@@ -127,14 +128,14 @@ function NameCell({
     return (
       <button type="button" className="name-cell name-cell-button" onClick={() => onSelectPlayer(playerId)}>
         {showNumber && <DrawNumber number={number} />}
-        <span className="name">{name}</span>
+        <PlayerName name={name} />
       </button>
     );
   }
   return (
     <span className="name-cell">
       {showNumber && <DrawNumber number={number} />}
-      <span className="name">{name}</span>
+      <PlayerName name={name} />
     </span>
   );
 }

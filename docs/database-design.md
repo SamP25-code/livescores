@@ -172,7 +172,7 @@ so that logic keeps working. Matches keep pointing here, exactly as now.
 | Change | Notes |
 |---|---|
 | + entry_id → entries | who this place belongs to |
-| `name` | kept during the move, then dropped - names come from the entry's people |
+| `name` | filled in and kept up to date by the database from the entry's people (part 5) - "A & B" for a pair, with a club or note only where two people in the competition share a name. Kept on the row so the live pages, which are sent single rows, always have it |
 | `seed`, `sort_order`, `is_bye`, `finals_number`, `qualified_from_player_id` | unchanged - draw number, round-1 order, bye, finals number, link from qualifying night to Finals Day |
 
 **Replacing someone** (Draws: "Replace with someone else") points the place at a new entry -

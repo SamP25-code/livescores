@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { roundLabel } from "@/lib/bracket";
 import MatchCard from "@/components/MatchCard";
+import PlayerName from "@/components/PlayerName";
 import type { MatchRow, Night, Player } from "@/lib/types";
 
 const ROUND_ONE_PAIR_GAP = 10;
@@ -121,7 +122,7 @@ export default function BracketTree({
           <div className="champion-col">
             <div className="round-title">Champion</div>
             <div className={`champion-box ${champion ? "champion-box-decided" : ""}`}>
-              <span className="label">{champion ? champion.name : "TBC"}</span>
+              {champion ? <PlayerName name={champion.name} className="label" /> : <span className="label">TBC</span>}
             </div>
           </div>
         </div>

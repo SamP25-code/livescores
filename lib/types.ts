@@ -100,6 +100,8 @@ export type Player = {
   id: string;
   night_id: string;
   name: string;
+  // 2027: the entry this place belongs to - the database fills the name from it
+  entry_id?: string | null;
   seed: number | null;
   finals_number: number | null;
   qualified_from_player_id: string | null;

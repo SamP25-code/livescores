@@ -2382,3 +2382,68 @@ label {
 .people-intro {
   margin-bottom: 14px;
 }
+
+/* A pair: one name per line, each trimmed to fit */
+.name-pair {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.name-pair > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.champion-box .name-pair,
+.roster-name.name-pair {
+  align-items: inherit;
+}
+
+/* Adding a competition's entries to a session's draw */
+.session-adder {
+  margin-bottom: 14px;
+}
+
+.session-adder-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.session-adder-list {
+  max-height: 360px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.session-adder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.session-adder-row:last-child {
+  border-bottom: none;
+}
+
+.session-adder-row .hint {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.session-adder-row-placed {
+  opacity: 0.6;
+}
+
+.session-adder-foot {
+  margin: 10px 0 0;
+}

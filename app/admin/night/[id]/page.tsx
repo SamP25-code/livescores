@@ -22,6 +22,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { supabase } from "@/lib/supabaseClient";
 import {
+  addEntriesToSession,
   addPlayer,
   adjustScore,
   completeMatch,
@@ -43,12 +44,45 @@ import {
 import { buildFinalsSlots, computeNightStatus, isMatchComplete, nextPowerOfTwo, roundLabel } from "@/lib/bracket";
 import { useAdminRole } from "@/lib/auth";
 import { errorMessage } from "@/lib/errors";
+import { listEntries, type EntryWithPeople } from "@/lib/peopleApi";
+import { placedIn, placeProblem } from "@/lib/sessionEntries";
 import Avatar from "@/components/Avatar";
+import PlayerName from "@/components/PlayerName";
+import SessionEntryAdder from "@/components/SessionEntryAdder";
 import FinalsNumberPicker from "@/components/FinalsNumberPicker";
 import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
 import ViewerLog from "@/components/ViewerLog";
-import type { MatchRow, Night, Player } from "@/lib/types";
+import type { Competition, MatchRow, Night, Player } from "@/lib/types";
+
+type CompetitionInfo = Pick<Competition, "id" | "team_size" | "target_score" | "scoring_style">;
+
+// A session in a 2027 competition: the competition's settings, its entries,
+// and which session each entry already has a place in.
+type CompetitionContext = {
+  competition: CompetitionInfo;
+  entries: EntryWithPeople[];
+  sessions: Pick<Night, "id" | "kind" | "session_number">[];
+  places: { night_id: string; entry_id: string | null }[];
+};
+
+async function loadCompetitionContext(competitionId: string): Promise<CompetitionContext> {
+  const [{ data: competition, error }, { data: sessions, error: sessionsError }, entries] = await Promise.all([
+    supabase.from("competitions").select("id, team_size, target_score, scoring_style").eq("id", competitionId).single(),
+    supabase.from("nights").select("id, kind, session_number").eq("competition_id", competitionId),
+    listEntries(competitionId),
+  ]);
+  if (error) throw error;
+  if (sessionsError) throw sessionsError;
+  const ids = (sessions ?? []).map((s) => s.id);
+  const { data: places, error: placesError } = await supabase
+    .from("players")
+    .select("night_id, entry_id")
+    .in("night_id", ids)
+    .not("entry_id", "is", null);
+  if (placesError) throw placesError;
+  return { competition: competition as CompetitionInfo, entries, sessions: sessions ?? [], places: places ?? [] };
+}
 
 export default function AdminNightPage({ params }: { params: Promise<{ id: string }> }) {
   const role = useAdminRole();
@@ -57,6 +91,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   const [players, setPlayers] = useState<Player[]>([]);
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [finalsRoster, setFinalsRoster] = useState<Player[]>([]);
+  const [context, setContext] = useState<CompetitionContext | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pendingMatchIds, setPendingMatchIds] = useState<Set<string>>(new Set());
 
@@ -78,12 +113,17 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
       supabase.from("nights").select("*").eq("id", nightId).single(),
       supabase.from("players").select("*").eq("night_id", nightId).order("sort_order").order("created_at"),
       supabase.from("matches").select("*").eq("night_id", nightId).order("round").order("slot"),
-      needRoster ? getFinalsRoster() : Promise.resolve(undefined),
+      needRoster ? getFinalsRoster(nightId) : Promise.resolve(undefined),
     ]);
     kindRef.current = nightData?.kind ?? null;
     completeRef.current = (matchData ?? []).length > 0 && computeNightStatus(matchData ?? []) === "complete";
     setNight(nightData ?? null);
     setPlayers(playerData ?? []);
+    if (nightData?.competition_id) {
+      loadCompetitionContext(nightData.competition_id)
+        .then(setContext)
+        .catch((err) => setError(errorMessage(err)));
+    }
     if (roster !== undefined) setFinalsRoster(roster?.players ?? []);
 
     if (nightData?.kind === "finals" && (matchData ?? []).length === 0) {
@@ -210,6 +250,25 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
 
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1][0] : 0;
   const isFinals = night?.kind === "finals";
+  // A qualifying session records results only; Finals Day is scored live; a
+  // single day or a final follows the competition's setting.
+  const resultsOnly =
+    night?.kind === "qualifier" || (!isFinals && context?.competition.scoring_style === "results");
+
+  const inThisSession = useMemo(
+    () => new Set(players.map((p) => p.entry_id).filter((id): id is string => Boolean(id))),
+    [players]
+  );
+  const placed = useMemo(() => (context ? placedIn(context.places, context.sessions) : new Map()), [context]);
+  const entryAdder = context && (
+    <SessionEntryAdder
+      competitionId={context.competition.id}
+      pairs={context.competition.team_size === 2}
+      entries={context.entries}
+      problemFor={(entryId) => placeProblem(entryId, nightId, isFinals ? new Map() : placed, inThisSession)}
+      onAdd={withErrorHandling((ids: string[]) => addEntriesToSession(nightId, ids))}
+    />
+  );
 
   const orderedPlayers = useMemo(() => {
     if (!isFinals) return players;
@@ -298,11 +357,15 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
 
       {role === "owner" &&
         (isFinals ? (
-          <AddExtraFinalsPlayer onAdd={withErrorHandling((name: string) => addPlayer(nightId, name))} />
+          <AddExtraFinalsPlayer
+            entryAdder={entryAdder}
+            onAdd={withErrorHandling((name: string) => addPlayer(nightId, name))}
+          />
         ) : (
           <PlayerSection
             players={orderedPlayers}
             bracketExists={bracketExists}
+            entryAdder={entryAdder}
             onAdd={withErrorHandling((name: string) => addPlayer(nightId, name))}
             onReorder={withErrorHandling((ids: string[]) => reorderPlayers(ids))}
             onRename={withErrorHandling((id: string, name: string) => renamePlayer(id, name))}
@@ -315,7 +378,12 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
         <BracketSetup
           players={orderedPlayers}
           onGenerate={withErrorHandling(async () => {
-            await generateBracket(nightId, orderedPlayers, "qualifier");
+            await generateBracket(
+              nightId,
+              orderedPlayers,
+              night?.kind === "qualifier" ? "qualifier" : "knockout",
+              context?.competition.target_score ?? 21
+            );
           })}
         />
       )}
@@ -348,7 +416,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
                   match={m}
                   playerNames={playerNames}
                   pending={pendingMatchIds.has(m.id)}
-                  resultsOnly={!isFinals}
+                  resultsOnly={resultsOnly}
                   onAdjust={(side, delta) => handleAdjust(m, side, delta)}
                   onComplete={withErrorHandling(() => completeMatch(m))}
                   onReopen={withErrorHandling(() => reopenMatch(m))}
@@ -385,6 +453,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
 function PlayerSection({
   players,
   bracketExists,
+  entryAdder,
   onAdd,
   onReorder,
   onRename,
@@ -393,6 +462,8 @@ function PlayerSection({
 }: {
   players: Player[];
   bracketExists: boolean;
+  // A 2027 competition's session: players come from its entries, not typed
+  entryAdder?: React.ReactNode;
   onAdd: (name: string) => Promise<void>;
   onReorder: (orderedIds: string[]) => Promise<void>;
   onRename: (playerId: string, name: string) => Promise<void>;
@@ -447,10 +518,12 @@ function PlayerSection({
             player 2, player 3 plays player 4, and so on. Didn&rsquo;t show up on the night? Mark their spot as
             a bye instead of removing them, so everyone else&rsquo;s position stays put.
           </p>
-          <form onSubmit={handleAdd} style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-            <input placeholder="Player name" value={name} onChange={(e) => setName(e.target.value)} />
-            <button type="submit">Add</button>
-          </form>
+          {entryAdder ?? (
+            <form onSubmit={handleAdd} style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+              <input placeholder="Player name" value={name} onChange={(e) => setName(e.target.value)} />
+              <button type="submit">Add</button>
+            </form>
+          )}
         </>
       )}
       {orderedForDisplay.length > 0 && (
@@ -526,6 +599,9 @@ function SortablePlayerRow({
           <span className="hint" style={{ margin: 0, fontStyle: "italic" }}>
             BYE <span style={{ opacity: 0.7 }}>(was {player.name})</span>
           </span>
+        ) : player.entry_id ? (
+          // Names from an entry are changed on the competition's entries
+          <PlayerName name={player.name} />
         ) : editing ? (
           <input
             autoFocus
@@ -570,9 +646,26 @@ function SortablePlayerRow({
   );
 }
 
-function AddExtraFinalsPlayer({ onAdd }: { onAdd: (name: string) => Promise<void> }) {
+function AddExtraFinalsPlayer({
+  entryAdder,
+  onAdd,
+}: {
+  entryAdder?: React.ReactNode;
+  onAdd: (name: string) => Promise<void>;
+}) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
+
+  if (open && entryAdder) {
+    return (
+      <section>
+        {entryAdder}
+        <button type="button" className="secondary" onClick={() => setOpen(false)}>
+          Done
+        </button>
+      </section>
+    );
+  }
 
   if (!open) {
     return (
@@ -625,7 +718,7 @@ function BracketSetup({
     <section className="card">
       <h2>Set up the draw</h2>
       <p className="hint">
-        Round 1 is built from the player list above, paired in the order shown. Doesn&rsquo;t need to be an exact
+        Round 1 is built from the list above, paired in the order shown. Doesn&rsquo;t need to be an exact
         power of two (8, 16, 32&hellip;) &mdash; if it isn&rsquo;t, the odd one(s) out get a bye and advance
         automatically.
       </p>
@@ -882,7 +975,7 @@ function ScoreLine({
     <div className={`player-row score-line ${isWinner ? "winner" : ""}`}>
       <span className="name-cell">
         <Avatar name={name} />
-        <span className="name">{name}</span>
+        <PlayerName name={name} />
       </span>
       <div className="score-stepper">
         <button className="secondary" disabled={disabled} onClick={() => onAdjust(-1)}>
@@ -940,7 +1033,7 @@ function ResultEntry({
     <div>
       <div className="players">
         <div className="player-row">
-          <span className="name">{nameA}</span>
+          <PlayerName name={nameA} />
           <input
             className="result-input"
             type="number"
@@ -953,7 +1046,7 @@ function ResultEntry({
         </div>
         <hr className="divider" />
         <div className="player-row">
-          <span className="name">{nameB}</span>
+          <PlayerName name={nameB} />
           <input
             className="result-input"
             type="number"
@@ -986,3 +1079,4 @@ function ResultEntry({
     </div>
   );
 }
+

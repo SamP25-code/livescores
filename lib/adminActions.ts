@@ -69,6 +69,24 @@ export async function addPlayer(nightId: string, name: string) {
   return data;
 }
 
+// Puts entries into a session's draw, after anyone already there, in the
+// order given. The database fills in each name from the entry.
+export async function addEntriesToSession(nightId: string, entryIds: string[]) {
+  if (entryIds.length === 0) return;
+  const { data: last } = await supabase
+    .from("players")
+    .select("sort_order")
+    .eq("night_id", nightId)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const first = (last?.sort_order ?? -1) + 1;
+  const { error } = await supabase
+    .from("players")
+    .insert(entryIds.map((entry_id, i) => ({ night_id: nightId, entry_id, sort_order: first + i })));
+  if (error) throw error;
+}
+
 export async function reorderPlayers(orderedPlayerIds: string[]) {
   const results = await Promise.all(
     orderedPlayerIds.map((id, index) => supabase.from("players").update({ sort_order: index }).eq("id", id))
@@ -94,13 +112,18 @@ export async function setPlayerBye(playerId: string, isBye: boolean) {
   if (error) throw error;
 }
 
+// "qualifier": the first two rounds of the list as ordered (a qualifying
+// session, which sends its last four through). "knockout": the same list
+// played all the way to a winner (a single day, or a final). "finals": the
+// Finals Day draw, by draw number.
 export async function generateBracket(
   nightId: string,
   players: Player[],
-  kind: "qualifier" | "finals",
+  kind: "qualifier" | "knockout" | "finals",
   targetScore = 21
 ) {
-  if (kind === "qualifier" && players.length < 2) {
+  const listed = kind !== "finals";
+  if (listed && players.length < 2) {
     throw new Error("Add at least two players first.");
   }
 
@@ -115,7 +138,7 @@ export async function generateBracket(
   const slots: Array<Player | null> = kind === "finals" ? buildFinalsSlots(players) : buildQualifierSlots(players);
   const drawSize = slots.length;
 
-  if (kind === "qualifier") {
+  if (listed) {
     for (let i = 0; i < slots.length; i += 2) {
       if (slots[i] == null && slots[i + 1] == null) {
         throw new Error(
@@ -136,7 +159,7 @@ export async function generateBracket(
         ? firstRoundPairs(drawSize).map(([i, j], slot) => {
             const playerA = slots[i];
             const playerB = slots[j];
-            const isBye = kind === "qualifier" && playerA != null && playerB == null;
+            const isBye = listed && playerA != null && playerB == null;
             return {
               night_id: nightId,
               round,
@@ -357,6 +380,16 @@ export async function reopenMatch(match: MatchRow) {
   await logMatchEvent(match, "reopen", match.score_a, match.score_b, "live");
 }
 
+// The Finals Day that a qualifying session feeds: the one in the same
+// competition (or, on a database not yet moved to 2027, the only one).
+async function finalsNightFor(nightId: string): Promise<{ id: string } | null> {
+  const { data: night } = await supabase.from("nights").select("competition_id").eq("id", nightId).maybeSingle();
+  let query = supabase.from("nights").select("id").eq("kind", "finals");
+  if (night?.competition_id) query = query.eq("competition_id", night.competition_id);
+  const { data } = await query.limit(1).maybeSingle();
+  return data ?? null;
+}
+
 export async function setFinalsNumber(player: Player, finalsNumber: number | null) {
   const { error } = await supabase
     .from("players")
@@ -364,12 +397,7 @@ export async function setFinalsNumber(player: Player, finalsNumber: number | nul
     .eq("id", player.id);
   if (error) throw error;
 
-  const { data: finalsNight } = await supabase
-    .from("nights")
-    .select("id")
-    .eq("kind", "finals")
-    .limit(1)
-    .maybeSingle();
+  const finalsNight = await finalsNightFor(player.night_id);
   if (!finalsNight) return;
 
   const { data: existing } = await supabase
@@ -402,6 +430,7 @@ export async function setFinalsNumber(player: Player, finalsNumber: number | nul
       .insert({
         night_id: finalsNight.id,
         name: player.name,
+        entry_id: player.entry_id ?? null,
         seed: finalsNumber,
         qualified_from_player_id: player.id,
       })
@@ -466,13 +495,8 @@ async function vacateSeed(nightId: string, seed: number, exceptPlayerId: string 
   await query;
 }
 
-export async function getFinalsRoster(): Promise<{ nightId: string; players: Player[] } | null> {
-  const { data: finalsNight } = await supabase
-    .from("nights")
-    .select("id")
-    .eq("kind", "finals")
-    .limit(1)
-    .maybeSingle();
+export async function getFinalsRoster(qualifyingNightId: string): Promise<{ nightId: string; players: Player[] } | null> {
+  const finalsNight = await finalsNightFor(qualifyingNightId);
   if (!finalsNight) return null;
 
   const { data: players } = await supabase.from("players").select("*").eq("night_id", finalsNight.id);

@@ -10,7 +10,17 @@ export default function Avatar({ name, size = "md" }: { name: string; size?: "sm
 const SUFFIXES = new Set(["snr", "sr", "senior", "jnr", "jr", "junior", "ii", "iii", "iv"]);
 
 export function getInitials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
+  // A pair: each surname's initial, so "Wayne Ditchfield & Lee Hanson" is DH
+  const pair = name.split(" & ");
+  if (pair.length === 2 && pair.every((p) => p.trim())) {
+    return pair.map((p) => getInitials(p).slice(-1)).join("");
+  }
+  // "John Smith (Jnr)" - the detail in brackets isn't part of the name
+  const words = name
+    .replace(/\s*\([^)]*\)/g, "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
   const isSuffix = (w: string) => SUFFIXES.has(w.toLowerCase().replace(/[^a-z]/g, ""));
   // Never strip a word that's the whole name.
   const parts = words.length > 1 ? words.filter((w, i) => i === 0 || !isSuffix(w)) : words;

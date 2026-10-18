@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { finalsNumberOptions } from "@/lib/finalsNumbers";
+import PlayerName from "@/components/PlayerName";
 import type { Player } from "@/lib/types";
 
 // One row per player with a number picker beside their name - pick the
@@ -50,7 +51,7 @@ export default function FinalsNumberPicker({
         const options = finalsNumberOptions(slots, player.id, occupantIdentity);
         return (
           <label key={player.id} className={`finals-picker-row ${current == null ? "finals-picker-unset" : ""}`}>
-            <span className="finals-picker-name">{player.name}</span>
+            <PlayerName name={player.name} className="finals-picker-name" />
             <select
               value={current ?? ""}
               disabled={savingId === player.id}
