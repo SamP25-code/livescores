@@ -6,6 +6,7 @@ import PersonPicker from "@/components/PersonPicker";
 import { syncSessionPlaces } from "@/lib/adminActions";
 import { longDate } from "@/lib/competitionSetup";
 import { errorMessage } from "@/lib/errors";
+import { supabase } from "@/lib/supabaseClient";
 import {
   distinguishedNames,
   entryCapacity,
@@ -50,12 +51,35 @@ export default function EntriesManager({ competition, sessions }: { competition:
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  // Sessions whose draw has been made
+  const [drawMade, setDrawMade] = useState<Set<string>>(new Set());
 
   async function load() {
     try {
-      setEntries(await listEntries(competition.id));
+      const ids = drawSessions.map((s) => s.id);
+      const [list, made] = await Promise.all([
+        listEntries(competition.id),
+        ids.length
+          ? supabase.from("matches").select("night_id").in("night_id", ids).eq("round", 1)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+      if (made.error) throw made.error;
+      setEntries(list);
+      setDrawMade(new Set((made.data ?? []).map((m: { night_id: string }) => m.night_id)));
     } catch (err) {
       setError(errorMessage(err));
+    }
+  }
+
+  // In a draw that's been made: they can only be withdrawn (or replaced in
+  // the draw). Otherwise an entry can simply be removed.
+  function inMadeDraw(e: EntryWithPeople): boolean {
+    return qualifying ? Boolean(e.session_id && drawMade.has(e.session_id)) : drawSessions.some((s) => drawMade.has(s.id));
+  }
+
+  function confirmRemove(e: EntryWithPeople) {
+    if (window.confirm(`Remove ${nameOf(e)}?`)) {
+      run(() => deleteEntry(e), `${nameOf(e)} removed.`, drawsFor(e.session_id));
     }
   }
 
@@ -246,14 +270,20 @@ export default function EntriesManager({ competition, sessions }: { competition:
           <button type="button" className="link-button" disabled={busy} onClick={() => startEdit(e)}>
             Change
           </button>
-          <button
-            type="button"
-            className="link-button comp-form-remove"
-            disabled={busy}
-            onClick={() => run(() => setEntryStatus(e, "withdrawn"), `${nameOf(e)} withdrawn.`, drawsFor(e.session_id))}
-          >
-            Withdraw
-          </button>
+          {inMadeDraw(e) ? (
+            <button
+              type="button"
+              className="link-button comp-form-remove"
+              disabled={busy}
+              onClick={() => run(() => setEntryStatus(e, "withdrawn"), `${nameOf(e)} withdrawn.`, drawsFor(e.session_id))}
+            >
+              Withdraw
+            </button>
+          ) : (
+            <button type="button" className="link-button comp-form-remove" disabled={busy} onClick={() => confirmRemove(e)}>
+              Remove
+            </button>
+          )}
         </span>
       </div>
     );
@@ -388,11 +418,7 @@ export default function EntriesManager({ competition, sessions }: { competition:
                     type="button"
                     className="link-button comp-form-remove"
                     disabled={busy}
-                    onClick={() => {
-                      if (window.confirm(`Remove ${nameOf(e)} completely? Only for an entry made by mistake.`)) {
-                        run(() => deleteEntry(e), `${nameOf(e)} removed.`, []);
-                      }
-                    }}
+                    onClick={() => confirmRemove(e)}
                   >
                     Remove
                   </button>
