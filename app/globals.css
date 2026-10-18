@@ -2655,3 +2655,9 @@ label {
   align-items: center;
   gap: 8px 16px;
 }
+
+.draw-maker-place .draw-maker-remove {
+  flex: none;
+  margin: 0;
+  font-size: 0.85rem;
+}

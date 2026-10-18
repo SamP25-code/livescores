@@ -20,12 +20,15 @@ export default function DrawMaker({
   onSetNumber,
   onClear,
   onConfirm,
+  onRemove,
 }: {
   players: Player[];
   onRandom: () => Promise<void>;
   onSetNumber: (player: Player, n: number | null) => Promise<void>;
   onClear: () => Promise<void>;
   onConfirm: (method: DrawMethod, publish: boolean) => Promise<void>;
+  // Someone who's dropped out before the draw: out of the draw and the entries
+  onRemove: (player: Player) => Promise<void>;
 }) {
   // How the numbers were made, for the log: "random" after Draw at random,
   // "physical" once any number is picked by hand
@@ -46,6 +49,22 @@ export default function DrawMaker({
     } finally {
       setBusy(false);
     }
+  }
+
+  function removeButton(p: Player) {
+    return (
+      <button
+        type="button"
+        className="link-button comp-form-remove draw-maker-remove"
+        disabled={busy}
+        aria-label={`Remove ${p.name}`}
+        onClick={() => {
+          if (confirm(`Remove ${p.name}?`)) run(() => onRemove(p));
+        }}
+      >
+        Remove
+      </button>
+    );
   }
 
   function numberPicker(p: Player) {
@@ -118,6 +137,7 @@ export default function DrawMaker({
                       <>
                         <PlayerName name={p.name} />
                         {numberPicker(p)}
+                        {removeButton(p)}
                       </>
                     ) : (
                       <span className="name draw-maker-bye">Bye</span>
@@ -138,6 +158,7 @@ export default function DrawMaker({
               <div key={p.id} className="draw-maker-place">
                 <PlayerName name={p.name} />
                 {numberPicker(p)}
+                {removeButton(p)}
               </div>
             ))}
           </div>

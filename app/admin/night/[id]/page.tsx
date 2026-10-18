@@ -60,7 +60,7 @@ import { drawSizeFor, randomDrawNumbers } from "@/lib/draw";
 import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
 import { useAdminRole } from "@/lib/auth";
 import { errorMessage } from "@/lib/errors";
-import { listClubs, listEntries, type EntryWithPeople } from "@/lib/peopleApi";
+import { deleteEntry, listClubs, listEntries, type EntryWithPeople } from "@/lib/peopleApi";
 import Avatar from "@/components/Avatar";
 import PlayerName from "@/components/PlayerName";
 import SessionEntryAdder from "@/components/SessionEntryAdder";
@@ -73,7 +73,9 @@ import MatchHistory from "@/components/MatchHistory";
 import ViewerLog from "@/components/ViewerLog";
 import type { Competition, MatchRow, Night, Organiser, Player } from "@/lib/types";
 
-type CompetitionInfo = Pick<Competition, "id" | "team_size" | "target_score" | "scoring_style">;
+type CompetitionInfo = Pick<Competition, "id" | "year" | "team_size" | "target_score" | "scoring_style"> & {
+  series: { name: string };
+};
 
 // A session in a 2027 competition: the competition's settings, its entries,
 // this session's start times, and the clubs (for adding a replacement).
@@ -88,7 +90,11 @@ type CompetitionContext = {
 
 async function loadCompetitionContext(competitionId: string, nightId: string): Promise<CompetitionContext> {
   const [{ data: competition, error }, entries, { data: timeSlots, error: slotsError }, clubs] = await Promise.all([
-    supabase.from("competitions").select("id, team_size, target_score, scoring_style").eq("id", competitionId).single(),
+    supabase
+      .from("competitions")
+      .select("id, year, team_size, target_score, scoring_style, series:series_id(name)")
+      .eq("id", competitionId)
+      .single(),
     listEntries(competitionId),
     supabase.from("time_slots").select("from_number, to_number, start_time").eq("night_id", nightId),
     listClubs(),
@@ -96,7 +102,7 @@ async function loadCompetitionContext(competitionId: string, nightId: string): P
   if (error) throw error;
   if (slotsError) throw slotsError;
   return {
-    competition: competition as CompetitionInfo,
+    competition: competition as unknown as CompetitionInfo,
     entries,
     timeSlots: (timeSlots ?? []) as TimeSlot[],
     clubs,
@@ -359,9 +365,17 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="page page-photo">
-      <Link href="/admin" className="page-back-link">
-        <span aria-hidden="true">&lsaquo;</span> All nights
-      </Link>
+      {/* A 2027 session goes back to its competition; older nights to the list */}
+      {competitionId ? (
+        <Link href={`/admin/competitions/${competitionId}`} className="page-back-link">
+          <span aria-hidden="true">&lsaquo;</span>{" "}
+          {context ? `${context.competition.series.name} ${context.competition.year}` : "Competition"}
+        </Link>
+      ) : (
+        <Link href="/admin" className="page-back-link">
+          <span aria-hidden="true">&lsaquo;</span> All nights
+        </Link>
+      )}
 
       <h1>{night?.name ?? "Loading…"}</h1>
       {error && <p className="error">{error}</p>}
@@ -462,6 +476,11 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
             setDrawNumbers(new Map([[player.id, n]]))
           )}
           onClear={withErrorHandling(() => setDrawNumbers(new Map(players.map((p) => [p.id, null]))))}
+          onRemove={withContextRefresh(async (player: Player) => {
+            const entry = context.entries.find((e) => e.id === player.entry_id);
+            if (!entry) throw new Error("Couldn't find that entry - remove them on the competition's page.");
+            await deleteEntry(entry);
+          })}
           onConfirm={withContextRefresh((method: string, publish: boolean) =>
             makeDraw(nightId, drawKind, context.competition.target_score, method, publish)
           )}
