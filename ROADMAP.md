@@ -152,8 +152,8 @@ Both happen in 2027, chosen per competition (or per night):
   - Record who made the draw and when, so there's no argument afterwards.
 - The organiser is an **Admin** assigned to that competition (see Roles).
 
-**Time slots (agreed 2026-10-16)** - for one-day competitions (and any night with staggered
-starts), the admin sets round-1 start times **by draw number**, e.g. "1-8 at 10:00, 9-16 at
+**Time slots (agreed 2026-10-16)** - for one-day competitions only (qualifying sessions and
+Finals Day just start at the session's time - Sam, 2026-10-18), the admin sets round-1 start times **by draw number**, e.g. "1-8 at 10:00, 9-16 at
 10:45, 17-24 at 11:30...". Each first-round match then shows its time on the draw ("10:45 · 9 v
 10"), on each player's page ("Your match: 10:45") and on the home page's Next up card (first
 start). Later rounds show "Time to follow" (or an estimate if wanted); any single match's time

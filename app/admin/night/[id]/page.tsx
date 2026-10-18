@@ -299,6 +299,9 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
 
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1][0] : 0;
   const isFinals = night?.kind === "finals";
+  // Start times are only for one-day competitions (staggered first round);
+  // qualifying sessions and Finals Day just start at the session's time
+  const oneDay = night?.kind === "single_day";
   // A qualifying session records results only; Finals Day is scored live; a
   // single day or a final follows the competition's setting.
   const resultsOnly =
@@ -465,7 +468,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
         />
       )}
 
-      {role === "owner" && !isFinals && context && (
+      {role === "owner" && oneDay && context && (
         <TimeSlotsEditor
           slots={context.timeSlots}
           drawSize={sessionDrawSize}
@@ -520,9 +523,9 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
                   onSaveResult={withErrorHandling((scoreA: number, scoreB: number) => saveResult(m, scoreA, scoreB))}
                   onNoShow={withErrorHandling((side: "a" | "b") => markNoShow(m, side, isFinals))}
                   onUndoNoShow={withErrorHandling(() => undoNoShow(m))}
-                  startTime={round === 1 && context ? roundOneTime(context.timeSlots, m.slot) : null}
+                  startTime={round === 1 && oneDay && context ? roundOneTime(context.timeSlots, m.slot) : null}
                   onSetTime={
-                    round === 1 && context && role === "owner"
+                    round === 1 && oneDay && context && role === "owner"
                       ? withContextRefresh((time: string | null) => setMatchTime(nightId, m.slot, time))
                       : undefined
                   }
