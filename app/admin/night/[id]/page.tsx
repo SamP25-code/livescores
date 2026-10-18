@@ -30,50 +30,81 @@ import {
   ensureFinalsBracketGenerated,
   generateBracket,
   getFinalsRoster,
+  logSessionAction,
   markNoShow,
   renamePlayer,
   reopenMatch,
   reorderPlayers,
+  replaceInDraw,
   resetBracket,
   saveResult,
+  saveTimeSlots,
+  setDrawNumbers,
   setDrawPublished,
   setFinalsNumber,
   setFinalsPlayerSeed,
+  setMatchTime,
   setPlayerBye,
+  undoNoShow,
 } from "@/lib/adminActions";
-import { buildFinalsSlots, computeNightStatus, isMatchComplete, nextPowerOfTwo, roundLabel } from "@/lib/bracket";
+import {
+  buildFinalsSlots,
+  computeNightStatus,
+  isMatchComplete,
+  isWalkover,
+  nextPowerOfTwo,
+  roundLabel,
+} from "@/lib/bracket";
+import { drawSizeFor, randomDrawNumbers } from "@/lib/draw";
+import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
 import { useAdminRole } from "@/lib/auth";
 import { errorMessage } from "@/lib/errors";
-import { listEntries, type EntryWithPeople } from "@/lib/peopleApi";
+import { listClubs, listEntries, type EntryWithPeople } from "@/lib/peopleApi";
 import { placedIn, placeProblem } from "@/lib/sessionEntries";
 import Avatar from "@/components/Avatar";
 import PlayerName from "@/components/PlayerName";
 import SessionEntryAdder from "@/components/SessionEntryAdder";
+import DrawMaker from "@/components/DrawMaker";
+import TimeSlotsEditor from "@/components/TimeSlotsEditor";
+import ChangePeopleControl from "@/components/ChangePeopleControl";
 import FinalsNumberPicker from "@/components/FinalsNumberPicker";
 import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
 import ViewerLog from "@/components/ViewerLog";
-import type { Competition, MatchRow, Night, Player } from "@/lib/types";
+import type { Competition, MatchRow, Night, Organiser, Player } from "@/lib/types";
 
 type CompetitionInfo = Pick<Competition, "id" | "team_size" | "target_score" | "scoring_style">;
 
 // A session in a 2027 competition: the competition's settings, its entries,
-// and which session each entry already has a place in.
+// which session each entry already has a place in, this session's start
+// times, and the clubs (for adding a replacement). Loaded when the page opens
+// and after changes to them - not on every background refresh.
 type CompetitionContext = {
   competition: CompetitionInfo;
   entries: EntryWithPeople[];
   sessions: Pick<Night, "id" | "kind" | "session_number">[];
   places: { night_id: string; entry_id: string | null }[];
+  timeSlots: TimeSlot[];
+  clubs: Organiser[];
 };
 
-async function loadCompetitionContext(competitionId: string): Promise<CompetitionContext> {
-  const [{ data: competition, error }, { data: sessions, error: sessionsError }, entries] = await Promise.all([
+async function loadCompetitionContext(competitionId: string, nightId: string): Promise<CompetitionContext> {
+  const [
+    { data: competition, error },
+    { data: sessions, error: sessionsError },
+    entries,
+    { data: timeSlots, error: slotsError },
+    clubs,
+  ] = await Promise.all([
     supabase.from("competitions").select("id, team_size, target_score, scoring_style").eq("id", competitionId).single(),
     supabase.from("nights").select("id, kind, session_number").eq("competition_id", competitionId),
     listEntries(competitionId),
+    supabase.from("time_slots").select("from_number, to_number, start_time").eq("night_id", nightId),
+    listClubs(),
   ]);
   if (error) throw error;
   if (sessionsError) throw sessionsError;
+  if (slotsError) throw slotsError;
   const ids = (sessions ?? []).map((s) => s.id);
   const { data: places, error: placesError } = await supabase
     .from("players")
@@ -81,7 +112,14 @@ async function loadCompetitionContext(competitionId: string): Promise<Competitio
     .in("night_id", ids)
     .not("entry_id", "is", null);
   if (placesError) throw placesError;
-  return { competition: competition as CompetitionInfo, entries, sessions: sessions ?? [], places: places ?? [] };
+  return {
+    competition: competition as CompetitionInfo,
+    entries,
+    sessions: sessions ?? [],
+    places: places ?? [],
+    timeSlots: (timeSlots ?? []) as TimeSlot[],
+    clubs,
+  };
 }
 
 export default function AdminNightPage({ params }: { params: Promise<{ id: string }> }) {
@@ -119,11 +157,6 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
     completeRef.current = (matchData ?? []).length > 0 && computeNightStatus(matchData ?? []) === "complete";
     setNight(nightData ?? null);
     setPlayers(playerData ?? []);
-    if (nightData?.competition_id) {
-      loadCompetitionContext(nightData.competition_id)
-        .then(setContext)
-        .catch((err) => setError(errorMessage(err)));
-    }
     if (roster !== undefined) setFinalsRoster(roster?.players ?? []);
 
     if (nightData?.kind === "finals" && (matchData ?? []).length === 0) {
@@ -146,6 +179,29 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     refresh();
   }, [nightId]);
+
+  const competitionId = night?.competition_id ?? null;
+  async function reloadContext() {
+    if (!competitionId) return;
+    try {
+      setContext(await loadCompetitionContext(competitionId, nightId));
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  }
+
+  useEffect(() => {
+    reloadContext();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [competitionId, nightId]);
+
+  // For changes to entries, places or start times: refresh those too
+  function withContextRefresh<Args extends unknown[]>(fn: (...args: Args) => Promise<void>) {
+    return withErrorHandling(async (...args: Args) => {
+      await fn(...args);
+      await reloadContext();
+    });
+  }
 
   // Picks up changes made from anywhere else - another admin's browser, or
   // a scorer working a different match on the same night - so this page
@@ -266,7 +322,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
       pairs={context.competition.team_size === 2}
       entries={context.entries}
       problemFor={(entryId) => placeProblem(entryId, nightId, isFinals ? new Map() : placed, inThisSession)}
-      onAdd={withErrorHandling((ids: string[]) => addEntriesToSession(nightId, ids))}
+      onAdd={withContextRefresh((ids: string[]) => addEntriesToSession(nightId, ids))}
     />
   );
 
@@ -293,6 +349,18 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   const finalsOccupancy = isFinals ? players : finalsRoster;
   const finalsSlots = useMemo(() => buildFinalsSlots(finalsOccupancy), [finalsOccupancy]);
   const bracketExists = matches.length > 0;
+
+  const entriesById = useMemo(() => new Map((context?.entries ?? []).map((e) => [e.id, e])), [context]);
+  const playerById = useMemo(() => new Map(players.map((p) => [p.id, p])), [players]);
+  const entryOf = (playerId: string | null) => {
+    const entryId = playerId ? playerById.get(playerId)?.entry_id : null;
+    return entryId ? entriesById.get(entryId) : undefined;
+  };
+  const activePlayers = players.filter((p) => !p.is_bye);
+  const roundOneMatches = rounds[0]?.[1].length ?? 0;
+  const sessionDrawSize = bracketExists ? roundOneMatches * 2 : drawSizeFor(activePlayers.length);
+  const drawKind = night?.kind === "qualifier" ? "qualifier" : "knockout";
+  const drawNumbered = activePlayers.some((p) => p.seed != null);
 
   return (
     <div className="page page-photo">
@@ -374,16 +442,47 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
           />
         ))}
 
-      {role === "owner" && !isFinals && !bracketExists && (
+      {role === "owner" && !isFinals && !bracketExists && context && activePlayers.length >= 2 && (
+        <DrawMaker
+          players={players}
+          onRandom={withErrorHandling(async () => {
+            const numbers = randomDrawNumbers(activePlayers.map((p) => p.id));
+            await setDrawNumbers(new Map(activePlayers.map((p) => [p.id, numbers.get(p.id) ?? null])));
+          })}
+          onSetNumber={withErrorHandling((player: Player, n: number | null) =>
+            setDrawNumbers(new Map([[player.id, n]]))
+          )}
+          onClear={withErrorHandling(() => setDrawNumbers(new Map(players.map((p) => [p.id, null]))))}
+          onConfirm={withErrorHandling(async (method) => {
+            await generateBracket(nightId, players, drawKind, context.competition.target_score);
+            await logSessionAction(nightId, "draw_made", { method, places: activePlayers.length });
+          })}
+        />
+      )}
+
+      {role === "owner" && !isFinals && context && (
+        <TimeSlotsEditor
+          slots={context.timeSlots}
+          drawSize={sessionDrawSize}
+          onSave={async (slots) => {
+            await saveTimeSlots(nightId, slots);
+            await reloadContext();
+          }}
+        />
+      )}
+
+      {role === "owner" && !isFinals && !bracketExists && !drawNumbered && (
         <BracketSetup
+          withDrawMaker={Boolean(context)}
           players={orderedPlayers}
           onGenerate={withErrorHandling(async () => {
             await generateBracket(
               nightId,
               orderedPlayers,
-              night?.kind === "qualifier" ? "qualifier" : "knockout",
+              drawKind,
               context?.competition.target_score ?? 21
             );
+            await logSessionAction(nightId, "draw_made", { method: "list_order", places: activePlayers.length });
           })}
         />
       )}
@@ -422,6 +521,21 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
                   onReopen={withErrorHandling(() => reopenMatch(m))}
                   onSaveResult={withErrorHandling((scoreA: number, scoreB: number) => saveResult(m, scoreA, scoreB))}
                   onNoShow={withErrorHandling((side: "a" | "b") => markNoShow(m, side, isFinals))}
+                  onUndoNoShow={withErrorHandling(() => undoNoShow(m))}
+                  startTime={round === 1 && context ? roundOneTime(context.timeSlots, m.slot) : null}
+                  onSetTime={
+                    round === 1 && context && role === "owner"
+                      ? withContextRefresh((time: string | null) => setMatchTime(nightId, m.slot, time))
+                      : undefined
+                  }
+                  // Replacing someone changes the entries - admins only
+                  entryA={role === "owner" ? entryOf(m.player_a_id) : undefined}
+                  entryB={role === "owner" ? entryOf(m.player_b_id) : undefined}
+                  pairs={context?.competition.team_size === 2}
+                  clubs={context?.clubs ?? []}
+                  onReplace={withContextRefresh((side: "a" | "b", personId: string, partnerId: string | null) =>
+                    replaceInDraw(m, side, personId, partnerId)
+                  )}
                 />
               ))}
             </section>
@@ -705,9 +819,12 @@ function AddExtraFinalsPlayer({
 
 function BracketSetup({
   players,
+  withDrawMaker,
   onGenerate,
 }: {
   players: Player[];
+  // "Make the draw" is shown above, so this is the other way to do it
+  withDrawMaker?: boolean;
   onGenerate: () => Promise<void>;
 }) {
   const count = players.length;
@@ -716,7 +833,7 @@ function BracketSetup({
 
   return (
     <section className="card">
-      <h2>Set up the draw</h2>
+      <h2>{withDrawMaker ? "Or use the list order" : "Set up the draw"}</h2>
       <p className="hint">
         Round 1 is built from the list above, paired in the order shown. Doesn&rsquo;t need to be an exact
         power of two (8, 16, 32&hellip;) &mdash; if it isn&rsquo;t, the odd one(s) out get a bye and advance
@@ -746,6 +863,14 @@ function MatchEditor({
   onReopen,
   onSaveResult,
   onNoShow,
+  onUndoNoShow,
+  startTime,
+  onSetTime,
+  entryA,
+  entryB,
+  pairs,
+  clubs,
+  onReplace,
 }: {
   match: MatchRow;
   playerNames: Record<string, string>;
@@ -756,6 +881,16 @@ function MatchEditor({
   onReopen: () => Promise<void>;
   onSaveResult: (scoreA: number, scoreB: number) => Promise<void>;
   onNoShow: (side: "a" | "b") => Promise<void>;
+  onUndoNoShow: () => Promise<void>;
+  // First round only: its start time, and changing it by hand
+  startTime: string | null;
+  onSetTime?: (time: string | null) => Promise<void>;
+  // 2027 competitions: who's in the match, for replacing someone
+  entryA?: EntryWithPeople;
+  entryB?: EntryWithPeople;
+  pairs: boolean;
+  clubs: Organiser[];
+  onReplace: (side: "a" | "b", personId: string, partnerId: string | null) => Promise<void>;
 }) {
   const [showHistory, setShowHistory] = useState(false);
 
@@ -783,8 +918,33 @@ function MatchEditor({
   const nameA = playerNames[match.player_a_id] ?? "—";
   const nameB = playerNames[match.player_b_id] ?? "—";
 
+  // Didn't turn up: both names stay, the absent one struck through
+  if (isWalkover(match)) {
+    const absentA = match.winner_id === match.player_b_id;
+    return (
+      <div className="card walkover">
+        <p style={{ margin: 0 }}>
+          <span className="walkover-absent">{absentA ? nameA : nameB}</span> didn&rsquo;t turn up &mdash;{" "}
+          <strong>{absentA ? nameB : nameA}</strong> through.
+        </p>
+        <button
+          type="button"
+          className="link-button"
+          onClick={() => {
+            if (confirm(`${absentA ? nameA : nameB} has turned up - put this match back on?`)) onUndoNoShow();
+          }}
+        >
+          They&rsquo;ve turned up - undo
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="card">
+      {(startTime || onSetTime) && match.status === "upcoming" && (
+        <MatchTime time={startTime} onSetTime={onSetTime} />
+      )}
       {resultsOnly ? (
         <ResultEntry
           nameA={nameA}
@@ -844,8 +1004,18 @@ function MatchEditor({
           </div>
         </div>
       )}
-      {match.status === "upcoming" && match.round === 1 && (
-        <NoShowControl nameA={nameA} nameB={nameB} onNoShow={onNoShow} />
+      {!complete && (
+        <ChangePeopleControl
+          nameA={nameA}
+          nameB={nameB}
+          entryA={entryA}
+          entryB={entryB}
+          pairs={pairs}
+          clubs={clubs}
+          canNoShow={match.status === "upcoming" && match.round === 1}
+          onNoShow={onNoShow}
+          onReplace={onReplace}
+        />
       )}
       {!resultsOnly && match.status !== "upcoming" && (
         <div style={{ marginTop: 8 }}>
@@ -915,42 +1085,53 @@ function ResetBracketControl({ nightName, onReset }: { nightName: string; onRese
   );
 }
 
-function NoShowControl({
-  nameA,
-  nameB,
-  onNoShow,
+// A first-round match's start time, with a way to change just this match's
+function MatchTime({
+  time,
+  onSetTime,
 }: {
-  nameA: string;
-  nameB: string;
-  onNoShow: (side: "a" | "b") => Promise<void>;
+  time: string | null;
+  onSetTime?: (time: string | null) => Promise<void>;
 }) {
-  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(time ?? "");
 
-  if (!open) {
+  if (editing && onSetTime) {
     return (
-      <p style={{ marginTop: 8 }}>
-        <button type="button" className="link-button" onClick={() => setOpen(true)}>
-          Someone not here?
+      <div className="match-time match-time-editing">
+        <input type="time" aria-label="Start time for this match" value={draft} onChange={(e) => setDraft(e.target.value)} />
+        <button
+          type="button"
+          className="secondary"
+          onClick={async () => {
+            await onSetTime(draft || null);
+            setEditing(false);
+          }}
+        >
+          Save
         </button>
-      </p>
+        <button type="button" className="link-button" onClick={() => setEditing(false)}>
+          Cancel
+        </button>
+      </div>
     );
   }
 
-  function confirmNoShow(side: "a" | "b", absentName: string, advancingName: string) {
-    if (confirm(`${absentName} didn't show - give ${advancingName} the win as a bye?`)) onNoShow(side);
-  }
-
   return (
-    <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 8 }}>
-      <button className="secondary" onClick={() => confirmNoShow("a", nameA, nameB)}>
-        {nameA} didn&rsquo;t show
-      </button>
-      <button className="secondary" onClick={() => confirmNoShow("b", nameB, nameA)}>
-        {nameB} didn&rsquo;t show
-      </button>
-      <button className="secondary" onClick={() => setOpen(false)}>
-        Cancel
-      </button>
+    <div className="match-time">
+      <span>{time ? `Starts ${time}` : "No start time"}</span>
+      {onSetTime && (
+        <button
+          type="button"
+          className="link-button"
+          onClick={() => {
+            setDraft(time ?? "");
+            setEditing(true);
+          }}
+        >
+          Change
+        </button>
+      )}
     </div>
   );
 }

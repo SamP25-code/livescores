@@ -4,6 +4,7 @@ import { useState } from "react";
 import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
 import PlayerName from "@/components/PlayerName";
+import { isWalkover } from "@/lib/bracket";
 import type { MatchRow, Player } from "@/lib/types";
 
 export default function MatchCard({
@@ -14,6 +15,7 @@ export default function MatchCard({
   onSelectPlayer,
   compact,
   historyEnabled = true,
+  startTime,
   id,
 }: {
   match: MatchRow;
@@ -23,10 +25,16 @@ export default function MatchCard({
   onSelectPlayer?: (playerId: string) => void;
   compact?: boolean;
   historyEnabled?: boolean;
+  // Before it starts: "10:45", or "Time to follow" for a later round
+  startTime?: string | null;
   id?: string;
 }) {
   const [showHistory, setShowHistory] = useState(false);
   const isBye = match.status === "complete" && Boolean(match.player_a_id) !== Boolean(match.player_b_id);
+  // Didn't turn up: their name stays, struck through
+  const walkover = isWalkover(match);
+  const absentA = walkover && match.winner_id === match.player_b_id;
+  const absentB = walkover && match.winner_id === match.player_a_id;
   const playerA = match.player_a_id ? players[match.player_a_id] : undefined;
   const playerB = match.player_b_id ? players[match.player_b_id] : undefined;
   const nameA = match.player_a_id ? playerA?.name ?? "TBC" : isBye ? "BYE" : "TBC";
@@ -48,8 +56,8 @@ export default function MatchCard({
       ? match.slot * 2 + 2
       : undefined;
   const upcoming = match.status === "upcoming";
-  const scoreA = !match.player_a_id || upcoming ? "–" : match.score_a;
-  const scoreB = !match.player_b_id || upcoming ? "–" : match.score_b;
+  const scoreA = !match.player_a_id || upcoming || walkover ? "–" : match.score_a;
+  const scoreB = !match.player_b_id || upcoming || walkover ? "–" : match.score_b;
 
   return (
     <div
@@ -58,8 +66,10 @@ export default function MatchCard({
         match.status === "live" ? "live" : ""
       } ${isBye ? "bye" : ""}`}
     >
-      {isBye ? (
-        <div className="match-flag match-flag-muted">Bye</div>
+      {isBye || walkover ? (
+        <div className="match-flag match-flag-muted">{walkover ? "Walkover" : "Bye"}</div>
+      ) : upcoming && startTime ? (
+        <div className="match-flag match-flag-time">{startTime}</div>
       ) : (
         match.status === "live" && (
           <div className="match-flag match-flag-live">
@@ -69,7 +79,11 @@ export default function MatchCard({
         )
       )}
       <div className="players">
-        <div className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""} ${nameA === "TBC" ? "tbc" : ""}`}>
+        <div
+          className={`player-row ${winnerA ? "winner" : ""} ${spotlightA ? "spotlight" : ""} ${
+            nameA === "TBC" ? "tbc" : ""
+          } ${absentA ? "absent" : ""}`}
+        >
           <NameCell
             player={playerA}
             name={nameA}
@@ -81,7 +95,11 @@ export default function MatchCard({
           <FlashingScore value={scoreA} className={scoreA === "–" ? "score score-empty" : "score"} />
         </div>
         <hr className="divider" />
-        <div className={`player-row ${winnerB ? "winner" : ""} ${spotlightB ? "spotlight" : ""} ${nameB === "TBC" ? "tbc" : ""}`}>
+        <div
+          className={`player-row ${winnerB ? "winner" : ""} ${spotlightB ? "spotlight" : ""} ${
+            nameB === "TBC" ? "tbc" : ""
+          } ${absentB ? "absent" : ""}`}
+        >
           <NameCell
             player={playerB}
             name={nameB}
@@ -93,7 +111,7 @@ export default function MatchCard({
           <FlashingScore value={scoreB} className={scoreB === "–" ? "score score-empty" : "score"} />
         </div>
       </div>
-      {historyEnabled && !compact && !isBye && match.status !== "upcoming" && (
+      {historyEnabled && !compact && !isBye && !walkover && match.status !== "upcoming" && (
         <div className="match-history-toggle-wrap">
           <button
             type="button"

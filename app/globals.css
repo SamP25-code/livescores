@@ -2447,3 +2447,180 @@ label {
 .session-adder-foot {
   margin: 10px 0 0;
 }
+
+/* Start times and walkovers on match cards */
+.match-flag-time {
+  color: var(--green-deep);
+  font-variant-numeric: tabular-nums;
+}
+
+.player-row.absent .name {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+/* Admin: making the draw */
+.draw-maker h3 {
+  margin: 16px 0 6px;
+  font-size: 1rem;
+}
+
+.draw-maker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.draw-maker-matches {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.draw-maker-match {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 4px 10px;
+}
+
+.draw-maker-place {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  min-width: 0;
+}
+
+.draw-maker-place .name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.draw-maker-place select {
+  flex: none;
+  width: auto;
+  padding: 2px 6px;
+}
+
+.draw-maker-bye {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.draw-maker-undrawn {
+  margin-bottom: 12px;
+}
+
+/* Admin: start times */
+.time-slots h3 {
+  margin: 0 0 4px;
+}
+
+.time-slots-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.time-slots-head > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.time-slots-head .hint {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.time-slots-fill {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 10px 0 12px;
+}
+
+.time-slots-fill label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-weight: 400;
+}
+
+.time-slots-fill input[type="number"] {
+  width: 4.5em;
+}
+
+.time-slots-fill input,
+.time-slots-row input {
+  padding: 4px 6px;
+}
+
+.time-slots-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.time-slots-row input[type="number"] {
+  width: 4.5em;
+}
+
+.time-slots-row input[type="time"] {
+  width: auto;
+}
+
+.time-slots-row .comp-form-remove {
+  margin: 0 0 0 4px;
+}
+
+/* Admin: a match's start time, a walkover, changing people */
+.match-time {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--green-deep);
+}
+
+.match-time-editing input {
+  width: auto;
+  padding: 2px 6px;
+}
+
+.walkover-absent {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.walkover .link-button {
+  margin-top: 6px;
+}
+
+.change-people {
+  margin-top: 10px;
+}
+
+.change-people p {
+  margin: 0 0 10px;
+}
+
+.change-people-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}

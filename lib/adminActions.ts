@@ -5,10 +5,24 @@ import {
   firstRoundPairs,
   getWinnerSide,
   isMatchComplete,
+  isWalkover,
   roundOneSlotForSeed,
   totalRounds,
 } from "@/lib/bracket";
-import type { MatchEvent, MatchRow, Player } from "@/lib/types";
+import { drawnByNumber, slotsByNumber } from "@/lib/draw";
+import type { TimeSlot } from "@/lib/timeSlots";
+import type { Entry, MatchEvent, MatchRow, Player } from "@/lib/types";
+
+// Records an important change in the competition's log (who did what, when).
+// Sessions not yet in a 2027 competition have no log, so nothing is written.
+export async function logSessionAction(nightId: string, action: string, details: Record<string, unknown> = {}) {
+  const { data: night } = await supabase.from("nights").select("competition_id").eq("id", nightId).maybeSingle();
+  if (!night?.competition_id) return;
+  const { error } = await supabase
+    .from("audit_log")
+    .insert({ competition_id: night.competition_id, action, details: { night_id: nightId, ...details } });
+  if (error) throw error;
+}
 
 async function logMatchEvent(
   match: Pick<MatchRow, "id" | "night_id">,
@@ -135,7 +149,12 @@ export async function generateBracket(
     throw new Error("This night already has a bracket. Reset it first if you need to redo it.");
   }
 
-  const slots: Array<Player | null> = kind === "finals" ? buildFinalsSlots(players) : buildQualifierSlots(players);
+  const slots: Array<Player | null> =
+    kind === "finals"
+      ? buildFinalsSlots(players)
+      : drawnByNumber(players)
+        ? slotsByNumber(players)
+        : buildQualifierSlots(players);
   const drawSize = slots.length;
 
   if (listed) {
@@ -159,7 +178,8 @@ export async function generateBracket(
         ? firstRoundPairs(drawSize).map(([i, j], slot) => {
             const playerA = slots[i];
             const playerB = slots[j];
-            const isBye = listed && playerA != null && playerB == null;
+            // One side empty: the other goes straight through
+            const isBye = listed && (playerA == null) !== (playerB == null);
             return {
               night_id: nightId,
               round,
@@ -168,7 +188,7 @@ export async function generateBracket(
               player_a_id: playerA?.id ?? null,
               player_b_id: playerB?.id ?? null,
               status: isBye ? "complete" : "upcoming",
-              winner_id: isBye ? playerA!.id : null,
+              winner_id: isBye ? (playerA ?? playerB)!.id : null,
             };
           })
         : Array.from({ length: numMatches }, (_, slot) => ({
@@ -335,20 +355,42 @@ export async function markNoShow(match: MatchRow, side: "a" | "b", recordHistory
   if (!winnerId) {
     throw new Error("The other side hasn't been decided yet, so there's no one to advance.");
   }
-  const absentField = side === "a" ? "player_a_id" : "player_b_id";
+  const absentId = side === "a" ? match.player_a_id : match.player_b_id;
 
+  // Both names stay in the match (the absent one shown struck through), so
+  // it's easy to undo if they turn up late. A finished match at 0-0 is how a
+  // walkover is recognised.
   const { error } = await supabase
     .from("matches")
-    .update({ [absentField]: null, score_a: 0, score_b: 0, status: "complete", winner_id: winnerId })
+    .update({ score_a: 0, score_b: 0, status: "complete", winner_id: winnerId })
     .eq("id", match.id);
   if (error) throw error;
 
   if (recordHistory) await logMatchEvent(match, "no_show", 0, 0, "complete");
+  await logSessionAction(match.night_id, "no_show", { match_id: match.id, absent_player_id: absentId });
 
   if (match.next_match_id && match.next_match_slot) {
     const field = match.next_match_slot === "a" ? "player_a_id" : "player_b_id";
     await supabase.from("matches").update({ [field]: winnerId }).eq("id", match.next_match_id);
   }
+}
+
+// They turned up after all: the walkover is taken back and the match is
+// ready to play - as long as the winner hasn't started their next match.
+export async function undoNoShow(match: MatchRow) {
+  if (!isWalkover(match)) return;
+  if (match.next_match_id) {
+    const { data: nextMatch } = await supabase.from("matches").select("*").eq("id", match.next_match_id).single();
+    const nm = nextMatch as MatchRow | null;
+    if (nm && (nm.status !== "upcoming" || nm.score_a > 0 || nm.score_b > 0)) {
+      throw new Error("Can't undo - the player who went through has already started their next match.");
+    }
+    const field = match.next_match_slot === "a" ? "player_a_id" : "player_b_id";
+    await supabase.from("matches").update({ [field]: null }).eq("id", match.next_match_id);
+  }
+  const { error } = await supabase.from("matches").update({ status: "upcoming", winner_id: null }).eq("id", match.id);
+  if (error) throw error;
+  await logSessionAction(match.night_id, "no_show_undone", { match_id: match.id });
 }
 
 export async function reopenMatch(match: MatchRow) {
@@ -511,4 +553,166 @@ export async function resetBracket(nightId: string) {
 export async function setDrawPublished(nightId: string, published: boolean) {
   const { error } = await supabase.from("nights").update({ draw_published: published }).eq("id", nightId);
   if (error) throw error;
+}
+
+// Draw numbers for a session's places (null clears one). Saved straight
+// away but private until the draw is made and published.
+export async function setDrawNumbers(numbers: Map<string, number | null>) {
+  const results = await Promise.all(
+    [...numbers].map(([playerId, n]) => supabase.from("players").update({ seed: n }).eq("id", playerId))
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) throw failed.error;
+}
+
+// Replaces a session's first-round start times
+export async function saveTimeSlots(nightId: string, slots: TimeSlot[]) {
+  const { error: removeError } = await supabase.from("time_slots").delete().eq("night_id", nightId);
+  if (removeError) throw removeError;
+  if (slots.length > 0) {
+    const { error } = await supabase.from("time_slots").insert(
+      slots.map((s) => ({
+        night_id: nightId,
+        from_number: s.from_number,
+        to_number: s.to_number,
+        start_time: s.start_time,
+      }))
+    );
+    if (error) throw error;
+  }
+  await logSessionAction(nightId, "time_slots_set", { slots });
+}
+
+// Changes one first-round match's time by hand: a slot covering just its two
+// draw numbers, which beats the wider slot it sits in. null goes back to the
+// wider slot's time.
+export async function setMatchTime(nightId: string, matchSlot: number, time: string | null) {
+  const from = matchSlot * 2 + 1;
+  const { error: removeError } = await supabase
+    .from("time_slots")
+    .delete()
+    .eq("night_id", nightId)
+    .eq("from_number", from)
+    .eq("to_number", from + 1);
+  if (removeError) throw removeError;
+  if (time) {
+    const { error } = await supabase
+      .from("time_slots")
+      .insert({ night_id: nightId, from_number: from, to_number: from + 1, start_time: time });
+    if (error) throw error;
+  }
+  await logSessionAction(nightId, "match_time_set", { draw_numbers: [from, from + 1], time });
+}
+
+// Puts someone else in a place in the draw - same draw number, same opponent,
+// same spot in the bracket. The replacement is always an entry of its own, so
+// results go on the right people's records:
+//   - an existing entry not yet in a draw is used as it is
+//   - otherwise a new entry is made (e.g. a pair with one partner swapped)
+// The original entry is withdrawn. If the place has already played (and won)
+// a match, that result stays with the original: the replacement gets a new
+// place from this match on.
+export async function replaceInDraw(
+  match: MatchRow,
+  side: "a" | "b",
+  personId: string,
+  partnerId: string | null
+) {
+  if (match.status === "complete") {
+    throw new Error("This match has finished, so its players can't be changed.");
+  }
+  const placeId = side === "a" ? match.player_a_id : match.player_b_id;
+  if (!placeId) throw new Error("There's nobody in that place yet.");
+
+  const { data: place, error: placeError } = await supabase.from("players").select("*").eq("id", placeId).single();
+  if (placeError) throw placeError;
+  const current = place as Player;
+  if (!current.entry_id) throw new Error("Only places in a 2027 competition's draw can be replaced.");
+
+  const { data: oldEntryRow, error: entryError } = await supabase
+    .from("entries")
+    .select("*")
+    .eq("id", current.entry_id)
+    .single();
+  if (entryError) throw entryError;
+  const oldEntry = oldEntryRow as Entry;
+  if (oldEntry.person_id === personId && (oldEntry.partner_id ?? null) === partnerId) return;
+
+  // An entry with exactly these people already?
+  const wanted = [personId, partnerId].filter(Boolean).sort().join(",");
+  const { data: candidates, error: candidatesError } = await supabase
+    .from("entries")
+    .select("*")
+    .eq("competition_id", oldEntry.competition_id)
+    .eq("status", "entered")
+    .in("person_id", [personId, ...(partnerId ? [partnerId] : [])]);
+  if (candidatesError) throw candidatesError;
+  const existing = ((candidates ?? []) as Entry[]).find(
+    (e) => e.id !== oldEntry.id && [e.person_id, e.partner_id].filter(Boolean).sort().join(",") === wanted
+  );
+  if (existing) {
+    const { data: sessions } = await supabase.from("nights").select("id, kind").eq("competition_id", oldEntry.competition_id);
+    const otherSessions = (sessions ?? []).filter((n) => n.kind !== "finals").map((n) => n.id);
+    const { count } = await supabase
+      .from("players")
+      .select("id", { count: "exact", head: true })
+      .eq("entry_id", existing.id)
+      .in("night_id", otherSessions);
+    if ((count ?? 0) > 0) throw new Error("They're already in a draw - pick someone who isn't playing yet.");
+  }
+
+  // Withdraw the original first: the database won't let anyone be in two
+  // entries at once, and a swapped pair shares a partner with the old entry
+  const { error: withdrawError } = await supabase.from("entries").update({ status: "withdrawn" }).eq("id", oldEntry.id);
+  if (withdrawError) throw withdrawError;
+
+  let newEntryId = existing?.id ?? null;
+  if (!newEntryId) {
+    const { data: created, error: createError } = await supabase
+      .from("entries")
+      .insert({ competition_id: oldEntry.competition_id, person_id: personId, partner_id: partnerId })
+      .select("id")
+      .single();
+    if (createError) {
+      await supabase.from("entries").update({ status: "entered" }).eq("id", oldEntry.id);
+      throw createError;
+    }
+    newEntryId = created.id as string;
+  }
+
+  // Has this place already played a match (a bye doesn't count)?
+  const { data: played } = await supabase
+    .from("matches")
+    .select("id")
+    .eq("night_id", match.night_id)
+    .eq("status", "complete")
+    .not("player_a_id", "is", null)
+    .not("player_b_id", "is", null)
+    .or(`player_a_id.eq.${placeId},player_b_id.eq.${placeId}`)
+    .limit(1);
+
+  let newPlaceId = placeId;
+  if ((played ?? []).length > 0) {
+    const { data: newPlace, error: insertError } = await supabase
+      .from("players")
+      .insert({ night_id: match.night_id, entry_id: newEntryId, sort_order: current.sort_order })
+      .select("id")
+      .single();
+    if (insertError) throw insertError;
+    newPlaceId = newPlace.id as string;
+    const field = side === "a" ? "player_a_id" : "player_b_id";
+    const { error: matchError } = await supabase.from("matches").update({ [field]: newPlaceId }).eq("id", match.id);
+    if (matchError) throw matchError;
+  } else {
+    const { error: updateError } = await supabase.from("players").update({ entry_id: newEntryId }).eq("id", placeId);
+    if (updateError) throw updateError;
+  }
+
+  await logSessionAction(match.night_id, "replaced", {
+    match_id: match.id,
+    from_entry_id: oldEntry.id,
+    to_entry_id: newEntryId,
+    from_place_id: placeId,
+    to_place_id: newPlaceId,
+  });
 }

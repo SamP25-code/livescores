@@ -47,6 +47,24 @@ export function getWinnerSide(match: ScoredMatch): "a" | "b" | null {
   return match.score_a > match.score_b ? "a" : "b";
 }
 
+// A no-show: finished at 0-0 with both names still in it (the absent one
+// shown struck through). A real result can't finish 0-0.
+export function isWalkover(match: {
+  status: string;
+  player_a_id: string | null;
+  player_b_id: string | null;
+  score_a: number;
+  score_b: number;
+}): boolean {
+  return (
+    match.status === "complete" &&
+    Boolean(match.player_a_id) &&
+    Boolean(match.player_b_id) &&
+    match.score_a === 0 &&
+    match.score_b === 0
+  );
+}
+
 export function getWinnerId(match: Match): string | null {
   const side = getWinnerSide(match);
   if (!side) return null;

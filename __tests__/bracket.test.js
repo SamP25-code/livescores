@@ -1,4 +1,5 @@
 const {
+  isWalkover,
   roundName,
   roundLabel,
   isMatchComplete,
@@ -269,5 +270,17 @@ describe("buildQualifierSlots", () => {
     const slots = buildQualifierSlots(input);
     expect(slots).toHaveLength(4);
     expect(slots.map((p) => p?.id ?? null)).toEqual([null, "p2", "p3", null]);
+  });
+});
+
+describe("isWalkover", () => {
+  const base = { player_a_id: "a", player_b_id: "b", score_a: 0, score_b: 0, status: "complete" };
+  test("finished 0-0 with both names in is a walkover", () => {
+    expect(isWalkover(base)).toBe(true);
+  });
+  test("a bye, a real result or an unplayed match isn't", () => {
+    expect(isWalkover({ ...base, player_b_id: null })).toBe(false);
+    expect(isWalkover({ ...base, score_a: 21, score_b: 15 })).toBe(false);
+    expect(isWalkover({ ...base, status: "upcoming" })).toBe(false);
   });
 });

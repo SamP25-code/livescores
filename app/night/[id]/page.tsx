@@ -3,7 +3,8 @@
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { buildFinalsSlots, computeNightStatus, roundLabel } from "@/lib/bracket";
+import { buildFinalsSlots, computeNightStatus, isWalkover, roundLabel } from "@/lib/bracket";
+import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
 import { startViewerPings } from "@/lib/viewerLog";
 import NightNav, { splitNightName } from "@/components/NightNav";
 import Brand from "@/components/Brand";
@@ -18,6 +19,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
   const [night, setNight] = useState<Night | null>(null);
   const [players, setPlayers] = useState<Record<string, Player>>({});
   const [matches, setMatches] = useState<MatchRow[]>([]);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [viewerCount, setViewerCount] = useState(0);
   const [loadError, setLoadError] = useState(false);
   const [connectionLost, setConnectionLost] = useState(false);
@@ -48,6 +50,14 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
       setNight(nightData ?? null);
       setPlayers(Object.fromEntries((playerData ?? []).map((p) => [p.id, p])));
       setMatches(matchData ?? []);
+
+      // First-round start times (2027 sessions). Not there on a database
+      // that hasn't been moved over yet - that's fine, there are none.
+      const { data: slotData } = await supabase
+        .from("time_slots")
+        .select("from_number, to_number, start_time")
+        .eq("night_id", nightId);
+      if (!cancelled) setTimeSlots((slotData ?? []) as TimeSlot[]);
     }
 
     load();
@@ -153,8 +163,24 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
   // Byes and no-shows are marked complete before a bowl is played, so only
   // a live match or a finished two-player match counts as play having begun.
   const playStarted = matches.some(
-    (m) => m.status === "live" || (m.status === "complete" && m.player_a_id && m.player_b_id)
+    (m) => m.status === "live" || (m.status === "complete" && m.player_a_id && m.player_b_id && !isWalkover(m))
   );
+
+  // "10:45" on each first-round match not yet started; "Time to follow" on
+  // later ones - only when the session has start times at all
+  const startTimes = useMemo(() => {
+    const times: Record<string, string> = {};
+    if (timeSlots.length === 0) return times;
+    for (const m of matches) {
+      if (m.status !== "upcoming") continue;
+      times[m.id] = m.round === 1 ? (roundOneTime(timeSlots, m.slot) ?? "Time to follow") : "Time to follow";
+    }
+    return times;
+  }, [matches, timeSlots]);
+
+  // Finals Day, a single day and a final are knockouts to a champion, with
+  // a bracket view; a qualifying session sends its last four through
+  const knockout = night != null && night.kind !== "qualifier";
 
   const drawPublished = night?.draw_published ?? true;
   // Finals day updates live as it happens, same as before this feature
@@ -195,13 +221,13 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
   }, [players, night, showDraw]);
 
   const champion = useMemo(() => {
-    if (!night || night.kind !== "finals" || !showDraw) return null;
+    if (!night || !knockout || !showDraw) return null;
     const [, lastRoundMatches] = rounds[rounds.length - 1];
     if (lastRoundMatches.length !== 1) return null;
     const finalMatch = lastRoundMatches[0];
     if (finalMatch.status !== "complete" || !finalMatch.winner_id) return null;
     return players[finalMatch.winner_id] ?? null;
-  }, [night, rounds, players, showDraw]);
+  }, [night, knockout, rounds, players, showDraw]);
 
   const titleSplit = night ? splitNightName(night) : null;
   // The title shrinks to a slim strip, like the sponsor line, whenever
@@ -296,7 +322,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
       {!loadError && champion && (
         <div className="champion-banner">
           <PlayerName name={champion.name} />
-          <span className="hint">October Singles champion</span>
+          <span className="hint">{night?.kind === "finals" ? "October Singles champion" : "Champion"}</span>
         </div>
       )}
 
@@ -329,7 +355,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         </div>
       )}
 
-      {!loadError && night?.kind === "finals" && showDraw && (
+      {!loadError && knockout && showDraw && (
         <div className="view-toggle">
           <button
             type="button"
@@ -348,7 +374,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         </div>
       )}
 
-      {!loadError && night?.kind === "finals" && showDraw && viewMode === "bracket" ? (
+      {!loadError && night && knockout && showDraw && viewMode === "bracket" ? (
         <BracketTree
           rounds={rounds}
           night={night}
@@ -357,6 +383,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
           highlightPlayerId={highlightPlayerId}
           onSelectPlayer={toggleHighlight}
           champion={champion}
+          startTimes={startTimes}
         />
       ) : (
         !loadError &&
@@ -376,6 +403,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
                   drawNumbers={drawNumbers}
                   highlightPlayerId={highlightPlayerId}
                   onSelectPlayer={toggleHighlight}
+                  startTime={startTimes[m.id]}
                   // Score history is admin-only for now; set back to
                   // night?.kind === "finals" to show it publicly again.
                   historyEnabled={false}

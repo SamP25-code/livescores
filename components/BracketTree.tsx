@@ -19,6 +19,7 @@ export default function BracketTree({
   highlightPlayerId,
   onSelectPlayer,
   champion,
+  startTimes,
 }: {
   rounds: Array<[number, MatchRow[]]>;
   night: Night;
@@ -27,6 +28,7 @@ export default function BracketTree({
   highlightPlayerId: string | null;
   onSelectPlayer: (playerId: string) => void;
   champion: Player | null;
+  startTimes?: Record<string, string>;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bracketRef = useRef<HTMLDivElement>(null);
@@ -98,6 +100,7 @@ export default function BracketTree({
                             drawNumbers={drawNumbers}
                             highlightPlayerId={highlightPlayerId}
                             onSelectPlayer={onSelectPlayer}
+                            startTime={startTimes?.[m.id]}
                             compact
                           />
                         ))}
@@ -110,6 +113,7 @@ export default function BracketTree({
                         drawNumbers={drawNumbers}
                         highlightPlayerId={highlightPlayerId}
                         onSelectPlayer={onSelectPlayer}
+                        startTime={startTimes?.[pair[0].id]}
                         compact
                       />
                     )
