@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, computeNightStatus, roundLabel } from "@/lib/bracket";
@@ -12,8 +12,8 @@ import MatchCard from "@/components/MatchCard";
 import BracketTree from "@/components/BracketTree";
 import type { MatchRow, Night, Player } from "@/lib/types";
 
-export default function NightPage({ params }: { params: { id: string } }) {
-  const nightId = params.id;
+export default function NightPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: nightId } = use(params);
   const [night, setNight] = useState<Night | null>(null);
   const [players, setPlayers] = useState<Record<string, Player>>({});
   const [matches, setMatches] = useState<MatchRow[]>([]);

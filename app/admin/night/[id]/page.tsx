@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { use, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   DndContext,
@@ -50,9 +50,9 @@ import MatchHistory from "@/components/MatchHistory";
 import ViewerLog from "@/components/ViewerLog";
 import type { MatchRow, Night, Player } from "@/lib/types";
 
-export default function AdminNightPage({ params }: { params: { id: string } }) {
+export default function AdminNightPage({ params }: { params: Promise<{ id: string }> }) {
   const role = useAdminRole();
-  const nightId = params.id;
+  const { id: nightId } = use(params);
   const [night, setNight] = useState<Night | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [matches, setMatches] = useState<MatchRow[]>([]);
