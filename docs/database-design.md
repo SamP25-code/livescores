@@ -303,6 +303,20 @@ Done as one script, on the test database first:
 Matches, scores, score history and the viewer log don't move - they already hang off the nights
 and player rows. Old `/night/...` links keep working.
 
+**Rehearsed on the test database 2026-10-18** - Part 1 (`supabase/migrations/2027_01_…`) and
+Part 2 (`2027_02_…`) ran cleanly on a copy of the real 2026 data: 5 nights linked with dates, 64
+people and 64 entries, every player row pointing at an entry, Sam's test login Super.
+
+**Before running on live - leftovers from the earlier attempt.** The live database still has a
+`clubs` table ("Penwortham Sports"), a `competitions` table in an older shape with one row -
+**"Floodlit 2027"**, active, qualifiers, 4 through, 16 finals draw, sponsor **Neal Buckley
+Funerals & Penwortham Limousines** - and an empty `nights.competition_id` column. Part 1 would fail
+on live because of them. **Floodlit 2027 is real** (Sam, 2026-10-18), so on live only: run a
+small "Part 0" that drops the old `clubs` and `competitions` tables and the empty
+`nights.competition_id` column, then Parts 1 and 2, then recreate Floodlit 2027 in the new
+structure (Penwortham -> Floodlit Singles -> 2027, sponsor Neal Buckley Funerals & Penwortham
+Limousines) through the new set-up screens. The test database never had them.
+
 ---
 
 ## Decisions (Sam, 2026-10-18)
