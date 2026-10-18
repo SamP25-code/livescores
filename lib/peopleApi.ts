@@ -142,14 +142,39 @@ async function log(competitionId: string, action: string, details: Record<string
   if (error) throw error;
 }
 
-export async function addEntry(competitionId: string, personId: string, partnerId: string | null): Promise<void> {
+export async function addEntry(
+  competitionId: string,
+  personId: string,
+  partnerId: string | null,
+  sessionId: string | null = null
+): Promise<void> {
   const { data, error } = await supabase
     .from("entries")
-    .insert({ competition_id: competitionId, person_id: personId, partner_id: partnerId })
+    .insert({ competition_id: competitionId, person_id: personId, partner_id: partnerId, session_id: sessionId })
     .select("id")
     .single();
   if (error) throw error;
-  await log(competitionId, "entry_added", { entry_id: data.id, person_id: personId, partner_id: partnerId });
+  await log(competitionId, "entry_added", {
+    entry_id: data.id,
+    person_id: personId,
+    partner_id: partnerId,
+    session_id: sessionId,
+  });
+}
+
+// Qualifying competitions: move an entry to another session (before either
+// session's draw is made - after that, use Replace in the draw)
+export async function moveEntry(entry: Entry, sessionId: string): Promise<void> {
+  if (entry.session_id === sessionId) return;
+  const { count, error: countError } = await supabase
+    .from("matches")
+    .select("id", { count: "exact", head: true })
+    .in("night_id", [entry.session_id, sessionId].filter((id): id is string => Boolean(id)));
+  if (countError) throw countError;
+  if ((count ?? 0) > 0) throw new Error("That session's draw has been made - use Replace in the draw instead.");
+  const { error } = await supabase.from("entries").update({ session_id: sessionId }).eq("id", entry.id);
+  if (error) throw error;
+  await log(entry.competition_id, "entry_moved", { entry_id: entry.id, from: entry.session_id ?? null, to: sessionId });
 }
 
 export async function setEntryStatus(entry: Entry, status: Entry["status"]): Promise<void> {
@@ -173,15 +198,25 @@ export async function changeEntryPeople(entry: Entry, personId: string, partnerI
   });
 }
 
-// Removes an entry made by mistake. Only allowed while it isn't in any draw;
-// once it is, withdraw it instead.
+// Removes an entry made by mistake. Only allowed while it isn't in a draw
+// that's been made; once it is, withdraw it instead. Its place in a draw not
+// yet made goes with it.
 export async function deleteEntry(entry: Entry): Promise<void> {
-  const { count, error: countError } = await supabase
+  const { data: places, error: placesError } = await supabase
     .from("players")
-    .select("id", { count: "exact", head: true })
+    .select("id, night_id")
     .eq("entry_id", entry.id);
-  if (countError) throw countError;
-  if ((count ?? 0) > 0) throw new Error("This entry is already in a draw - withdraw it instead.");
+  if (placesError) throw placesError;
+  const nights = [...new Set((places ?? []).map((p) => p.night_id))];
+  if (nights.length > 0) {
+    const { count } = await supabase
+      .from("matches")
+      .select("id", { count: "exact", head: true })
+      .in("night_id", nights);
+    if ((count ?? 0) > 0) throw new Error("This entry is already in a draw - withdraw it instead.");
+    const { error: removeError } = await supabase.from("players").delete().eq("entry_id", entry.id);
+    if (removeError) throw removeError;
+  }
   const { error } = await supabase.from("entries").delete().eq("id", entry.id);
   if (error) throw error;
   await log(entry.competition_id, "entry_removed", { entry_id: entry.id, person_id: entry.person_id, partner_id: entry.partner_id });

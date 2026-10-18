@@ -1,4 +1,4 @@
-const { nameLines, placedIn, placeProblem } = require("../lib/sessionEntries.ts");
+const { nameLines, entriesForSession, placesToSync, defaultSession } = require("../lib/sessionEntries.ts");
 
 describe("pair names on two lines", () => {
   test("a pair splits, a single name doesn't", () => {
@@ -8,32 +8,52 @@ describe("pair names on two lines", () => {
   });
 });
 
-describe("placing entries in sessions", () => {
-  const sessions = [
-    { id: "q1", kind: "qualifier", session_number: 1 },
-    { id: "q2", kind: "qualifier", session_number: 2 },
-    { id: "fd", kind: "finals", session_number: 5 },
-    { id: "day", kind: "single_day", session_number: 1 },
+describe("who's in a session's draw", () => {
+  const entries = [
+    { id: "a", status: "entered", session_id: "q1" },
+    { id: "b", status: "entered", session_id: "q2" },
+    { id: "c", status: "withdrawn", session_id: "q1" },
+    { id: "d", status: "entered", session_id: null },
   ];
-  const places = [
-    { night_id: "q1", entry_id: "a" },
-    { night_id: "fd", entry_id: "a" },
-    { night_id: "q2", entry_id: "b" },
-    { night_id: "q2", entry_id: null },
-    { night_id: "day", entry_id: "c" },
-  ];
-  const placed = placedIn(places, sessions);
 
-  test("Finals Day doesn't count as a player's session", () => {
-    expect(placed.get("a").id).toBe("q1");
-    expect(placed.get("b").id).toBe("q2");
-    expect(placed.size).toBe(3);
+  test("a qualifying session: those entered for it", () => {
+    expect(entriesForSession(entries, { id: "q1", kind: "qualifier" }).map((e) => e.id)).toEqual(["a"]);
   });
 
-  test("says why an entry can't go in", () => {
-    expect(placeProblem("a", "q1", placed, new Set(["a"]))).toBe("Already in this draw");
-    expect(placeProblem("a", "q2", placed, new Set())).toBe("Playing qualifying session 1");
-    expect(placeProblem("c", "q2", placed, new Set())).toBe("Already in another session");
-    expect(placeProblem("d", "q2", placed, new Set())).toBeNull();
+  test("a single day: everyone entered", () => {
+    expect(entriesForSession(entries, { id: "day", kind: "single_day" }).map((e) => e.id)).toEqual(["a", "b", "d"]);
+  });
+
+  test("Finals Day fills from the qualifying sessions instead", () => {
+    expect(entriesForSession(entries, { id: "fd", kind: "finals" })).toEqual([]);
+  });
+});
+
+describe("keeping places in step with entries", () => {
+  test("adds new entries, removes ones that have gone, leaves typed names alone", () => {
+    const places = [
+      { id: "p1", entry_id: "a" },
+      { id: "p2", entry_id: "gone" },
+      { id: "p3", entry_id: null },
+    ];
+    expect(placesToSync(["a", "b"], places)).toEqual({ add: ["b"], remove: ["p2"] });
+    expect(placesToSync(["a"], [{ id: "p1", entry_id: "a" }])).toEqual({ add: [], remove: [] });
+  });
+});
+
+describe("default session for a new entry", () => {
+  const sessions = [{ id: "q1" }, { id: "q2" }];
+  test("the first with space", () => {
+    const full = [
+      { id: "a", status: "entered", session_id: "q1" },
+      { id: "b", status: "entered", session_id: "q1" },
+    ];
+    expect(defaultSession(sessions, full, 2).id).toBe("q2");
+    expect(defaultSession(sessions, full, 3).id).toBe("q1");
+    expect(defaultSession(sessions, [...full, { id: "c", status: "withdrawn", session_id: "q2" }], 2).id).toBe("q2");
+  });
+  test("all full: the first; none at all: nothing", () => {
+    expect(defaultSession(sessions, [{ id: "a", status: "entered", session_id: "q1" }, { id: "b", status: "entered", session_id: "q2" }], 1).id).toBe("q1");
+    expect(defaultSession([], [], 2)).toBeNull();
   });
 });

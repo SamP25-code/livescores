@@ -30,7 +30,7 @@ import {
   ensureFinalsBracketGenerated,
   generateBracket,
   getFinalsRoster,
-  logSessionAction,
+  makeDraw,
   markNoShow,
   renamePlayer,
   reopenMatch,
@@ -45,6 +45,7 @@ import {
   setFinalsPlayerSeed,
   setMatchTime,
   setPlayerBye,
+  syncSessionPlaces,
   undoNoShow,
 } from "@/lib/adminActions";
 import {
@@ -60,7 +61,6 @@ import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
 import { useAdminRole } from "@/lib/auth";
 import { errorMessage } from "@/lib/errors";
 import { listClubs, listEntries, type EntryWithPeople } from "@/lib/peopleApi";
-import { placedIn, placeProblem } from "@/lib/sessionEntries";
 import Avatar from "@/components/Avatar";
 import PlayerName from "@/components/PlayerName";
 import SessionEntryAdder from "@/components/SessionEntryAdder";
@@ -76,47 +76,28 @@ import type { Competition, MatchRow, Night, Organiser, Player } from "@/lib/type
 type CompetitionInfo = Pick<Competition, "id" | "team_size" | "target_score" | "scoring_style">;
 
 // A session in a 2027 competition: the competition's settings, its entries,
-// which session each entry already has a place in, this session's start
-// times, and the clubs (for adding a replacement). Loaded when the page opens
-// and after changes to them - not on every background refresh.
+// this session's start times, and the clubs (for adding a replacement).
+// Loaded when the page opens and after changes to them - not on every
+// background refresh.
 type CompetitionContext = {
   competition: CompetitionInfo;
   entries: EntryWithPeople[];
-  sessions: Pick<Night, "id" | "kind" | "session_number">[];
-  places: { night_id: string; entry_id: string | null }[];
   timeSlots: TimeSlot[];
   clubs: Organiser[];
 };
 
 async function loadCompetitionContext(competitionId: string, nightId: string): Promise<CompetitionContext> {
-  const [
-    { data: competition, error },
-    { data: sessions, error: sessionsError },
-    entries,
-    { data: timeSlots, error: slotsError },
-    clubs,
-  ] = await Promise.all([
+  const [{ data: competition, error }, entries, { data: timeSlots, error: slotsError }, clubs] = await Promise.all([
     supabase.from("competitions").select("id, team_size, target_score, scoring_style").eq("id", competitionId).single(),
-    supabase.from("nights").select("id, kind, session_number").eq("competition_id", competitionId),
     listEntries(competitionId),
     supabase.from("time_slots").select("from_number, to_number, start_time").eq("night_id", nightId),
     listClubs(),
   ]);
   if (error) throw error;
-  if (sessionsError) throw sessionsError;
   if (slotsError) throw slotsError;
-  const ids = (sessions ?? []).map((s) => s.id);
-  const { data: places, error: placesError } = await supabase
-    .from("players")
-    .select("night_id, entry_id")
-    .in("night_id", ids)
-    .not("entry_id", "is", null);
-  if (placesError) throw placesError;
   return {
     competition: competition as CompetitionInfo,
     entries,
-    sessions: sessions ?? [],
-    places: places ?? [],
     timeSlots: (timeSlots ?? []) as TimeSlot[],
     clubs,
   };
@@ -194,6 +175,18 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
     reloadContext();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [competitionId, nightId]);
+
+  // A 2027 session: everyone entered is in the draw, with no step to add
+  // them. Until the draw is made, opening the page brings its places up to
+  // date with the entries (normally already done when they were entered).
+  const newFlow = Boolean(competitionId);
+  useEffect(() => {
+    if (!context || role !== "owner" || night?.kind === "finals" || matches.length > 0) return;
+    syncSessionPlaces(nightId)
+      .then(refresh)
+      .catch((err) => setError(errorMessage(err)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [context, role]);
 
   // For changes to entries, places or start times: refresh those too
   function withContextRefresh<Args extends unknown[]>(fn: (...args: Args) => Promise<void>) {
@@ -315,13 +308,12 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
     () => new Set(players.map((p) => p.entry_id).filter((id): id is string => Boolean(id))),
     [players]
   );
-  const placed = useMemo(() => (context ? placedIn(context.places, context.sessions) : new Map()), [context]);
   const entryAdder = context && (
     <SessionEntryAdder
       competitionId={context.competition.id}
       pairs={context.competition.team_size === 2}
       entries={context.entries}
-      problemFor={(entryId) => placeProblem(entryId, nightId, isFinals ? new Map() : placed, inThisSession)}
+      problemFor={(entryId) => (inThisSession.has(entryId) ? "Already in this draw" : null)}
       onAdd={withContextRefresh((ids: string[]) => addEntriesToSession(nightId, ids))}
     />
   );
@@ -360,7 +352,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   const roundOneMatches = rounds[0]?.[1].length ?? 0;
   const sessionDrawSize = bracketExists ? roundOneMatches * 2 : drawSizeFor(activePlayers.length);
   const drawKind = night?.kind === "qualifier" ? "qualifier" : "knockout";
-  const drawNumbered = activePlayers.some((p) => p.seed != null);
+
 
   return (
     <div className="page page-photo">
@@ -371,7 +363,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
       <h1>{night?.name ?? "Loading…"}</h1>
       {error && <p className="error">{error}</p>}
 
-      {role === "owner" && night && !isFinals && (
+      {role === "owner" && night && !isFinals && (!newFlow || bracketExists) && (
         <div
           className="card"
           style={{
@@ -430,6 +422,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
             onAdd={withErrorHandling((name: string) => addPlayer(nightId, name))}
           />
         ) : (
+          !newFlow && (
           <PlayerSection
             players={orderedPlayers}
             bracketExists={bracketExists}
@@ -440,7 +433,20 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
             onToggleBye={withErrorHandling((id: string, isBye: boolean) => setPlayerBye(id, isBye))}
             onRemove={withErrorHandling((id: string) => deletePlayer(id))}
           />
+          )
         ))}
+
+      {role === "owner" && !isFinals && !bracketExists && context && activePlayers.length < 2 && (
+        <div className="card">
+          <h2>Make the draw</h2>
+          <p className="hint" style={{ margin: 0 }}>
+            {activePlayers.length === 0 ? "Nobody entered yet." : "Only one entered so far."} Enter{" "}
+            {context.competition.team_size === 2 ? "pairs" : "players"} on the{" "}
+            <Link href={`/admin/competitions/${context.competition.id}`}>competition&rsquo;s page</Link> - they
+            appear here straight away.
+          </p>
+        </div>
+      )}
 
       {role === "owner" && !isFinals && !bracketExists && context && activePlayers.length >= 2 && (
         <DrawMaker
@@ -453,10 +459,9 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
             setDrawNumbers(new Map([[player.id, n]]))
           )}
           onClear={withErrorHandling(() => setDrawNumbers(new Map(players.map((p) => [p.id, null]))))}
-          onConfirm={withErrorHandling(async (method) => {
-            await generateBracket(nightId, players, drawKind, context.competition.target_score);
-            await logSessionAction(nightId, "draw_made", { method, places: activePlayers.length });
-          })}
+          onConfirm={withContextRefresh((method: string, publish: boolean) =>
+            makeDraw(nightId, drawKind, context.competition.target_score, method, publish)
+          )}
         />
       )}
 
@@ -471,18 +476,11 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
         />
       )}
 
-      {role === "owner" && !isFinals && !bracketExists && !drawNumbered && (
+      {role === "owner" && !isFinals && !bracketExists && !newFlow && (
         <BracketSetup
-          withDrawMaker={Boolean(context)}
           players={orderedPlayers}
           onGenerate={withErrorHandling(async () => {
-            await generateBracket(
-              nightId,
-              orderedPlayers,
-              drawKind,
-              context?.competition.target_score ?? 21
-            );
-            await logSessionAction(nightId, "draw_made", { method: "list_order", places: activePlayers.length });
+            await generateBracket(nightId, orderedPlayers, drawKind);
           })}
         />
       )}
@@ -819,12 +817,9 @@ function AddExtraFinalsPlayer({
 
 function BracketSetup({
   players,
-  withDrawMaker,
   onGenerate,
 }: {
   players: Player[];
-  // "Make the draw" is shown above, so this is the other way to do it
-  withDrawMaker?: boolean;
   onGenerate: () => Promise<void>;
 }) {
   const count = players.length;
@@ -833,7 +828,7 @@ function BracketSetup({
 
   return (
     <section className="card">
-      <h2>{withDrawMaker ? "Or use the list order" : "Set up the draw"}</h2>
+      <h2>Set up the draw</h2>
       <p className="hint">
         Round 1 is built from the list above, paired in the order shown. Doesn&rsquo;t need to be an exact
         power of two (8, 16, 32&hellip;) &mdash; if it isn&rsquo;t, the odd one(s) out get a bye and advance

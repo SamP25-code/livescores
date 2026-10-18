@@ -2624,3 +2624,34 @@ label {
   gap: 8px;
   margin-top: 10px;
 }
+
+/* Entries grouped by qualifying session, with a link to each draw */
+.entries-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.entries-group-head h3 {
+  margin: 0 0 8px;
+}
+
+.entries-draw-link {
+  flex: none;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+.entries-move {
+  width: auto;
+  padding: 2px 6px;
+}
+
+.draw-maker-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}

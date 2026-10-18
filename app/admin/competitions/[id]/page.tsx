@@ -107,7 +107,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
             ))}
           </div>
 
-          <EntriesManager competition={c} />
+          <EntriesManager competition={c} sessions={data.sessions} />
 
           <h2>Settings</h2>
           {saved && !editing && <p className="hint">Changes saved.</p>}

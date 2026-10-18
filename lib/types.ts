@@ -92,6 +92,8 @@ export type Entry = {
   competition_id: string;
   person_id: string;
   partner_id: string | null;
+  // Qualifying competitions: the session they're entered for (empty otherwise)
+  session_id?: string | null;
   status: "entered" | "withdrawn";
   created_at: string;
 };

@@ -158,6 +158,7 @@ A person (singles) or a pair (doubles) entered into one competition.
 | competition_id | uuid → competitions | |
 | person_id | uuid → people | |
 | partner_id | uuid → people, optional | doubles partner; must be empty for singles |
+| session_id | uuid → nights, optional | qualifying competitions: the session they're entered for (part 6). Empty for a single day or final - everyone entered is in the one draw |
 | status | text | `entered` / `withdrawn` |
 | created_at | timestamptz | |
 

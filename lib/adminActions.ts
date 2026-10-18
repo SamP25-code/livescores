@@ -10,6 +10,7 @@ import {
   totalRounds,
 } from "@/lib/bracket";
 import { drawnByNumber, slotsByNumber } from "@/lib/draw";
+import { entriesForSession, placesToSync } from "@/lib/sessionEntries";
 import type { TimeSlot } from "@/lib/timeSlots";
 import type { Entry, MatchEvent, MatchRow, Player } from "@/lib/types";
 
@@ -668,9 +669,16 @@ export async function replaceInDraw(
 
   let newEntryId = existing?.id ?? null;
   if (!newEntryId) {
+    // In a qualifying session, the replacement is entered for that session
+    const { data: night } = await supabase.from("nights").select("kind").eq("id", match.night_id).single();
     const { data: created, error: createError } = await supabase
       .from("entries")
-      .insert({ competition_id: oldEntry.competition_id, person_id: personId, partner_id: partnerId })
+      .insert({
+        competition_id: oldEntry.competition_id,
+        person_id: personId,
+        partner_id: partnerId,
+        session_id: night?.kind === "qualifier" ? match.night_id : null,
+      })
       .select("id")
       .single();
     if (createError) {
@@ -715,4 +723,61 @@ export async function replaceInDraw(
     from_place_id: placeId,
     to_place_id: newPlaceId,
   });
+}
+
+// Keeps a 2027 session's places in step with its entries until the draw is
+// made: a place for everyone entered (for this session, if it's a qualifying
+// one), none for anyone withdrawn or moved. Once the draw is made, changes go
+// through "Replace" instead, so this leaves it alone.
+export async function syncSessionPlaces(nightId: string) {
+  const { data: night } = await supabase.from("nights").select("id, kind, competition_id").eq("id", nightId).maybeSingle();
+  if (!night?.competition_id || night.kind === "finals") return;
+  const { count } = await supabase
+    .from("matches")
+    .select("id", { count: "exact", head: true })
+    .eq("night_id", nightId);
+  if ((count ?? 0) > 0) return;
+
+  const [{ data: entries, error: entriesError }, { data: places, error: placesError }] = await Promise.all([
+    supabase.from("entries").select("id, status, session_id").eq("competition_id", night.competition_id).order("created_at"),
+    supabase.from("players").select("id, entry_id, sort_order").eq("night_id", nightId),
+  ]);
+  if (entriesError) throw entriesError;
+  if (placesError) throw placesError;
+
+  const wanted = entriesForSession((entries ?? []) as Entry[], night).map((e) => e.id);
+  const { add, remove } = placesToSync(wanted, places ?? []);
+  if (remove.length > 0) {
+    const { error } = await supabase.from("players").delete().in("id", remove);
+    if (error) throw error;
+  }
+  if (add.length > 0) {
+    const first = Math.max(-1, ...(places ?? []).map((p) => p.sort_order ?? 0)) + 1;
+    const { error } = await supabase
+      .from("players")
+      .insert(add.map((entry_id, i) => ({ night_id: nightId, entry_id, sort_order: first + i })));
+    if (error) throw error;
+  }
+}
+
+// Confirms a 2027 session's draw in one go: everyone entered is in it (the
+// places are brought up to date first), the bracket is built by draw number,
+// it's logged, and - usually - published straight away.
+export async function makeDraw(
+  nightId: string,
+  kind: "qualifier" | "knockout",
+  targetScore: number,
+  method: string,
+  publish: boolean
+) {
+  await syncSessionPlaces(nightId);
+  const { data, error } = await supabase.from("players").select("*").eq("night_id", nightId).order("sort_order");
+  if (error) throw error;
+  const players = (data ?? []) as Player[];
+  if (players.some((p) => !p.is_bye && p.seed == null)) {
+    throw new Error("Someone has been entered since the numbers were drawn - give them a number, or redraw.");
+  }
+  await generateBracket(nightId, players, kind, targetScore);
+  await logSessionAction(nightId, "draw_made", { method, places: players.length, published: publish });
+  if (publish) await setDrawPublished(nightId, true);
 }

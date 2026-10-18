@@ -7,12 +7,13 @@ import type { Player } from "@/lib/types";
 
 export type DrawMethod = "random" | "physical";
 
-// Making the draw by number, before it's confirmed:
+// Making the draw from everyone entered, by number:
 //   - "Draw at random" gives everyone a number (byes spread so no two meet),
 //     with "Redraw" until it's confirmed
 //   - or record a physical draw: pick each entry's drawn number; numbers
 //     nobody drew become byes
-// Nothing shows publicly until the draw is confirmed and published.
+// "Confirm and publish" builds the bracket and puts it on the public page in
+// one go; confirming without publishing keeps it private to check first.
 export default function DrawMaker({
   players,
   onRandom,
@@ -24,7 +25,7 @@ export default function DrawMaker({
   onRandom: () => Promise<void>;
   onSetNumber: (player: Player, n: number | null) => Promise<void>;
   onClear: () => Promise<void>;
-  onConfirm: (method: DrawMethod) => Promise<void>;
+  onConfirm: (method: DrawMethod, publish: boolean) => Promise<void>;
 }) {
   // How the numbers were made, for the log: "random" after Draw at random,
   // "physical" once any number is picked by hand
@@ -77,9 +78,11 @@ export default function DrawMaker({
     <section className="card draw-maker">
       <h2>Make the draw</h2>
       <p className="hint">
-        Draw at random here, or record a physical draw by picking each number as it&rsquo;s drawn. Numbers nobody
-        has are byes ({size - active.length} in a draw of {size}). Nothing shows publicly until you confirm and
-        publish.
+        Everyone entered ({active.length}) is in the draw. Draw at random, or record a physical draw by picking
+        each number as it&rsquo;s drawn.
+        {size > active.length
+          ? ` Numbers nobody has are byes (${size - active.length} in a draw of ${size}).`
+          : ""}
       </p>
       <div className="draw-maker-actions">
         <button
@@ -143,9 +146,19 @@ export default function DrawMaker({
 
       {numbered && problems.length > 0 && <p className="hint">{problems[0]}</p>}
       {numbered && (
-        <button type="button" disabled={busy || problems.length > 0} onClick={() => run(() => onConfirm(method))}>
-          Confirm the draw
-        </button>
+        <div className="draw-maker-confirm">
+          <button type="button" disabled={busy || problems.length > 0} onClick={() => run(() => onConfirm(method, true))}>
+            Confirm and publish
+          </button>
+          <button
+            type="button"
+            className="link-button"
+            disabled={busy || problems.length > 0}
+            onClick={() => run(() => onConfirm(method, false))}
+          >
+            Confirm without publishing
+          </button>
+        </div>
       )}
     </section>
   );
