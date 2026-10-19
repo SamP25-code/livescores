@@ -26,6 +26,7 @@ import {
 } from "@/lib/competitionsApi";
 import { errorMessage } from "@/lib/errors";
 import { checkMapUrl, directionsUrl } from "@/lib/venues";
+import { addMinutes } from "@/lib/timeSlots";
 import type { Night, Organiser, Series, Venue } from "@/lib/types";
 
 const DEFAULT_START: Record<SessionKind, string> = {
@@ -98,7 +99,11 @@ export default function CompetitionForm({
 
   // Sessions' dates and start times, in plan order
   const [sessions, setSessions] = useState<SessionDetails[]>(() =>
-    (existing?.sessions ?? []).map((s) => ({ date: s.date ?? null, start_time: s.start_time?.slice(0, 5) ?? null }))
+    (existing?.sessions ?? []).map((s) => ({
+      date: s.date ?? null,
+      start_time: s.start_time?.slice(0, 5) ?? null,
+      practice_time: s.practice_time?.slice(0, 5) ?? null,
+    }))
   );
 
   const [saving, setSaving] = useState(false);
@@ -137,6 +142,9 @@ export default function CompetitionForm({
       plan.map((p, i) => ({
         date: current[i]?.date ?? null,
         start_time: current[i]?.start_time ?? DEFAULT_START[p.kind],
+        // Practice half an hour before, to begin with
+        practice_time:
+          current[i]?.practice_time ?? addMinutes(current[i]?.start_time ?? DEFAULT_START[p.kind], -30),
       }))
     );
   }, [plan]);
@@ -164,7 +172,18 @@ export default function CompetitionForm({
   }
 
   function setSession(i: number, field: keyof SessionDetails, value: string) {
-    setSessions((current) => current.map((s, j) => (j === i ? { ...s, [field]: value || null } : s)));
+    setSessions((current) =>
+      current.map((s, j) => {
+        if (j !== i) return s;
+        const next = { ...s, [field]: value || null };
+        // Moving the start moves practice with it, if practice was still the
+        // usual half an hour before
+        if (field === "start_time" && value && s.start_time && s.practice_time === addMinutes(s.start_time, -30)) {
+          next.practice_time = addMinutes(value, -30);
+        }
+        return next;
+      })
+    );
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -485,25 +504,43 @@ export default function CompetitionForm({
 
       <section className="card">
         <h2>Dates</h2>
-        <p className="hint">Leave a date empty if it isn&rsquo;t known yet - it shows as &ldquo;Dates to be confirmed&rdquo;.</p>
+        <p className="hint">
+          Leave a date empty if it isn&rsquo;t known yet - it shows as &ldquo;Dates to be confirmed&rdquo;. Clear the
+          practice time if there&rsquo;s no practice.
+        </p>
         <div className="comp-form-sessions">
           {plan.map((p, i) => (
             <div key={`${p.kind}-${p.session_number}`} className="comp-form-session">
               <span className="comp-form-session-name">
                 {p.kind === "qualifier" ? `${SESSION_LABEL.qualifier} ${p.session_number}` : SESSION_LABEL[p.kind]}
               </span>
-              <input
-                type="date"
-                aria-label={`Date for ${SESSION_LABEL[p.kind]} ${p.session_number}`}
-                value={sessions[i]?.date ?? ""}
-                onChange={(e) => setSession(i, "date", e.target.value)}
-              />
-              <input
-                type="time"
-                aria-label={`Start time for ${SESSION_LABEL[p.kind]} ${p.session_number}`}
-                value={sessions[i]?.start_time ?? ""}
-                onChange={(e) => setSession(i, "start_time", e.target.value)}
-              />
+              <label className="comp-form-session-field">
+                <span>Date</span>
+                <input
+                  type="date"
+                  aria-label={`Date for ${SESSION_LABEL[p.kind]} ${p.session_number}`}
+                  value={sessions[i]?.date ?? ""}
+                  onChange={(e) => setSession(i, "date", e.target.value)}
+                />
+              </label>
+              <label className="comp-form-session-field">
+                <span>Practice</span>
+                <input
+                  type="time"
+                  aria-label={`Practice time for ${SESSION_LABEL[p.kind]} ${p.session_number}`}
+                  value={sessions[i]?.practice_time ?? ""}
+                  onChange={(e) => setSession(i, "practice_time", e.target.value)}
+                />
+              </label>
+              <label className="comp-form-session-field">
+                <span>Start</span>
+                <input
+                  type="time"
+                  aria-label={`Start time for ${SESSION_LABEL[p.kind]} ${p.session_number}`}
+                  value={sessions[i]?.start_time ?? ""}
+                  onChange={(e) => setSession(i, "start_time", e.target.value)}
+                />
+              </label>
             </div>
           ))}
         </div>

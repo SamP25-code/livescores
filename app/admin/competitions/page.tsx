@@ -6,6 +6,7 @@ import { isAnyAdmin, useAccess, visibleCompetition } from "@/lib/access";
 import { listCompetitions, type CompetitionWithSeries } from "@/lib/competitionsApi";
 import { settingsSummary } from "@/lib/competitionSetup";
 import { errorMessage } from "@/lib/errors";
+import { SITE_NAME } from "@/lib/site";
 
 const STATUS_LABEL = { planned: "Planned", active: "Active", archived: "Archived" } as const;
 
@@ -19,7 +20,7 @@ export default function CompetitionsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = "Competitions · Admin · Penwortham Singles";
+    document.title = `Competitions · Admin · ${SITE_NAME}`;
   }, []);
 
   useEffect(() => {

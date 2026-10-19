@@ -12,6 +12,7 @@ export type PublicSession = {
   session_number: number | null;
   date: string | null;
   start_time: string | null;
+  practice_time?: string | null;
   postponed: boolean;
   postponed_reason: string | null;
   original_date: string | null;
@@ -321,4 +322,12 @@ export function timeOfDay(t: string | null): string | null {
   const [h, m] = t.split(":").map(Number);
   const hour = h % 12 === 0 ? 12 : h % 12;
   return `${hour}${m ? `:${String(m).padStart(2, "0")}` : ""}${h < 12 ? "am" : "pm"}`;
+}
+
+// "Practice 6pm · Start 6:30pm", or just the start; null if neither is set
+export function sessionTimes(s: { practice_time?: string | null; start_time?: string | null }): string | null {
+  const practice = timeOfDay(s.practice_time ?? null);
+  const start = timeOfDay(s.start_time ?? null);
+  if (!practice && !start) return null;
+  return [practice && `Practice ${practice}`, start && `Start ${start}`].filter(Boolean).join(" · ");
 }

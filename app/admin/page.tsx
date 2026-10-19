@@ -55,7 +55,7 @@ export default function AdminDashboard() {
   }
 
   useEffect(() => {
-    document.title = "Admin · Penwortham Singles";
+    document.title = `Admin · ${SITE_NAME}`;
   }, []);
 
   useEffect(() => {

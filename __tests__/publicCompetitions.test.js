@@ -215,3 +215,20 @@ describe("session wording", () => {
     expect(timeOfDay(null)).toBeNull();
   });
 });
+
+const { sessionTimes } = require("../lib/publicCompetitions.ts");
+const { addMinutes } = require("../lib/timeSlots.ts");
+
+describe("practice and start times", () => {
+  test("written out", () => {
+    expect(sessionTimes({ practice_time: "18:00:00", start_time: "18:30:00" })).toBe("Practice 6pm · Start 6:30pm");
+    expect(sessionTimes({ practice_time: null, start_time: "13:00" })).toBe("Start 1pm");
+    expect(sessionTimes({ practice_time: "12:30", start_time: null })).toBe("Practice 12:30pm");
+    expect(sessionTimes({})).toBeNull();
+  });
+
+  test("half an hour before", () => {
+    expect(addMinutes("18:30", -30)).toBe("18:00");
+    expect(addMinutes("00:15", -30)).toBe("23:45");
+  });
+});

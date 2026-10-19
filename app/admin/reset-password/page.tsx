@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { SITE_NAME } from "@/lib/site";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -12,7 +13,7 @@ export default function ResetPasswordPage() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    document.title = "Reset password · Penwortham Singles";
+    document.title = `Reset password · ${SITE_NAME}`;
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {

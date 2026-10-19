@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { SITE_NAME } from "@/lib/site";
 
 export default function AdminSettingsPage() {
   const [password, setPassword] = useState("");
@@ -11,7 +12,7 @@ export default function AdminSettingsPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    document.title = "Settings · Admin · Penwortham Singles";
+    document.title = `Settings · Admin · ${SITE_NAME}`;
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {

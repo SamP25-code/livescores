@@ -29,6 +29,7 @@ import {
   correctResult,
   deletePlayer,
   ensureFinalsBracketGenerated,
+  finalsSizeOf,
   generateBracket,
   getFinalsRoster,
   makeDraw,
@@ -79,10 +80,11 @@ import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
 import ViewerLog from "@/components/ViewerLog";
 import type { Competition, MatchRow, Night, Organiser, Player, Venue } from "@/lib/types";
+import { SITE_NAME } from "@/lib/site";
 
 type CompetitionInfo = Pick<
   Competition,
-  "id" | "year" | "team_size" | "target_score" | "scoring_style" | "venue_id"
+  "id" | "year" | "team_size" | "target_score" | "scoring_style" | "venue_id" | "format" | "draw_size"
 > & {
   series: { name: string };
 };
@@ -103,7 +105,7 @@ async function loadCompetitionContext(competitionId: string, nightId: string): P
   const [{ data: competition, error }, entries, { data: timeSlots, error: slotsError }, clubs, { data: venues }] = await Promise.all([
     supabase
       .from("competitions")
-      .select("id, year, team_size, target_score, scoring_style, venue_id, series:series_id(name)")
+      .select("id, year, team_size, target_score, scoring_style, venue_id, format, draw_size, series:series_id(name)")
       .eq("id", competitionId)
       .single(),
     listEntries(competitionId),
@@ -138,7 +140,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = night ? `${night.name} · Admin · Penwortham Singles` : "Admin · Penwortham Singles";
+    document.title = night ? `${night.name} · Admin · ${SITE_NAME}` : `Admin · ${SITE_NAME}`;
   }, [night]);
 
   // What the last refresh found, for the background checks below without
@@ -382,7 +384,8 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   }, [matches, players, night, lastRound]);
 
   const finalsOccupancy = isFinals ? players : finalsRoster;
-  const finalsSlots = useMemo(() => buildFinalsSlots(finalsOccupancy), [finalsOccupancy]);
+  const finalsSize = finalsSizeOf(context?.competition);
+  const finalsSlots = useMemo(() => buildFinalsSlots(finalsOccupancy, finalsSize), [finalsOccupancy, finalsSize]);
   const bracketExists = matches.length > 0;
 
   const entriesById = useMemo(() => new Map((context?.entries ?? []).map((e) => [e.id, e])), [context]);
@@ -550,7 +553,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
             await deleteEntry(entry);
           })}
           onConfirm={withContextRefresh((method: string, publish: boolean) =>
-            makeDraw(nightId, drawKind, context.competition.target_score, method, publish)
+            makeDraw(nightId, drawKind, method, publish)
           )}
         />
       )}

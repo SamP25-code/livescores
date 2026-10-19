@@ -2165,9 +2165,19 @@ label {
 
 .comp-form-session {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: end;
   gap: 8px;
+}
+
+.comp-form-session-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
 }
 
 .comp-form-session input {
@@ -2180,7 +2190,10 @@ label {
 
 @media (max-width: 480px) {
   .comp-form-session {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .comp-form-session input {
+    width: 100%;
   }
   .comp-form-session-name {
     grid-column: 1 / -1;

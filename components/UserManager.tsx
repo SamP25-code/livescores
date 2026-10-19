@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { forgetAccess } from "@/lib/access";
 import { canAssign, canResetPassword, type CompetitionChoice, type StaffUser } from "@/lib/staffUsers";
+import { SITE_NAME } from "@/lib/site";
 
 // Calls one of the /api/admin/users routes as the signed-in admin.
 async function callApi<T>(path: string, method: string, body?: unknown): Promise<T> {
@@ -285,7 +286,7 @@ export default function UserManager() {
 // ready-to-send message.
 function PasswordHandover({ handover, onDone }: { handover: Handover; onDone: () => void }) {
   const [copied, setCopied] = useState(false);
-  const message = `Penwortham Singles admin login - name: ${handover.name}, password: ${handover.password}`;
+  const message = `${SITE_NAME} admin login - name: ${handover.name}, password: ${handover.password}`;
 
   async function copy() {
     try {

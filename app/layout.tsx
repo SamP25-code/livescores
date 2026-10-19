@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 import SentryInit from "@/components/SentryInit";
+import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
 // A narrow scoreboard-style face for headings, scores and numbers, and a
 // plain humanist sans for names and everything else. Both come from the
@@ -44,11 +45,11 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Penwortham Singles",
-  description: "Live scores from the October Singles at Penwortham Sports & Social Club",
+  title: SITE_NAME,
+  description: SITE_DESCRIPTION,
   openGraph: {
-    title: "Penwortham Singles",
-    description: "Live scores from the October Singles at Penwortham Sports & Social Club",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
     images: ["/bowls-background.jpg"],
   },
 };

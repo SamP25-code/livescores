@@ -5,13 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useIsSuper } from "@/lib/auth";
 import CompetitionForm from "@/components/CompetitionForm";
+import { SITE_NAME } from "@/lib/site";
 
 export default function NewCompetitionPage() {
   const router = useRouter();
   const isSuper = useIsSuper();
 
   useEffect(() => {
-    document.title = "New competition · Admin · Penwortham Singles";
+    document.title = `New competition · Admin · ${SITE_NAME}`;
   }, []);
 
   return (

@@ -32,7 +32,7 @@ export function roundOneTime(slots: TimeSlot[], matchSlot: number): string | nul
 // Adds minutes to "HH:MM"
 export function addMinutes(time: string, minutes: number): string {
   const [h, m] = shortTime(time).split(":").map(Number);
-  const total = (h * 60 + m + minutes) % (24 * 60);
+  const total = (((h * 60 + m + minutes) % 1440) + 1440) % 1440;
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 

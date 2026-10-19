@@ -7,6 +7,7 @@ import { personDetailsLine, type PersonDetails } from "@/lib/people";
 import { listClubs, mergePeople, updatePerson } from "@/lib/peopleApi";
 import PersonPicker from "@/components/PersonPicker";
 import type { Organiser } from "@/lib/types";
+import { SITE_NAME } from "@/lib/site";
 
 // Fixing mistakes in the shared list of people. Super only: correct a name,
 // club or note, or merge two records that turn out to be the same person.
@@ -23,7 +24,7 @@ export default function PeoplePage() {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = "People · Admin · Penwortham Singles";
+    document.title = `People · Admin · ${SITE_NAME}`;
   }, []);
 
   useEffect(() => {

@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, computeNightStatus, isWalkover, roundLabel } from "@/lib/bracket";
 import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
 import { directionsUrl, originalDateLabel, postponedLabel, venueAddressLine } from "@/lib/venues";
+import { sessionTimes, timeOfDay } from "@/lib/publicCompetitions";
 import { startViewerPings } from "@/lib/viewerLog";
 import NightNav, { splitNightName } from "@/components/NightNav";
 import Brand from "@/components/Brand";
@@ -15,6 +16,7 @@ import PlayerName from "@/components/PlayerName";
 import MatchCard from "@/components/MatchCard";
 import BracketTree from "@/components/BracketTree";
 import type { MatchRow, Night, Player, Venue } from "@/lib/types";
+import { SITE_NAME } from "@/lib/site";
 
 export default function NightPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: nightId } = use(params);
@@ -30,13 +32,14 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
     slug: string;
     latest: boolean;
     sponsors: SponsorShown[];
+    finalsSize: number;
   } | null>(null);
   const [viewerCount, setViewerCount] = useState(0);
   const [loadError, setLoadError] = useState(false);
   const [connectionLost, setConnectionLost] = useState(false);
 
   useEffect(() => {
-    document.title = night ? `${night.name} · Penwortham Singles` : "Penwortham Singles";
+    document.title = night ? `${night.name} · ${SITE_NAME}` : `${SITE_NAME}`;
   }, [night]);
 
   useEffect(() => {
@@ -75,7 +78,9 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
       if (nightData?.competition_id) {
         const { data: comp } = await supabase
           .from("competitions")
-          .select("venue_id, year, series_id, series:series_id(name, slug), sponsors:competition_sponsors(*)")
+          .select(
+            "venue_id, year, series_id, format, draw_size, series:series_id(name, slug), sponsors:competition_sponsors(*)"
+          )
           .eq("id", nightData.competition_id)
           .single();
         if (comp) {
@@ -88,7 +93,9 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
           ]
             .sort((a, b) => a.position - b.position)
             .map((s) => ({ name: s.name, url: s.url ?? null, logo_url: s.logo_url ?? null }));
-          if (!cancelled) setCompetition({ name: series.name, year: comp.year, slug: series.slug, latest, sponsors });
+          const finalsSize = comp.format === "qualifying_and_finals" && comp.draw_size ? comp.draw_size : 16;
+          if (!cancelled)
+            setCompetition({ name: series.name, year: comp.year, slug: series.slug, latest, sponsors, finalsSize });
         }
       }
       if (venueId) {
@@ -242,8 +249,8 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
   // published it.
   const finalsSlots = useMemo(() => {
     if (!night || night.kind !== "finals" || showDraw) return [];
-    return buildFinalsSlots(Object.values(players));
-  }, [players, night, showDraw]);
+    return buildFinalsSlots(Object.values(players), competition?.finalsSize);
+  }, [players, night, showDraw, competition]);
 
   // Deliberately alphabetical, not sort_order - sort_order is what the
   // admin drags to set round-1 pairing, and showing that live would leak
@@ -251,7 +258,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
   // changes as they work, so nothing here hints at the pairing until the
   // real draw is published.
   const qualifierPlayers = useMemo(() => {
-    if (!night || night.kind !== "qualifier" || showDraw) return [];
+    if (!night || night.kind === "finals" || showDraw) return [];
     return Object.values(players)
       .filter((p) => !p.is_bye)
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -334,14 +341,8 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
               <span className="night-header-day">{night?.name ?? "Loading…"}</span>
             )}
           </span>
-          {!loadError && night && !playStarted && !showDraw && !finalsField && (
-            <span className="night-header-times">
-              {showField
-                ? "Start 7pm · Draw to follow"
-                : night.kind === "finals"
-                  ? "Practice 12:30pm · Start 1pm"
-                  : "Practice 6:30pm · Start 7pm"}
-            </span>
+          {!loadError && night && !playStarted && !showDraw && !finalsField && headerTimes(night, showField) && (
+            <span className="night-header-times">{headerTimes(night, showField)}</span>
           )}
           {/* Only once the draw is up - before that it's the field of
               players that needs the room. Finals Day waits for the first
@@ -521,6 +522,22 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
       )}
     </div>
   );
+}
+
+// The times under the title: the session's own practice and start times.
+// Over the field of players it's just the start and "Draw to follow". A night
+// from before the 2027 move has no times stored, so it keeps the October
+// Singles times it always showed.
+function headerTimes(night: Night, overField: boolean): string | null {
+  if (!night.competition_id && !night.start_time) {
+    if (overField) return "Start 7pm · Draw to follow";
+    return night.kind === "finals" ? "Practice 12:30pm · Start 1pm" : "Practice 6:30pm · Start 7pm";
+  }
+  if (overField) {
+    const start = timeOfDay(night.start_time ?? null);
+    return start ? `Start ${start} · Draw to follow` : "Draw to follow";
+  }
+  return sessionTimes(night);
 }
 
 const MONTHS =

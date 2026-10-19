@@ -75,6 +75,16 @@ export function totalRounds(playerCount: number): number {
   return Math.ceil(Math.log2(playerCount));
 }
 
+// How many rounds a qualifying session plays: enough that the number left
+// is how many go through - 16 playing with 4 through is 2 rounds, 2 through
+// is 3, 8 playing with 4 through is 1. If how many go through isn't a power
+// of two, it stops while at least that many are left.
+export function qualifyingRounds(drawSize: number, through: number): number {
+  const full = totalRounds(drawSize);
+  const keep = Math.ceil(Math.log2(Math.max(1, through)));
+  return Math.max(1, Math.min(full, full - keep));
+}
+
 export function firstRoundPairs(playerCount: number): Array<[number, number]> {
   if (playerCount % 2 !== 0) {
     throw new Error("playerCount must be even");

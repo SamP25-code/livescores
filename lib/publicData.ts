@@ -29,7 +29,7 @@ export async function loadPublicCompetitions(): Promise<PublicCompetition[]> {
     supabase
       .from("nights")
       .select(
-        "id, competition_id, kind, session_number, date, start_time, postponed, postponed_reason, original_date, draw_published"
+        "*"
       )
       .not("competition_id", "is", null),
     supabase.from("entries").select("competition_id").eq("status", "entered"),

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { longDate } from "@/lib/competitionSetup";
 import { errorMessage } from "@/lib/errors";
+import { sessionTimes } from "@/lib/publicCompetitions";
 import { originalDateLabel, postponedLabel } from "@/lib/venues";
 import type { Night, Venue } from "@/lib/types";
 
@@ -59,7 +60,7 @@ export default function SessionSettings({
           ) : (
             <>
               <strong>{session.date ? longDate(session.date) : "Date to be confirmed"}</strong>
-              {session.start_time && <span className="hint">Starts {session.start_time.slice(0, 5)}</span>}
+              {sessionTimes(session) && <span className="hint">{sessionTimes(session)}</span>}
             </>
           )}
         </span>

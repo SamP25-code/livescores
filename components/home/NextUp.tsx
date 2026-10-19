@@ -5,7 +5,7 @@ import {
   daysUntil,
   formatLine,
   sessionTitle,
-  timeOfDay,
+  sessionTimes,
   type PublicCompetition,
   type PublicSession,
 } from "@/lib/publicCompetitions";
@@ -45,7 +45,7 @@ export default function NextUp({
               <span className="home-next-details">
                 <span>
                   <strong>{longDate(s.date!)}</strong> &middot; {sessionTitle(s)}
-                  {timeOfDay(s.start_time) ? ` · ${timeOfDay(s.start_time)}` : ""}
+                  {sessionTimes(s) ? ` · ${sessionTimes(s)}` : ""}
                 </span>
                 <span>
                   {s.draw_published ? "Draw published" : "Draw to follow"}

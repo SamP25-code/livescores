@@ -10,6 +10,7 @@ import { errorMessage } from "@/lib/errors";
 import CompetitionForm from "@/components/CompetitionForm";
 import EntriesManager from "@/components/EntriesManager";
 import type { Night } from "@/lib/types";
+import { SITE_NAME } from "@/lib/site";
 
 const STATUS_LABEL = { planned: "Planned", active: "Active", archived: "Archived" } as const;
 
@@ -53,8 +54,8 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
 
   useEffect(() => {
     document.title = data
-      ? `${data.competition.series.name} ${data.competition.year} · Admin · Penwortham Singles`
-      : "Competition · Admin · Penwortham Singles";
+      ? `${data.competition.series.name} ${data.competition.year} · Admin · ${SITE_NAME}`
+      : `Competition · Admin · ${SITE_NAME}`;
   }, [data]);
 
   if (canRun === false) {

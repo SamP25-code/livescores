@@ -12,6 +12,8 @@ export type Night = {
   session_number?: number | null;
   date?: string | null;
   start_time?: string | null;
+  // Part 10: when practice starts (empty: none shown)
+  practice_time?: string | null;
   venue_id?: string | null;
   postponed?: boolean;
   postponed_reason?: string | null;

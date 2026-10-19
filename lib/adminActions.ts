@@ -6,6 +6,7 @@ import {
   getWinnerSide,
   isMatchComplete,
   isWalkover,
+  qualifyingRounds,
   roundOneSlotForSeed,
   totalRounds,
 } from "@/lib/bracket";
@@ -137,7 +138,11 @@ export async function generateBracket(
   nightId: string,
   players: Player[],
   kind: "qualifier" | "knockout" | "finals",
-  targetScore = 21
+  targetScore = 21,
+  // From the competition's settings: Finals Day's size, and how many go
+  // through from a qualifying session (which sets how many rounds it plays).
+  // Left out, it's the October Singles' 16 and 2 rounds.
+  shape: { finalsSize?: number; through?: number } = {}
 ) {
   const listed = kind !== "finals";
   if (listed && players.length < 2) {
@@ -154,7 +159,7 @@ export async function generateBracket(
 
   const slots: Array<Player | null> =
     kind === "finals"
-      ? buildFinalsSlots(players)
+      ? buildFinalsSlots(players, shape.finalsSize)
       : drawnByNumber(players)
         ? slotsByNumber(players)
         : buildQualifierSlots(players);
@@ -169,7 +174,12 @@ export async function generateBracket(
       }
     }
   }
-  const rounds = kind === "qualifier" ? 2 : totalRounds(drawSize);
+  const rounds =
+    kind === "qualifier"
+      ? shape.through
+        ? qualifyingRounds(drawSize, shape.through)
+        : 2
+      : totalRounds(drawSize);
   let previousRoundIds: string[] = [];
   let previousRoundByeWinners: Array<string | null> = [];
 
@@ -447,9 +457,40 @@ export async function ensureFinalsBracketGenerated(nightId: string): Promise<boo
     .eq("night_id", nightId);
   if (count && count > 0) return false;
 
-  const { data: finalsPlayers } = await supabase.from("players").select("*").eq("night_id", nightId);
-  await generateBracket(nightId, finalsPlayers ?? [], "finals");
+  const [{ data: finalsPlayers }, settings] = await Promise.all([
+    supabase.from("players").select("*").eq("night_id", nightId),
+    competitionSettingsFor(nightId),
+  ]);
+  await generateBracket(nightId, finalsPlayers ?? [], "finals", settings?.target_score ?? 21, {
+    finalsSize: finalsSizeOf(settings),
+  });
   return true;
+}
+
+type CompetitionShape = {
+  format: string;
+  draw_size: number | null;
+  target_score: number;
+  qualifiers_per_night: number | null;
+};
+
+// The settings of the competition a session belongs to (null for a night
+// from before the 2027 move)
+export async function competitionSettingsFor(nightId: string): Promise<CompetitionShape | null> {
+  const { data: night } = await supabase.from("nights").select("competition_id").eq("id", nightId).maybeSingle();
+  if (!night?.competition_id) return null;
+  const { data } = await supabase
+    .from("competitions")
+    .select("format, draw_size, target_score, qualifiers_per_night")
+    .eq("id", night.competition_id)
+    .single();
+  return (data as CompetitionShape | null) ?? null;
+}
+
+// How many places Finals Day has: the competition's Finals Day draw, or the
+// October Singles' 16
+export function finalsSizeOf(settings: Pick<CompetitionShape, "format" | "draw_size"> | null | undefined): number {
+  return settings?.format === "qualifying_and_finals" && settings.draw_size ? settings.draw_size : 16;
 }
 
 async function vacateSeed(nightId: string, seed: number, exceptPlayerId: string | null) {
@@ -683,21 +724,18 @@ export async function syncSessionPlaces(nightId: string) {
 // Confirms a 2027 session's draw in one go: everyone entered is in it (the
 // places are brought up to date first), the bracket is built by draw number,
 // it's logged, and - usually - published straight away.
-export async function makeDraw(
-  nightId: string,
-  kind: "qualifier" | "knockout",
-  targetScore: number,
-  method: string,
-  publish: boolean
-) {
+export async function makeDraw(nightId: string, kind: "qualifier" | "knockout", method: string, publish: boolean) {
   await syncSessionPlaces(nightId);
+  const settings = await competitionSettingsFor(nightId);
   const { data, error } = await supabase.from("players").select("*").eq("night_id", nightId).order("sort_order");
   if (error) throw error;
   const players = (data ?? []) as Player[];
   if (players.some((p) => !p.is_bye && p.seed == null)) {
     throw new Error("Someone has been entered since the numbers were drawn - give them a number, or redraw.");
   }
-  await generateBracket(nightId, players, kind, targetScore);
+  await generateBracket(nightId, players, kind, settings?.target_score ?? 21, {
+    through: kind === "qualifier" ? (settings?.qualifiers_per_night ?? undefined) : undefined,
+  });
   await logSessionAction(nightId, "draw_made", { method, places: players.length, published: publish });
   if (publish) await setDrawPublished(nightId, true);
 }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { isNameLogin, loginEmailFor } from "@/lib/loginName";
+import { SITE_NAME } from "@/lib/site";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function LoginPage() {
   const [resetSent, setResetSent] = useState(false);
 
   useEffect(() => {
-    document.title = mode === "forgot" ? "Reset password · Penwortham Singles" : "Sign in · Penwortham Singles";
+    document.title = mode === "forgot" ? `Reset password · ${SITE_NAME}` : `Sign in · ${SITE_NAME}`;
   }, [mode]);
 
   async function handleSubmit(e: React.FormEvent) {

@@ -532,6 +532,15 @@ available"). A competition can use **different venues for different rounds** (e.
 the club, Finals Day elsewhere), so venue is set per night / day, defaulting to the
 competition's.
 
+## Branding and backgrounds (agreed 2026-10-19)
+
+- The site's name, tagline, link-preview description and phone icon are neutral for now ("Bowls
+  Live", a "BL" icon) and all live in `lib/site.ts` / the icon files - Sam will change them when
+  the real name and domain are chosen.
+- **Background photo** - the Penwortham fireworks photo will be replaced with a **general
+  background**, and each competition can have **its own background**, uploaded by the user (like
+  sponsor logos), shown on that competition's pages.
+
 ## SuperAdmin overview (agreed 2026-10-16 - a 2027 requirement)
 
 One admin screen for Sam showing what needs attention across every competition, so he isn't

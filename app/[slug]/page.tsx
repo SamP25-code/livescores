@@ -12,7 +12,7 @@ import {
   resolveCompetition,
   shortDate,
   sessionTitle,
-  timeOfDay,
+  sessionTimes,
   todayIso,
   type PublicCompetition,
   type PublicSession,
@@ -218,7 +218,7 @@ function ScheduleRow({ session: s, competition: c, today }: { session: PublicSes
   else details.push("Date to be confirmed");
   if (s.status === "complete" && s.kind === "qualifier" && c.qualifiers_per_night) details.push(`${c.qualifiers_per_night} through`);
   else if (s.status === "live") details.push(s.date === today ? "tonight" : "in play");
-  else if (s.status === "upcoming" && timeOfDay(s.start_time)) details.push(`Start ${timeOfDay(s.start_time)}`);
+  else if (s.status === "upcoming" && sessionTimes(s)) details.push(sessionTimes(s)!);
   if (finals && s.status === "upcoming" && c.draw_size) details.push(`${c.draw_size} qualifiers`);
 
   return (

@@ -1,4 +1,5 @@
 const {
+  qualifyingRounds,
   isWalkover,
   roundName,
   roundLabel,
@@ -282,5 +283,17 @@ describe("isWalkover", () => {
     expect(isWalkover({ ...base, player_b_id: null })).toBe(false);
     expect(isWalkover({ ...base, score_a: 21, score_b: 15 })).toBe(false);
     expect(isWalkover({ ...base, status: "upcoming" })).toBe(false);
+  });
+});
+
+describe("qualifyingRounds", () => {
+  test("plays down to how many go through", () => {
+    expect(qualifyingRounds(16, 4)).toBe(2);
+    expect(qualifyingRounds(16, 2)).toBe(3);
+    expect(qualifyingRounds(8, 4)).toBe(1);
+    expect(qualifyingRounds(32, 8)).toBe(2);
+    expect(qualifyingRounds(16, 3)).toBe(2); // 4 left, at least the 3 needed
+    expect(qualifyingRounds(16, 1)).toBe(4);
+    expect(qualifyingRounds(4, 8)).toBe(1);
   });
 });

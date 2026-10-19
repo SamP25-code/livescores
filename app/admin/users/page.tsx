@@ -3,12 +3,13 @@
 import { useEffect } from "react";
 import { isAnyAdmin, useAccess } from "@/lib/access";
 import UserManager from "@/components/UserManager";
+import { SITE_NAME } from "@/lib/site";
 
 export default function AdminUsersPage() {
   const access = useAccess();
 
   useEffect(() => {
-    document.title = "Users · Admin · Penwortham Singles";
+    document.title = `Users · Admin · ${SITE_NAME}`;
   }, []);
 
   return (
