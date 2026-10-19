@@ -3852,3 +3852,24 @@ html.larger-text {
 .prose li {
   margin: 4px 0;
 }
+
+/* Super viewing as someone else - always in view, with the way back */
+.view-as-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 10px 16px;
+  background: var(--gold);
+  color: var(--ink);
+  font-size: 1.05rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.view-as-bar button {
+  min-height: 40px;
+}

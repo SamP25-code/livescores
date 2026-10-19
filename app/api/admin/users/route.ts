@@ -1,7 +1,7 @@
 import { isNameLogin, loginEmailFor } from "@/lib/loginName";
 import { generatePassword } from "@/lib/password";
 import { canAssign, toStaffUser, visibleTo, type CompetitionChoice, type StaffAssignment } from "@/lib/staffUsers";
-import { jsonError, requireStaff } from "@/lib/supabaseAdmin";
+import { MUST_CHOOSE_PASSWORD, jsonError, requireStaff } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -77,6 +77,8 @@ export async function POST(request: Request) {
       // Nothing to confirm for a name login, and the admin is vouching for an
       // email login by adding it here.
       email_confirm: true,
+      // They choose their own password the first time they sign in
+      app_metadata: { [MUST_CHOOSE_PASSWORD]: true },
       user_metadata: isNameLogin(login) ? { full_name: login } : {},
     });
     if (error) return jsonError(400, error.message);

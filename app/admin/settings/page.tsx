@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import { SITE_NAME } from "@/lib/site";
+import { newPasswordProblem, saveOwnPassword } from "@/lib/choosePassword";
+import { errorMessage } from "@/lib/errors";
 
 export default function AdminSettingsPage() {
   const [password, setPassword] = useState("");
@@ -19,17 +20,20 @@ export default function AdminSettingsPage() {
     e.preventDefault();
     setError(null);
     setSaved(false);
-    if (password !== confirmPassword) {
-      setError("The two passwords don't match.");
+    const problem = newPasswordProblem(password, confirmPassword);
+    if (problem) {
+      setError(problem);
       return;
     }
     setSaving(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    setSaving(false);
-    if (error) {
-      setError(error.message);
+    try {
+      await saveOwnPassword(password);
+    } catch (err) {
+      setSaving(false);
+      setError(errorMessage(err));
       return;
     }
+    setSaving(false);
     setPassword("");
     setConfirmPassword("");
     setSaved(true);
@@ -47,7 +51,7 @@ export default function AdminSettingsPage() {
             id="settings-password"
             type="password"
             required
-            minLength={6}
+            minLength={8}
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -59,7 +63,7 @@ export default function AdminSettingsPage() {
             id="settings-password-confirm"
             type="password"
             required
-            minLength={6}
+            minLength={8}
             autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}

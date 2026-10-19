@@ -1,6 +1,6 @@
 import { generatePassword } from "@/lib/password";
 import { canAssign, canResetPassword, toStaffUser, type StaffAssignment } from "@/lib/staffUsers";
-import { jsonError, requireStaff, type Staff } from "@/lib/supabaseAdmin";
+import { MUST_CHOOSE_PASSWORD, jsonError, requireStaff, type Staff } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +30,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return jsonError(403, "Only Super can give them a new password.");
   }
   const password = generatePassword();
-  const { error } = await auth.admin.auth.admin.updateUserById(id, { password });
+  // Asked to choose their own the next time they sign in (not when it's your own)
+  const { error } = await auth.admin.auth.admin.updateUserById(id, {
+    password,
+    ...(id === auth.caller.id ? {} : { app_metadata: { [MUST_CHOOSE_PASSWORD]: true } }),
+  });
   if (error) return jsonError(400, error.message);
   return Response.json({ password });
 }

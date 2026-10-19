@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { accessLabel, isAnyAdmin, useAccess } from "@/lib/access";
 import { displayNameOf } from "@/lib/adminUsers";
+import { clearViewAs, viewingAs } from "@/lib/viewAs";
 
 // The admin menu: down the left on a computer, a row of tabs across the
 // top on a phone. Competitions and Users are there for Super and for admins
@@ -62,7 +63,16 @@ export default function AdminNav() {
       </ul>
       <div className="admin-nav-extra">
         <Link href="/">Public site</Link>
-        <button type="button" className="link-button" onClick={() => supabase.auth.signOut()}>
+        <button
+          type="button"
+          className="link-button"
+          onClick={() => {
+            // Viewing as someone: sign this tab out only, never them everywhere
+            const viewing = viewingAs();
+            clearViewAs();
+            supabase.auth.signOut(viewing ? { scope: "local" } : undefined);
+          }}
+        >
           Sign out
         </button>
       </div>

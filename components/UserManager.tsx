@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { forgetAccess } from "@/lib/access";
 import { canAssign, canResetPassword, type CompetitionChoice, type StaffUser } from "@/lib/staffUsers";
 import { SITE_NAME } from "@/lib/site";
+import { startViewingAs } from "@/lib/viewAs";
 
 // Calls one of the /api/admin/users routes as the signed-in admin.
 async function callApi<T>(path: string, method: string, body?: unknown): Promise<T> {
@@ -215,6 +216,20 @@ export default function UserManager() {
                 </span>
               </div>
               <div className="user-row-actions">
+                {isSuper && !isYou && !user.isSuper && (
+                  <button
+                    type="button"
+                    className="link-button"
+                    disabled={busy}
+                    onClick={() =>
+                      withBusy(user.id, async () => {
+                        await startViewingAs(user.id);
+                      })
+                    }
+                  >
+                    View as
+                  </button>
+                )}
                 {canResetPassword(user, viewer) && (
                   <button type="button" className="link-button" disabled={busy} onClick={() => newPassword(user)}>
                     New password
@@ -303,7 +318,8 @@ function PasswordHandover({ handover, onDone }: { handover: Handover; onDone: ()
         {handover.isNew ? `${handover.name} has been added.` : `${handover.name} has a new password.`}
       </strong>
       <p className="hint" style={{ margin: "4px 0 10px" }}>
-        Pass this on to them now - it won&rsquo;t be shown again.
+        Pass this on to them now - it won&rsquo;t be shown again. When they first sign in with it, they&rsquo;ll
+        be asked to choose their own password.
       </p>
       <div className="password-handover-value">{handover.password}</div>
       <div className="password-handover-actions">

@@ -59,3 +59,22 @@ export async function requireStaff(request: Request): Promise<Staff | { response
   }
   return { admin, caller: data.user, isSuper, adminOf: new Set(adminOf) };
 }
+
+// A login given a generated password (new, or "New password" on the Users
+// page) is asked to choose its own the first time it signs in. This mark on
+// the login says so; it's cleared once they have.
+export const MUST_CHOOSE_PASSWORD = "must_choose_password";
+
+// Checks the request comes from any signed-in login (for things people do to
+// their own login). Returns the admin client and the caller.
+export async function requireSignedIn(
+  request: Request
+): Promise<{ admin: SupabaseClient; caller: User } | { response: Response }> {
+  const admin = supabaseAdmin();
+  if (!admin) return { response: jsonError(500, "SUPABASE_SERVICE_ROLE_KEY isn't set.", "not_configured") };
+  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  if (!token) return { response: jsonError(401, "Please sign in again.") };
+  const { data, error } = await admin.auth.getUser(token);
+  if (error || !data.user) return { response: jsonError(401, "Please sign in again.") };
+  return { admin, caller: data.user };
+}
