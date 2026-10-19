@@ -25,6 +25,7 @@ import {
   addEntriesToSession,
   addPlayer,
   completeMatch,
+  correctResult,
   deletePlayer,
   ensureFinalsBracketGenerated,
   generateBracket,
@@ -68,6 +69,7 @@ import SessionEntryAdder from "@/components/SessionEntryAdder";
 import DrawMaker from "@/components/DrawMaker";
 import TimeSlotsEditor from "@/components/TimeSlotsEditor";
 import ChangePeopleControl from "@/components/ChangePeopleControl";
+import CorrectResultControl from "@/components/CorrectResultControl";
 import FinalsNumberPicker from "@/components/FinalsNumberPicker";
 import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
@@ -575,6 +577,15 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
                   onAdjust={(side, delta) => handleAdjust(m, side, delta)}
                   onComplete={withErrorHandling(() => completeMatch(m))}
                   onReopen={withErrorHandling(() => reopenMatch(m))}
+                  onCorrect={
+                    role === "owner"
+                      ? async (scoreA: number, scoreB: number, confirmed: boolean) => {
+                          setError(null);
+                          await correctResult(m.id, scoreA, scoreB, confirmed);
+                          await refresh();
+                        }
+                      : undefined
+                  }
                   onSaveResult={(scoreA: number, scoreB: number) => handleResult(m, scoreA, scoreB)}
                   onNoShow={withErrorHandling((side: "a" | "b") => markNoShow(m, side, isFinals))}
                   onUndoNoShow={withErrorHandling(() => undoNoShow(m))}
@@ -915,6 +926,7 @@ function MatchEditor({
   onComplete,
   onReopen,
   onSaveResult,
+  onCorrect,
   onNoShow,
   onUndoNoShow,
   startTime,
@@ -933,6 +945,8 @@ function MatchEditor({
   onComplete: () => Promise<void>;
   onReopen: () => Promise<void>;
   onSaveResult: (scoreA: number, scoreB: number) => Promise<void>;
+  // Admins: correct a finished result (throws to ask for confirmation)
+  onCorrect?: (scoreA: number, scoreB: number, confirmed: boolean) => Promise<void>;
   onNoShow: (side: "a" | "b") => Promise<void>;
   onUndoNoShow: () => Promise<void>;
   // First round only: its start time, and changing it by hand
@@ -998,7 +1012,17 @@ function MatchEditor({
       {(startTime || onSetTime) && match.status === "upcoming" && (
         <MatchTime time={startTime} onSetTime={onSetTime} />
       )}
-      {resultsOnly ? (
+      {resultsOnly && complete ? (
+        // Finished: shown as the result; admins correct it below
+        <FinishedResult
+          nameA={nameA}
+          nameB={nameB}
+          scoreA={match.score_a}
+          scoreB={match.score_b}
+          winnerA={match.winner_id === match.player_a_id}
+          winnerB={match.winner_id === match.player_b_id}
+        />
+      ) : resultsOnly ? (
         <ResultEntry
           nameA={nameA}
           nameB={nameB}
@@ -1056,6 +1080,16 @@ function MatchEditor({
             )}
           </div>
         </div>
+      )}
+      {complete && onCorrect && (
+        <CorrectResultControl
+          nameA={nameA}
+          nameB={nameB}
+          scoreA={match.score_a}
+          scoreB={match.score_b}
+          targetScore={match.target_score}
+          onCorrect={onCorrect}
+        />
       )}
       {!complete && (
         <ChangePeopleControl
@@ -1223,6 +1257,42 @@ function ScoreLine({
           +2
         </button>
       </div>
+    </div>
+  );
+}
+
+// A finished results-only match: who won and the score
+function FinishedResult({
+  nameA,
+  nameB,
+  scoreA,
+  scoreB,
+  winnerA,
+  winnerB,
+}: {
+  nameA: string;
+  nameB: string;
+  scoreA: number;
+  scoreB: number;
+  winnerA: boolean;
+  winnerB: boolean;
+}) {
+  return (
+    <div className="match complete">
+      <div className="players">
+        <div className={`player-row ${winnerA ? "winner" : ""}`}>
+          <PlayerName name={nameA} />
+          <span className="score">{scoreA}</span>
+        </div>
+        <hr className="divider" />
+        <div className={`player-row ${winnerB ? "winner" : ""}`}>
+          <PlayerName name={nameB} />
+          <span className="score">{scoreB}</span>
+        </div>
+      </div>
+      <span className="status-pill complete" style={{ alignSelf: "center" }}>
+        complete
+      </span>
     </div>
   );
 }

@@ -2770,3 +2770,28 @@ label {
   flex: none;
   font-weight: 700;
 }
+
+/* Correcting a finished result */
+.correct-result-open {
+  margin-top: 8px;
+}
+
+.correct-result {
+  margin-top: 10px;
+}
+
+.correct-result p {
+  margin: 0 0 8px;
+}
+
+.correct-result .player-row .name {
+  flex: 1;
+}
+
+.correct-result-warning {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--gold-pale);
+  border: 1px solid var(--gold);
+  color: var(--ink);
+}

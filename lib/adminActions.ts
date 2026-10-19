@@ -10,6 +10,7 @@ import {
   totalRounds,
 } from "@/lib/bracket";
 import { drawnByNumber, slotsByNumber } from "@/lib/draw";
+import { planCorrection } from "@/lib/resultCorrection";
 import { entriesForSession, placesToSync } from "@/lib/sessionEntries";
 import type { TimeSlot } from "@/lib/timeSlots";
 import type { Entry, MatchEvent, MatchRow, Player } from "@/lib/types";
@@ -698,4 +699,109 @@ export async function makeDraw(
   await generateBracket(nightId, players, kind, targetScore);
   await logSessionAction(nightId, "draw_made", { method, places: players.length, published: publish });
   if (publish) await setDrawPublished(nightId, true);
+}
+
+// Thrown when a correction needs the admin's say-so first (the next match
+// has started) - the message says what will happen
+export class NeedsConfirmation extends Error {
+  code = "needs_confirmation" as const;
+}
+
+// Corrects a finished result (admins). Re-reads everything first, so it's
+// never working from an out-of-date copy, then updates whatever the result
+// fed: the next round's player, or - for a qualifying session's winner -
+// their Finals Day place and number. Logged with the old and new result.
+export async function correctResult(matchId: string, scoreA: number, scoreB: number, confirmed = false) {
+  const { data: m, error } = await supabase.from("matches").select("*").eq("id", matchId).single();
+  if (error) throw error;
+  const match = m as MatchRow;
+  if (match.status !== "complete" || !match.player_a_id || !match.player_b_id) {
+    throw new Error("Only a finished match between two players can be corrected.");
+  }
+
+  const [{ data: places }, { data: nextRow }, { data: night }] = await Promise.all([
+    supabase.from("players").select("*").in("id", [match.player_a_id, match.player_b_id]),
+    match.next_match_id
+      ? supabase.from("matches").select("*").eq("id", match.next_match_id).single()
+      : Promise.resolve({ data: null }),
+    supabase.from("nights").select("id, kind").eq("id", match.night_id).single(),
+  ]);
+  const byId = new Map(((places ?? []) as Player[]).map((p) => [p.id, p]));
+  const placeA = byId.get(match.player_a_id)!;
+  const placeB = byId.get(match.player_b_id)!;
+  const oldWinnerId = match.winner_id;
+  const nextMatch = nextRow as MatchRow | null;
+
+  // A qualifying session's last round: the winner's Finals Day place
+  let finalsPlace: Player | null = null;
+  let finalsPlayed = false;
+  if (night?.kind === "qualifier" && !match.next_match_id && oldWinnerId) {
+    const { data: fp } = await supabase.from("players").select("*").eq("qualified_from_player_id", oldWinnerId).maybeSingle();
+    finalsPlace = (fp as Player | null) ?? null;
+    if (finalsPlace) {
+      const { count } = await supabase
+        .from("matches")
+        .select("id", { count: "exact", head: true })
+        .eq("night_id", finalsPlace.night_id)
+        .eq("status", "complete")
+        .not("player_a_id", "is", null)
+        .not("player_b_id", "is", null)
+        .or(`player_a_id.eq.${finalsPlace.id},player_b_id.eq.${finalsPlace.id}`);
+      finalsPlayed = (count ?? 0) > 0;
+    }
+  }
+
+  const plan = planCorrection({
+    match: {
+      ...match,
+      winner_side: oldWinnerId === match.player_a_id ? "a" : oldWinnerId === match.player_b_id ? "b" : null,
+    },
+    scoreA,
+    scoreB,
+    names: { a: placeA?.name ?? "Player A", b: placeB?.name ?? "Player B" },
+    nextMatch,
+    finalsPlace: finalsPlace ? { played: finalsPlayed } : null,
+  });
+  if (plan.blocked) throw new Error(plan.blocked);
+  if (plan.confirm && !confirmed) throw new NeedsConfirmation(plan.confirm);
+
+  const newWinnerId = plan.winner === "a" ? match.player_a_id : match.player_b_id;
+
+  const { error: updateError } = await supabase
+    .from("matches")
+    .update({ score_a: scoreA, score_b: scoreB, status: "complete", winner_id: newWinnerId })
+    .eq("id", match.id);
+  if (updateError) throw updateError;
+
+  if (plan.next !== "none" && nextMatch && match.next_match_slot) {
+    const field = match.next_match_slot === "a" ? "player_a_id" : "player_b_id";
+    const restart = plan.next === "swap_and_restart" ? { score_a: 0, score_b: 0, status: "upcoming", winner_id: null } : {};
+    const { error: nextError } = await supabase
+      .from("matches")
+      .update({ [field]: newWinnerId, ...restart })
+      .eq("id", nextMatch.id);
+    if (nextError) throw nextError;
+  }
+
+  if (plan.finals === "move" && finalsPlace && oldWinnerId) {
+    const newWinner = byId.get(newWinnerId)!;
+    const oldWinner = byId.get(oldWinnerId)!;
+    const { error: finalsError } = await supabase
+      .from("players")
+      .update({ qualified_from_player_id: newWinnerId, entry_id: newWinner.entry_id ?? null, name: newWinner.name })
+      .eq("id", finalsPlace.id);
+    if (finalsError) throw finalsError;
+    await supabase.from("players").update({ finals_number: oldWinner.finals_number }).eq("id", newWinnerId);
+    await supabase.from("players").update({ finals_number: null }).eq("id", oldWinnerId);
+  }
+
+  await logMatchEvent(match, "complete", scoreA, scoreB, "complete");
+  await logSessionAction(match.night_id, "result_corrected", {
+    match_id: match.id,
+    round: match.round,
+    from: { score_a: match.score_a, score_b: match.score_b, winner_id: oldWinnerId },
+    to: { score_a: scoreA, score_b: scoreB, winner_id: newWinnerId },
+    next_match: plan.next,
+    finals_place_moved: plan.finals === "move",
+  });
 }
