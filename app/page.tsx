@@ -22,6 +22,7 @@ import NextUp from "@/components/home/NextUp";
 import HomeCalendar from "@/components/home/HomeCalendar";
 import CompetitionList from "@/components/home/CompetitionList";
 import RecentChampions from "@/components/home/RecentChampions";
+import PublicFooter from "@/components/PublicFooter";
 
 export const dynamic = "force-dynamic";
 
@@ -170,12 +171,7 @@ export default function HomePage() {
         </>
       )}
 
-      <footer className="home-footer">
-        <p>Live scores for crown green competitions, free to follow.</p>
-        <nav className="page-footer-nav">
-          <Link href="/admin">Log in</Link>
-        </nav>
-      </footer>
+      <PublicFooter line="Live scores for crown green competitions, free to follow." />
     </div>
   );
 }

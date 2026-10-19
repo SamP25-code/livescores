@@ -17,6 +17,7 @@ import MatchCard from "@/components/MatchCard";
 import BracketTree from "@/components/BracketTree";
 import type { MatchRow, Night, Player, Venue } from "@/lib/types";
 import { SITE_NAME } from "@/lib/site";
+import PublicFooter from "@/components/PublicFooter";
 
 export default function NightPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: nightId } = use(params);
@@ -520,6 +521,8 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
           </a>
         </section>
       )}
+
+      <PublicFooter />
     </div>
   );
 }

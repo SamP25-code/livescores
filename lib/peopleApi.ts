@@ -228,3 +228,17 @@ export async function deleteEntry(entry: Entry): Promise<void> {
   if (error) throw error;
   await log(entry.competition_id, "entry_removed", { entry_id: entry.id, person_id: entry.person_id, partner_id: entry.partner_id });
 }
+
+// Super: whether a person's name is hidden for privacy
+export async function isPersonHidden(id: string): Promise<boolean> {
+  const { data, error } = await supabase.from("people").select("hidden").eq("id", id).single();
+  if (error) throw error;
+  return Boolean(data?.hidden);
+}
+
+// Super: take a name off the site on request ("Withdrawn player" everywhere,
+// results kept), or put it back
+export async function setPersonHidden(id: string, hidden: boolean): Promise<void> {
+  const { error } = await supabase.from("people").update({ hidden }).eq("id", id);
+  if (error) throw error;
+}

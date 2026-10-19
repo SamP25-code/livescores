@@ -22,6 +22,7 @@ import { directionsUrl, originalDateLabel, postponedLabel } from "@/lib/venues";
 import PlayerName from "@/components/PlayerName";
 import { SponsorPanel } from "@/components/Sponsors";
 import type { Venue } from "@/lib/types";
+import PublicFooter from "@/components/PublicFooter";
 
 export const dynamic = "force-dynamic";
 
@@ -202,6 +203,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <span aria-hidden="true">&lsaquo;</span> All competitions
       </Link>
       {children}
+      <PublicFooter />
     </div>
   );
 }

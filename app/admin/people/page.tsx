@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useIsSuper } from "@/lib/auth";
 import { errorMessage } from "@/lib/errors";
 import { personDetailsLine, type PersonDetails } from "@/lib/people";
-import { listClubs, mergePeople, updatePerson } from "@/lib/peopleApi";
+import { isPersonHidden, listClubs, mergePeople, setPersonHidden, updatePerson } from "@/lib/peopleApi";
 import PersonPicker from "@/components/PersonPicker";
 import type { Organiser } from "@/lib/types";
 import { SITE_NAME } from "@/lib/site";
@@ -19,6 +19,7 @@ export default function PeoplePage() {
   const [person, setPerson] = useState<PersonDetails | null>(null);
   const [form, setForm] = useState({ full_name: "", club_id: "", note: "" });
   const [other, setOther] = useState<PersonDetails | null>(null);
+  const [hidden, setHidden] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -40,6 +41,9 @@ export default function PeoplePage() {
     setError(null);
     if (p) {
       setMessage(null);
+      isPersonHidden(p.id)
+        .then(setHidden)
+        .catch(() => setHidden(false));
       setForm({ full_name: p.full_name, club_id: p.club_id ?? "", note: p.note ?? "" });
     }
   }
@@ -153,6 +157,43 @@ export default function PeoplePage() {
               {busy ? "Saving…" : "Save"}
             </button>
           </form>
+
+          <div className="card">
+            <h2>Privacy</h2>
+            {hidden ? (
+              <p className="hint">
+                <strong>{person.full_name}</strong>&rsquo;s name is hidden - every page shows &ldquo;Withdrawn
+                player&rdquo; instead. Their results are kept.
+              </p>
+            ) : (
+              <p className="hint">
+                If {person.full_name} asks for their name to be taken off the site, every page will show
+                &ldquo;Withdrawn player&rdquo; instead. Their results stay, so draws still make sense.
+              </p>
+            )}
+            <button
+              type="button"
+              className="secondary"
+              disabled={busy}
+              onClick={async () => {
+                const next = !hidden;
+                if (next && !confirm(`Hide ${person.full_name}'s name on every page?`)) return;
+                setBusy(true);
+                setError(null);
+                try {
+                  await setPersonHidden(person.id, next);
+                  setHidden(next);
+                  setMessage(next ? `${person.full_name}'s name is now hidden.` : `${person.full_name}'s name is shown again.`);
+                } catch (err) {
+                  setError(errorMessage(err));
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              {hidden ? "Show their name again" : "Hide their name"}
+            </button>
+          </div>
 
           <div className="card">
             <h2>Merge a duplicate</h2>

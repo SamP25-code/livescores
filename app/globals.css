@@ -38,7 +38,7 @@ html {
 body {
   color: var(--ink);
   font-family: var(--font-body), -apple-system, sans-serif;
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
   background: var(--cream);
@@ -461,7 +461,7 @@ a {
   justify-content: flex-end;
   padding: 8px 16px;
   border-bottom: 1px solid var(--line);
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--ink-soft);
 }
@@ -507,7 +507,7 @@ a {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 600;
 }
 
@@ -788,7 +788,7 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   text-transform: none;
   padding: 2px 8px;
   border-radius: 999px;
@@ -821,7 +821,7 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--maroon);
   white-space: nowrap;
@@ -1063,7 +1063,7 @@ label {
 .night-header-viewers {
   display: block;
   font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: var(--ink-soft);
   margin-top: 4px;
 }
@@ -1096,14 +1096,14 @@ label {
 .night-header-title-slim .night-header-times {
   order: 1;
   margin-top: 0;
-  font-size: 0.78rem;
+  font-size: 0.88rem;
 }
 
 .night-header-title-slim .night-header-viewers {
   margin-top: 0;
   padding: 1px 8px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   white-space: nowrap;
 }
 
@@ -1486,7 +1486,7 @@ label {
 .match.compact .draw-number {
   width: 20px;
   height: 20px;
-  font-size: 0.62rem;
+  font-size: 0.7rem;
 }
 
 .match.compact .name {
@@ -2185,7 +2185,7 @@ label {
   flex-direction: column;
   gap: 2px;
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--ink-soft);
 }
@@ -3231,7 +3231,7 @@ a.venue-card-directions {
 }
 
 .cal-live {
-  font-size: 0.6rem;
+  font-size: 0.68rem;
   font-weight: 700;
   color: var(--maroon);
   letter-spacing: 0.04em;
@@ -3352,7 +3352,7 @@ a.venue-card-directions {
 
 .home-filter {
   flex: none;
-  min-height: 40px;
+  min-height: 44px;
   padding: 6px 16px;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 999px;
@@ -3784,4 +3784,71 @@ a.venue-card-directions {
 
 .venue-editor {
   margin: 0;
+}
+
+/* "Larger text" - chosen on the page, remembered on that phone. Everything
+   is sized from the page's base size, so it all grows together. */
+html.larger-text {
+  font-size: 118.75%;
+}
+
+/* Public footer: Privacy · Larger text · Log in */
+.public-footer {
+  margin-top: 32px;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+.public-footer p {
+  margin: 0 0 6px;
+}
+
+.public-footer-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+
+.public-footer-links a,
+.public-footer-links button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+}
+
+/* Plain-words pages (privacy) */
+.prose {
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.prose-lead {
+  font-size: 1.15rem;
+  margin-top: 0;
+}
+
+.page-photo .card.prose h2 {
+  margin: 20px 0 6px;
+  font-size: 1.35rem;
+  color: var(--green-deep);
+}
+
+.prose ul {
+  margin: 0 0 8px;
+  padding-left: 22px;
+}
+
+.prose li {
+  margin: 4px 0;
 }
