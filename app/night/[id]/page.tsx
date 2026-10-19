@@ -9,6 +9,7 @@ import { directionsUrl, originalDateLabel, postponedLabel, venueAddressLine } fr
 import { startViewerPings } from "@/lib/viewerLog";
 import NightNav, { splitNightName } from "@/components/NightNav";
 import Brand from "@/components/Brand";
+import { SponsorStrip, type SponsorShown } from "@/components/Sponsors";
 import Avatar from "@/components/Avatar";
 import PlayerName from "@/components/PlayerName";
 import MatchCard from "@/components/MatchCard";
@@ -22,6 +23,14 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [venue, setVenue] = useState<Venue | null>(null);
+  // The competition this session belongs to, for the back link and banner
+  const [competition, setCompetition] = useState<{
+    name: string;
+    year: number;
+    slug: string;
+    latest: boolean;
+    sponsors: SponsorShown[];
+  } | null>(null);
   const [viewerCount, setViewerCount] = useState(0);
   const [loadError, setLoadError] = useState(false);
   const [connectionLost, setConnectionLost] = useState(false);
@@ -63,13 +72,24 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
 
       // Where it's played: this session's own venue, or the competition's
       let venueId = nightData?.venue_id ?? null;
-      if (!venueId && nightData?.competition_id) {
+      if (nightData?.competition_id) {
         const { data: comp } = await supabase
           .from("competitions")
-          .select("venue_id")
+          .select("venue_id, year, series_id, series:series_id(name, slug), sponsors:competition_sponsors(*)")
           .eq("id", nightData.competition_id)
           .single();
-        venueId = comp?.venue_id ?? null;
+        if (comp) {
+          venueId = venueId ?? comp.venue_id ?? null;
+          const series = comp.series as unknown as { name: string; slug: string };
+          const { data: years } = await supabase.from("competitions").select("year").eq("series_id", comp.series_id);
+          const latest = Math.max(...(years ?? []).map((y) => y.year), comp.year) === comp.year;
+          const sponsors = [
+            ...((comp.sponsors as unknown as (SponsorShown & { position: number })[]) ?? []),
+          ]
+            .sort((a, b) => a.position - b.position)
+            .map((s) => ({ name: s.name, url: s.url ?? null, logo_url: s.logo_url ?? null }));
+          if (!cancelled) setCompetition({ name: series.name, year: comp.year, slug: series.slug, latest, sponsors });
+        }
       }
       if (venueId) {
         const { data: venueData } = await supabase.from("venues").select("*").eq("id", venueId).single();
@@ -266,10 +286,25 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
   return (
     <div className="page page-photo">
       <div className="public-background" aria-hidden="true" />
-      <Link href="/" className="page-back-link">
-        <span aria-hidden="true">&lsaquo;</span> Home
-      </Link>
-      <Brand variant="slim" />
+      {competition ? (
+        <Link
+          href={competition.latest ? `/${competition.slug}` : `/${competition.slug}-${competition.year}`}
+          className="page-back-link"
+        >
+          <span aria-hidden="true">&lsaquo;</span> {competition.name} {competition.year}
+        </Link>
+      ) : (
+        <Link href="/" className="page-back-link">
+          <span aria-hidden="true">&lsaquo;</span> Home
+        </Link>
+      )}
+      {/* The competition's own sponsors; a night from before the 2027 move
+          keeps the October Singles sponsor it always had */}
+      {competition ? (
+        <SponsorStrip sponsors={competition.sponsors} />
+      ) : (
+        night && !night.competition_id && <Brand variant="slim" />
+      )}
 
       <NightNav currentId={nightId} />
 
@@ -346,7 +381,9 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
       {!loadError && champion && (
         <div className="champion-banner">
           <PlayerName name={champion.name} />
-          <span className="hint">{night?.kind === "finals" ? "October Singles champion" : "Champion"}</span>
+          <span className="hint">
+            {competition ? `${competition.name} ${competition.year} champion` : night?.kind === "finals" ? "October Singles champion" : "Champion"}
+          </span>
         </div>
       )}
 

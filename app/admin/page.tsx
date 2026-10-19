@@ -7,7 +7,7 @@ import { createNight } from "@/lib/adminActions";
 import { errorMessage } from "@/lib/errors";
 import { fetchNightStatuses } from "@/lib/nightStatus";
 import { isAnyAdmin, pageRoleFor, useAccess, visibleCompetition } from "@/lib/access";
-import Brand from "@/components/Brand";
+import { SITE_NAME } from "@/lib/site";
 import { splitNightName } from "@/components/NightNav";
 import type { NightStatus } from "@/lib/bracket";
 import type { Night } from "@/lib/types";
@@ -109,9 +109,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="page page-photo">
-      <div className="top-bar">
-        <Brand />
-      </div>
+      <header className="home-header">
+        <p className="home-title">{SITE_NAME}</p>
+      </header>
 
       {canCreateNight && (
         <>

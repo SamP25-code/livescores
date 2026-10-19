@@ -52,6 +52,8 @@ export type CompetitionSponsor = {
   position: number;
   name: string;
   url: string | null;
+  // Part 9: an uploaded logo (or one built into the site, e.g. /verve-wills-logo.png)
+  logo_url?: string | null;
   created_at: string;
 };
 

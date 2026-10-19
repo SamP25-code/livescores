@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Brand from "@/components/Brand";
+import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 
 export default function NotFound() {
   return (
@@ -8,9 +8,10 @@ export default function NotFound() {
       <Link href="/" className="page-back-link">
         <span aria-hidden="true">&lsaquo;</span> Home
       </Link>
-      <div className="top-bar">
-        <Brand />
-      </div>
+      <header className="home-header">
+        <p className="home-title">{SITE_NAME}</p>
+        <p className="home-tagline">{SITE_TAGLINE}</p>
+      </header>
 
       <div className="home-hero">
         <h1>Page not found</h1>

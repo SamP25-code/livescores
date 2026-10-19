@@ -18,6 +18,7 @@ import {
   saveSponsors,
   updateCompetition,
   updateVenue,
+  uploadSponsorLogo,
   type CompetitionInput,
   type CompetitionWithSeries,
   type SessionDetails,
@@ -84,7 +85,9 @@ export default function CompetitionForm({
   const [through, setThrough] = useState(c?.qualifiers_per_night?.toString() ?? "4");
   // Sponsors, in the order shown - one empty row to start with
   const [sponsors, setSponsors] = useState<SponsorInput[]>(() =>
-    c?.sponsors?.length ? c.sponsors.map((s) => ({ name: s.name, url: s.url ?? "" })) : [{ name: "", url: "" }]
+    c?.sponsors?.length
+      ? c.sponsors.map((s) => ({ name: s.name, url: s.url ?? "", logo_url: s.logo_url ?? null }))
+      : [{ name: "", url: "", logo_url: null }]
   );
 
   // Venue
@@ -140,8 +143,24 @@ export default function CompetitionForm({
 
   const seriesForOrganiser = allSeries.filter((s) => s.organiser_id === organiserId);
 
-  function setSponsor(i: number, field: keyof SponsorInput, value: string) {
+  function setSponsor(i: number, field: keyof SponsorInput, value: string | null) {
     setSponsors((current) => current.map((s, j) => (j === i ? { ...s, [field]: value } : s)));
+  }
+
+  // Logos upload straight away (so they can be seen) and are saved against
+  // the sponsor with the rest of the form
+  const [uploading, setUploading] = useState<number | null>(null);
+  async function chooseLogo(i: number, file: File | undefined) {
+    if (!file) return;
+    setError(null);
+    setUploading(i);
+    try {
+      setSponsor(i, "logo_url", await uploadSponsorLogo(file));
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setUploading(null);
+    }
   }
 
   function setSession(i: number, field: keyof SessionDetails, value: string) {
@@ -635,12 +654,36 @@ export default function CompetitionForm({
                   Remove
                 </button>
               )}
+              <div className="comp-form-logo">
+                {sponsor.logo_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={sponsor.logo_url} alt={`${sponsor.name || "Sponsor"} logo`} className="comp-form-logo-img" />
+                )}
+                <label className="link-button comp-form-logo-pick">
+                  {uploading === i ? "Uploading…" : sponsor.logo_url ? "Change logo" : "Add a logo (optional)"}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
+                    className="visually-hidden"
+                    disabled={uploading !== null}
+                    onChange={(e) => {
+                      chooseLogo(i, e.target.files?.[0]);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                {sponsor.logo_url && (
+                  <button type="button" className="link-button" onClick={() => setSponsor(i, "logo_url", null)}>
+                    Remove logo
+                  </button>
+                )}
+              </div>
             </div>
           ))}
           <button
             type="button"
             className="link-button"
-            onClick={() => setSponsors((current) => [...current, { name: "", url: "" }])}
+            onClick={() => setSponsors((current) => [...current, { name: "", url: "", logo_url: null }])}
           >
             + Add another sponsor
           </button>

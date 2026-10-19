@@ -10,7 +10,7 @@ export type CompetitionWithSeries = Competition & {
   sponsors: CompetitionSponsor[];
 };
 
-export type SponsorInput = { name: string; url: string };
+export type SponsorInput = { name: string; url: string; logo_url?: string | null };
 
 const WITH_SERIES = "*, series:series_id(*, organiser:organiser_id(*)), sponsors:competition_sponsors(*)";
 
@@ -90,7 +90,7 @@ export type CompetitionInput = Omit<Competition, "id" | "created_at" | "structur
 // no name are left out.
 export async function saveSponsors(competitionId: string, sponsors: SponsorInput[]): Promise<void> {
   const rows = sponsors
-    .map((s) => ({ name: s.name.trim(), url: s.url.trim() || null }))
+    .map((s) => ({ name: s.name.trim(), url: s.url.trim() || null, logo_url: s.logo_url || null }))
     .filter((s) => s.name)
     .map((s, i) => ({ ...s, competition_id: competitionId, position: i + 1 }));
   const { error: removeError } = await supabase.from("competition_sponsors").delete().eq("competition_id", competitionId);
@@ -193,4 +193,21 @@ async function syncSessions(
     const { error } = await supabase.from("nights").delete().eq("id", night.id);
     if (error) throw error;
   }
+}
+
+const LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml", "image/gif"];
+
+// Super: uploads a sponsor's logo to the public "sponsor-logos" folder and
+// returns its address. Saved against the sponsor with the rest of the form.
+export async function uploadSponsorLogo(file: File): Promise<string> {
+  if (!LOGO_TYPES.includes(file.type)) throw new Error("The logo needs to be a picture - PNG, JPG, WebP, SVG or GIF.");
+  if (file.size > 2 * 1024 * 1024) throw new Error("That logo is too big - it needs to be under 2 MB.");
+  const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from("sponsor-logos").upload(path, file, {
+    contentType: file.type,
+    cacheControl: "31536000",
+  });
+  if (error) throw error;
+  return supabase.storage.from("sponsor-logos").getPublicUrl(path).data.publicUrl;
 }
