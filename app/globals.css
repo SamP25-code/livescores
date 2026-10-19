@@ -2722,3 +2722,51 @@ label {
 .person-details {
   align-self: stretch;
 }
+
+/* Scores waiting to send (poor signal) - stays in view while scoring */
+.score-queue {
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.score-queue-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--gold-pale);
+  border: 1px solid var(--gold);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.score-queue-offline {
+  background: #fff;
+  border-color: var(--maroon);
+  color: var(--maroon);
+}
+
+.score-queue-sent {
+  background: var(--green-pale);
+  border-color: var(--green-mid);
+  color: var(--green-deep);
+}
+
+.score-queue-conflict {
+  background: #fff;
+  border-color: var(--maroon);
+  font-weight: 400;
+}
+
+.score-queue-line .link-button {
+  flex: none;
+  font-weight: 700;
+}

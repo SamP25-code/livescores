@@ -24,7 +24,6 @@ import { supabase } from "@/lib/supabaseClient";
 import {
   addEntriesToSession,
   addPlayer,
-  adjustScore,
   completeMatch,
   deletePlayer,
   ensureFinalsBracketGenerated,
@@ -37,7 +36,6 @@ import {
   reorderPlayers,
   replaceInDraw,
   resetBracket,
-  saveResult,
   saveTimeSlots,
   setDrawNumbers,
   setDrawPublished,
@@ -60,6 +58,9 @@ import { drawSizeFor, randomDrawNumbers } from "@/lib/draw";
 import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
 import { pageRoleFor, useAccess } from "@/lib/access";
 import { errorMessage } from "@/lib/errors";
+import { displayMatch, isNetworkError, makeOp, resultEntry, tapResult } from "@/lib/scoreQueue";
+import { enqueue, useScoreQueue } from "@/lib/scoreSync";
+import ScoreQueueBar from "@/components/ScoreQueueBar";
 import { deleteEntry, listClubs, listEntries, type EntryWithPeople } from "@/lib/peopleApi";
 import Avatar from "@/components/Avatar";
 import PlayerName from "@/components/PlayerName";
@@ -117,11 +118,12 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   // "scorer" only scores; null - not theirs
   const role = access && night ? pageRoleFor(access, night.competition_id) : null;
   const [players, setPlayers] = useState<Player[]>([]);
-  const [matches, setMatches] = useState<MatchRow[]>([]);
+  // As last read from the database; `matches` below adds any scores still
+  // waiting to send from this phone
+  const [serverMatches, setMatches] = useState<MatchRow[]>([]);
   const [finalsRoster, setFinalsRoster] = useState<Player[]>([]);
   const [context, setContext] = useState<CompetitionContext | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pendingMatchIds, setPendingMatchIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     document.title = night ? `${night.name} · Admin · Penwortham Singles` : "Admin · Penwortham Singles";
@@ -137,12 +139,19 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
     // "Through to Finals Day" picker); Finals Day itself shows its own
     // players, so skip those two lookups there.
     const needRoster = kindRef.current !== "finals";
-    const [{ data: nightData }, { data: playerData }, { data: matchData }, roster] = await Promise.all([
+    const [
+      { data: nightData, error: nightError },
+      { data: playerData, error: playersError },
+      { data: matchData, error: matchesError },
+      roster,
+    ] = await Promise.all([
       supabase.from("nights").select("*").eq("id", nightId).single(),
       supabase.from("players").select("*").eq("night_id", nightId).order("sort_order").order("created_at"),
       supabase.from("matches").select("*").eq("night_id", nightId).order("round").order("slot"),
-      needRoster ? getFinalsRoster(nightId) : Promise.resolve(undefined),
+      needRoster ? getFinalsRoster(nightId).catch(() => undefined) : Promise.resolve(undefined),
     ]);
+    // No signal (or a hiccup): keep what's on screen rather than blanking it
+    if (nightError || playersError || matchesError) return;
     kindRef.current = nightData?.kind ?? null;
     completeRef.current = (matchData ?? []).length > 0 && computeNightStatus(matchData ?? []) === "complete";
     setNight(nightData ?? null);
@@ -169,6 +178,19 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     refresh();
   }, [nightId]);
+
+  // Score taps are kept on this phone and sent when there's signal - see
+  // lib/scoreQueue.ts. The page shows them straight away.
+  const queue = useScoreQueue(
+    () => refresh(),
+    // Each score that goes through becomes the page's copy straight away
+    (op) =>
+      setMatches((current) =>
+        current.map((m) => (m.id === op.matchId ? displayMatch(m, [op]) : m))
+      )
+  );
+  const waitingOps = queue.ops.filter((op) => op.nightId === nightId);
+  const matches = useMemo(() => serverMatches.map((m) => displayMatch(m, waitingOps)), [serverMatches, waitingOps]);
 
   const competitionId = night?.competition_id ?? null;
   async function reloadContext() {
@@ -272,29 +294,26 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
         await fn(...args);
         await refresh();
       } catch (err) {
-        setError(errorMessage(err));
+        // Scores wait for signal on their own; anything else needs it now
+        setError(isNetworkError(err) ? "No signal - try that again when you have signal." : errorMessage(err));
       }
     };
   }
 
   function handleAdjust(match: MatchRow, side: "a" | "b", delta: number) {
-    if (pendingMatchIds.has(match.id)) return;
     setError(null);
-    setPendingMatchIds((prev) => new Set(prev).add(match.id));
-    (async () => {
-      try {
-        await adjustScore(match, side, delta);
-        await refresh();
-      } catch (err) {
-        setError(errorMessage(err));
-      } finally {
-        setPendingMatchIds((prev) => {
-          const next = new Set(prev);
-          next.delete(match.id);
-          return next;
-        });
-      }
-    })();
+    const next = tapResult(match, side, delta);
+    if (next) enqueue(makeOp(match, "tap", next));
+  }
+
+  // A results-only score: checked here, then kept and sent like a tap
+  async function handleResult(match: MatchRow, scoreA: number, scoreB: number) {
+    setError(null);
+    try {
+      enqueue(makeOp(match, "result", resultEntry(match, scoreA, scoreB)));
+    } catch (err) {
+      setError(errorMessage(err));
+    }
   }
 
   const rounds = useMemo(() => {
@@ -382,6 +401,17 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
 
       <h1>{night?.name ?? "Loading…"}</h1>
       {error && <p className="error">{error}</p>}
+      <ScoreQueueBar
+        waiting={waitingOps.length}
+        offline={queue.offline}
+        allSentAt={queue.allSentAt}
+        conflicts={queue.conflicts.filter((c) => serverMatches.some((m) => m.id === c.matchId))}
+        matchName={(matchId) => {
+          const m = serverMatches.find((x) => x.id === matchId);
+          const name = (id: string | null) => (id ? playerById.get(id)?.name ?? "TBC" : "TBC");
+          return m ? `${name(m.player_a_id)} v ${name(m.player_b_id)}` : "A match";
+        }}
+      />
       {access && night && role === null && (
         <p className="hint">You&rsquo;re not assigned to this competition - ask its organiser if you should be.</p>
       )}
@@ -540,12 +570,12 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
                   key={m.id}
                   match={m}
                   playerNames={playerNames}
-                  pending={pendingMatchIds.has(m.id)}
+                  pending={false}
                   resultsOnly={resultsOnly}
                   onAdjust={(side, delta) => handleAdjust(m, side, delta)}
                   onComplete={withErrorHandling(() => completeMatch(m))}
                   onReopen={withErrorHandling(() => reopenMatch(m))}
-                  onSaveResult={withErrorHandling((scoreA: number, scoreB: number) => saveResult(m, scoreA, scoreB))}
+                  onSaveResult={(scoreA: number, scoreB: number) => handleResult(m, scoreA, scoreB)}
                   onNoShow={withErrorHandling((side: "a" | "b") => markNoShow(m, side, isFinals))}
                   onUndoNoShow={withErrorHandling(() => undoNoShow(m))}
                   startTime={round === 1 && oneDay && context ? roundOneTime(context.timeSlots, m.slot) : null}
