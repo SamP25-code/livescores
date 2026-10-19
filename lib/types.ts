@@ -33,6 +33,8 @@ export type Venue = {
   address: string | null;
   postcode: string | null;
   notes: string | null;
+  // A Google Maps link to the exact spot (part 8); directions use it if set
+  map_url?: string | null;
   created_at: string;
 };
 

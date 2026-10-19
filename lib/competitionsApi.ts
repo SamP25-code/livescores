@@ -69,8 +69,17 @@ export async function createSeries(s: Pick<Series, "organiser_id" | "name" | "sl
   return data;
 }
 
-export async function createVenue(v: Pick<Venue, "name" | "address" | "postcode" | "notes">): Promise<Venue> {
+export type VenueInput = Pick<Venue, "name" | "address" | "postcode" | "notes" | "map_url">;
+
+export async function createVenue(v: VenueInput): Promise<Venue> {
   const { data, error } = await supabase.from("venues").insert(v).select().single();
+  if (error) throw error;
+  return data;
+}
+
+// Super: correct a venue's details (it changes for every competition using it)
+export async function updateVenue(id: string, v: VenueInput): Promise<Venue> {
+  const { data, error } = await supabase.from("venues").update(v).eq("id", id).select().single();
   if (error) throw error;
   return data;
 }

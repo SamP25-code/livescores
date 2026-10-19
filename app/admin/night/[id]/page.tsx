@@ -24,6 +24,7 @@ import { supabase } from "@/lib/supabaseClient";
 import {
   addEntriesToSession,
   addPlayer,
+  cancelPostponement,
   completeMatch,
   correctResult,
   deletePlayer,
@@ -32,6 +33,7 @@ import {
   getFinalsRoster,
   makeDraw,
   markNoShow,
+  postponeSession,
   renamePlayer,
   reopenMatch,
   reorderPlayers,
@@ -43,6 +45,7 @@ import {
   setFinalsNumber,
   setFinalsPlayerSeed,
   setMatchTime,
+  setSessionVenue,
   setPlayerBye,
   syncSessionPlaces,
   undoNoShow,
@@ -70,13 +73,17 @@ import DrawMaker from "@/components/DrawMaker";
 import TimeSlotsEditor from "@/components/TimeSlotsEditor";
 import ChangePeopleControl from "@/components/ChangePeopleControl";
 import CorrectResultControl from "@/components/CorrectResultControl";
+import SessionSettings from "@/components/SessionSettings";
 import FinalsNumberPicker from "@/components/FinalsNumberPicker";
 import FlashingScore from "@/components/FlashingScore";
 import MatchHistory from "@/components/MatchHistory";
 import ViewerLog from "@/components/ViewerLog";
-import type { Competition, MatchRow, Night, Organiser, Player } from "@/lib/types";
+import type { Competition, MatchRow, Night, Organiser, Player, Venue } from "@/lib/types";
 
-type CompetitionInfo = Pick<Competition, "id" | "year" | "team_size" | "target_score" | "scoring_style"> & {
+type CompetitionInfo = Pick<
+  Competition,
+  "id" | "year" | "team_size" | "target_score" | "scoring_style" | "venue_id"
+> & {
   series: { name: string };
 };
 
@@ -89,18 +96,20 @@ type CompetitionContext = {
   entries: EntryWithPeople[];
   timeSlots: TimeSlot[];
   clubs: Organiser[];
+  venues: Venue[];
 };
 
 async function loadCompetitionContext(competitionId: string, nightId: string): Promise<CompetitionContext> {
-  const [{ data: competition, error }, entries, { data: timeSlots, error: slotsError }, clubs] = await Promise.all([
+  const [{ data: competition, error }, entries, { data: timeSlots, error: slotsError }, clubs, { data: venues }] = await Promise.all([
     supabase
       .from("competitions")
-      .select("id, year, team_size, target_score, scoring_style, series:series_id(name)")
+      .select("id, year, team_size, target_score, scoring_style, venue_id, series:series_id(name)")
       .eq("id", competitionId)
       .single(),
     listEntries(competitionId),
     supabase.from("time_slots").select("from_number, to_number, start_time").eq("night_id", nightId),
     listClubs(),
+    supabase.from("venues").select("*").order("name"),
   ]);
   if (error) throw error;
   if (slotsError) throw slotsError;
@@ -109,6 +118,7 @@ async function loadCompetitionContext(competitionId: string, nightId: string): P
     entries,
     timeSlots: (timeSlots ?? []) as TimeSlot[],
     clubs,
+    venues: (venues ?? []) as Venue[],
   };
 }
 
@@ -416,6 +426,26 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
       />
       {access && night && role === null && (
         <p className="hint">You&rsquo;re not assigned to this competition - ask its organiser if you should be.</p>
+      )}
+
+      {role === "owner" && night && context && (
+        <SessionSettings
+          session={night}
+          venues={context.venues}
+          competitionVenueId={context.competition.venue_id}
+          onPostpone={async (reason, newDate) => {
+            await postponeSession(night, reason, newDate);
+            await refresh();
+          }}
+          onCancelPostponement={async () => {
+            await cancelPostponement(night);
+            await refresh();
+          }}
+          onSetVenue={async (venueId) => {
+            await setSessionVenue(nightId, venueId);
+            await refresh();
+          }}
+        />
       )}
 
       {role === "owner" && night && !isFinals && (!newFlow || bracketExists) && (

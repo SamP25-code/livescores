@@ -17,12 +17,14 @@ import {
   listChoices,
   saveSponsors,
   updateCompetition,
+  updateVenue,
   type CompetitionInput,
   type CompetitionWithSeries,
   type SessionDetails,
   type SponsorInput,
 } from "@/lib/competitionsApi";
 import { errorMessage } from "@/lib/errors";
+import { checkMapUrl, directionsUrl } from "@/lib/venues";
 import type { Night, Organiser, Series, Venue } from "@/lib/types";
 
 const DEFAULT_START: Record<SessionKind, string> = {
@@ -87,7 +89,9 @@ export default function CompetitionForm({
 
   // Venue
   const [venueId, setVenueId] = useState<string>(c?.venue_id ?? "");
-  const [newVenue, setNewVenue] = useState({ name: "", address: "", postcode: "", notes: "" });
+  const [newVenue, setNewVenue] = useState({ name: "", address: "", postcode: "", notes: "", map_url: "" });
+  // Correcting the chosen venue's details (changes it for every competition using it)
+  const [editVenue, setEditVenue] = useState<typeof newVenue | null>(null);
 
   // Sessions' dates and start times, in plan order
   const [sessions, setSessions] = useState<SessionDetails[]>(() =>
@@ -156,13 +160,29 @@ export default function CompetitionForm({
       let chosenVenueId: string | null = venueId || null;
       if (venueId === "new") {
         if (!newVenue.name.trim()) throw new Error("Enter the new venue's name.");
+        const map = checkMapUrl(newVenue.map_url);
+        if (map.problem) throw new Error(map.problem);
         const v = await createVenue({
           name: newVenue.name.trim(),
           address: newVenue.address.trim() || null,
           postcode: newVenue.postcode.trim() || null,
           notes: newVenue.notes.trim() || null,
+          map_url: map.url,
         });
         chosenVenueId = v.id;
+      } else if (venueId && editVenue) {
+        if (!editVenue.name.trim()) throw new Error("Enter the venue's name.");
+        const map = checkMapUrl(editVenue.map_url);
+        if (map.problem) throw new Error(map.problem);
+        const v = await updateVenue(venueId, {
+          name: editVenue.name.trim(),
+          address: editVenue.address.trim() || null,
+          postcode: editVenue.postcode.trim() || null,
+          notes: editVenue.notes.trim() || null,
+          map_url: map.url,
+        });
+        setVenues((current) => current.map((x) => (x.id === v.id ? v : x)));
+        setEditVenue(null);
       }
 
       const settings: Partial<CompetitionInput> = {
@@ -474,7 +494,14 @@ export default function CompetitionForm({
         <h2>Venue and sponsor</h2>
         <div className="field">
           <label htmlFor="cf-venue">Venue</label>
-          <select id="cf-venue" value={venueId} onChange={(e) => setVenueId(e.target.value)}>
+          <select
+            id="cf-venue"
+            value={venueId}
+            onChange={(e) => {
+              setVenueId(e.target.value);
+              setEditVenue(null);
+            }}
+          >
             <option value="">Not set yet</option>
             {venues.map((v) => (
               <option key={v.id} value={v.id}>
@@ -508,8 +535,78 @@ export default function CompetitionForm({
                 onChange={(e) => setNewVenue({ ...newVenue, notes: e.target.value })}
               />
             </div>
+            <div className="field">
+              <label htmlFor="cf-venue-map">Google Maps link (optional)</label>
+              <input
+                id="cf-venue-map"
+                type="url"
+                placeholder="https://maps.app.goo.gl/..."
+                value={newVenue.map_url}
+                onChange={(e) => setNewVenue({ ...newVenue, map_url: e.target.value })}
+              />
+              <p className="hint">
+                For the exact spot, if searching the address doesn&rsquo;t find it: in Google Maps, find the green,
+                tap Share, copy the link and paste it here.
+              </p>
+            </div>
           </div>
         )}
+        {venueId && venueId !== "new" && (() => {
+          const chosen = venues.find((v) => v.id === venueId);
+          if (!chosen) return null;
+          if (!editVenue) {
+            return (
+              <p className="hint">
+                <a href={directionsUrl(chosen)} target="_blank" rel="noopener noreferrer">
+                  Check the directions
+                </a>{" "}
+                &middot;{" "}
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() =>
+                    setEditVenue({
+                      name: chosen.name,
+                      address: chosen.address ?? "",
+                      postcode: chosen.postcode ?? "",
+                      notes: chosen.notes ?? "",
+                      map_url: chosen.map_url ?? "",
+                    })
+                  }
+                >
+                  Correct this venue&rsquo;s details
+                </button>
+              </p>
+            );
+          }
+          return (
+            <div className="comp-form-sub">
+              <p className="hint">Changes this venue wherever it&rsquo;s used. Saved with the rest of the form.</p>
+              {(
+                [
+                  ["name", "Venue name"],
+                  ["address", "Address"],
+                  ["postcode", "Postcode"],
+                  ["notes", "Notes for spectators (optional)"],
+                  ["map_url", "Google Maps link (optional)"],
+                ] as const
+              ).map(([field, text]) => (
+                <div key={field} className="field">
+                  <label htmlFor={`cf-edit-venue-${field}`}>{text}</label>
+                  <input
+                    id={`cf-edit-venue-${field}`}
+                    type={field === "map_url" ? "url" : "text"}
+                    value={editVenue[field]}
+                    onChange={(e) => setEditVenue({ ...editVenue, [field]: e.target.value })}
+                  />
+                </div>
+              ))}
+              <button type="button" className="link-button" onClick={() => setEditVenue(null)}>
+                Don&rsquo;t change the venue
+              </button>
+            </div>
+          );
+        })()}
         <div className="comp-form-sponsors">
           <span className="comp-form-sponsors-title">Sponsors (optional)</span>
           {sponsors.map((sponsor, i) => (

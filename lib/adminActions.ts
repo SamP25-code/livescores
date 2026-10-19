@@ -11,6 +11,7 @@ import {
 } from "@/lib/bracket";
 import { drawnByNumber, slotsByNumber } from "@/lib/draw";
 import { planCorrection } from "@/lib/resultCorrection";
+import { sessionName, type SessionKind } from "@/lib/competitionSetup";
 import { entriesForSession, placesToSync } from "@/lib/sessionEntries";
 import type { TimeSlot } from "@/lib/timeSlots";
 import type { Entry, MatchEvent, MatchRow, Player } from "@/lib/types";
@@ -804,4 +805,57 @@ export async function correctResult(matchId: string, scoreA: number, scoreB: num
     next_match: plan.next,
     finals_place_moved: plan.finals === "move",
   });
+}
+
+type SessionRow = Pick<
+  import("@/lib/types").Night,
+  "id" | "kind" | "session_number" | "date" | "postponed" | "original_date"
+>;
+
+// Rained off (or put off for any reason): the session moves to its new date,
+// or "to be confirmed", without touching its draw, entries or any matches
+// already finished - the rest are simply played on the new date. Its name
+// follows the date. The first planned date is kept to show "was ...".
+export async function postponeSession(session: SessionRow, reason: string, newDate: string | null) {
+  const original = session.original_date ?? session.date ?? null;
+  if (newDate && newDate === original) {
+    throw new Error("That's the date it was already on - pick the new date, or leave it empty if it isn't known yet.");
+  }
+  const { error } = await supabase
+    .from("nights")
+    .update({
+      postponed: true,
+      postponed_reason: reason.trim() || "Postponed",
+      original_date: original,
+      date: newDate,
+      name: sessionName(session.kind as SessionKind, session.session_number ?? 1, newDate),
+    })
+    .eq("id", session.id);
+  if (error) throw error;
+  await logSessionAction(session.id, "postponed", { reason: reason.trim(), from: original, to: newDate });
+}
+
+// Not postponed after all: back to the date it was first planned for
+export async function cancelPostponement(session: SessionRow) {
+  const date = session.original_date ?? session.date ?? null;
+  const { error } = await supabase
+    .from("nights")
+    .update({
+      postponed: false,
+      postponed_reason: null,
+      original_date: null,
+      date,
+      name: sessionName(session.kind as SessionKind, session.session_number ?? 1, date),
+    })
+    .eq("id", session.id);
+  if (error) throw error;
+  await logSessionAction(session.id, "postponement_cancelled", { date });
+}
+
+// Where one session is played, if not at the competition's venue (null goes
+// back to the competition's)
+export async function setSessionVenue(nightId: string, venueId: string | null) {
+  const { error } = await supabase.from("nights").update({ venue_id: venueId }).eq("id", nightId);
+  if (error) throw error;
+  await logSessionAction(nightId, "venue_set", { venue_id: venueId });
 }

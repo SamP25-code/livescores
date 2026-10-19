@@ -5,6 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, computeNightStatus, isWalkover, roundLabel } from "@/lib/bracket";
 import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
+import { directionsUrl, originalDateLabel, postponedLabel, venueAddressLine } from "@/lib/venues";
 import { startViewerPings } from "@/lib/viewerLog";
 import NightNav, { splitNightName } from "@/components/NightNav";
 import Brand from "@/components/Brand";
@@ -12,7 +13,7 @@ import Avatar from "@/components/Avatar";
 import PlayerName from "@/components/PlayerName";
 import MatchCard from "@/components/MatchCard";
 import BracketTree from "@/components/BracketTree";
-import type { MatchRow, Night, Player } from "@/lib/types";
+import type { MatchRow, Night, Player, Venue } from "@/lib/types";
 
 export default function NightPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: nightId } = use(params);
@@ -20,6 +21,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
   const [players, setPlayers] = useState<Record<string, Player>>({});
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [venue, setVenue] = useState<Venue | null>(null);
   const [viewerCount, setViewerCount] = useState(0);
   const [loadError, setLoadError] = useState(false);
   const [connectionLost, setConnectionLost] = useState(false);
@@ -58,6 +60,21 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         .select("from_number, to_number, start_time")
         .eq("night_id", nightId);
       if (!cancelled) setTimeSlots((slotData ?? []) as TimeSlot[]);
+
+      // Where it's played: this session's own venue, or the competition's
+      let venueId = nightData?.venue_id ?? null;
+      if (!venueId && nightData?.competition_id) {
+        const { data: comp } = await supabase
+          .from("competitions")
+          .select("venue_id")
+          .eq("id", nightData.competition_id)
+          .single();
+        venueId = comp?.venue_id ?? null;
+      }
+      if (venueId) {
+        const { data: venueData } = await supabase.from("venues").select("*").eq("id", venueId).single();
+        if (!cancelled) setVenue((venueData as Venue | null) ?? null);
+      }
     }
 
     load();
@@ -319,6 +336,13 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         )}
       </div>
 
+      {!loadError && night && postponedLabel(night) && (
+        <div className="postponed-banner" role="status">
+          <strong>{postponedLabel(night)}</strong>
+          {originalDateLabel(night) && <span>{originalDateLabel(night)}</span>}
+        </div>
+      )}
+
       {!loadError && champion && (
         <div className="champion-banner">
           <PlayerName name={champion.name} />
@@ -442,6 +466,20 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
               </button>
             ))}
           </div>
+        </section>
+      )}
+
+      {!loadError && venue && (
+        <section className="card venue-card">
+          <span className="venue-card-label">Venue</span>
+          <strong>{venue.name}</strong>
+          {venueAddressLine(venue) !== venue.name && (
+            <span className="venue-card-address">{[venue.address, venue.postcode].filter(Boolean).join(" ")}</span>
+          )}
+          {venue.notes && <span className="hint">{venue.notes}</span>}
+          <a className="button venue-card-directions" href={directionsUrl(venue)} target="_blank" rel="noopener noreferrer">
+            Get directions
+          </a>
         </section>
       )}
     </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { pageRoleFor, useAccess } from "@/lib/access";
 import { getCompetition, type CompetitionWithSeries } from "@/lib/competitionsApi";
 import { longDate, settingsSummary } from "@/lib/competitionSetup";
+import { postponedLabel } from "@/lib/venues";
 import { errorMessage } from "@/lib/errors";
 import CompetitionForm from "@/components/CompetitionForm";
 import EntriesManager from "@/components/EntriesManager";
@@ -100,9 +101,10 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
                 <span className="comp-list-main">
                   <strong>{sessionTitle(s)}</strong>
                   <span className="hint">
-                    {s.date ? longDate(s.date) : "Date to be confirmed"}
-                    {s.start_time ? ` · ${s.start_time.slice(0, 5)}` : ""}
-                    {s.postponed ? " · Postponed" : ""}
+                    {postponedLabel(s) ??
+                      `${s.date ? longDate(s.date) : "Date to be confirmed"}${
+                        s.start_time ? ` · ${s.start_time.slice(0, 5)}` : ""
+                      }`}
                   </span>
                 </span>
                 <span className="comp-list-open">Open ›</span>
