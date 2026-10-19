@@ -3873,3 +3873,22 @@ html.larger-text {
 .view-as-bar button {
   min-height: 40px;
 }
+
+/* Users: adding someone already listed to another competition */
+.user-assign-open {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.user-assign {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.user-assign select {
+  width: auto;
+  max-width: 100%;
+}

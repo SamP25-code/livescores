@@ -52,6 +52,10 @@ export default function UserManager() {
   const [competitionId, setCompetitionId] = useState("");
   const [role, setRole] = useState<Role>("scorer");
   const [adding, setAdding] = useState(false);
+  // "+ Add to a competition" on one person's row
+  const [assigningId, setAssigningId] = useState<string | null>(null);
+  const [assignComp, setAssignComp] = useState("");
+  const [assignRole, setAssignRole] = useState<Role>("admin");
 
   async function refresh() {
     try {
@@ -122,6 +126,31 @@ export default function UserManager() {
         newPassword: true,
       });
       setHandover({ name: user.name, password: result.password, isNew: false });
+    });
+  }
+
+  // Competitions this person could still be added to
+  function openFor(user: StaffUser): CompetitionChoice[] {
+    return competitions.filter((c) => !user.assignments.some((a) => a.competition_id === c.id));
+  }
+
+  function startAssign(user: StaffUser) {
+    const choices = openFor(user);
+    setAssigningId(user.id);
+    setAssignComp(choices[0]?.id ?? "");
+    setAssignRole(isSuper ? "admin" : "scorer");
+    setError(null);
+  }
+
+  function assign(user: StaffUser) {
+    withBusy(user.id, async () => {
+      await callApi("/api/admin/users", "POST", {
+        userId: user.id,
+        competitionId: assignComp,
+        role: isSuper ? assignRole : "scorer",
+      });
+      if (user.id === callerId) forgetAccess();
+      setAssigningId(null);
     });
   }
 
@@ -204,7 +233,43 @@ export default function UserManager() {
                   {assignments.length === 0 && !user.isSuper && (
                     <span className="hint">Not assigned to anything</span>
                   )}
+                  {!user.isSuper && assigningId !== user.id && openFor(user).length > 0 && (
+                    <button type="button" className="link-button user-assign-open" disabled={busy} onClick={() => startAssign(user)}>
+                      + Add to a competition
+                    </button>
+                  )}
                 </span>
+                {assigningId === user.id && (
+                  <span className="user-assign">
+                    <select
+                      aria-label={`Competition to add ${user.name} to`}
+                      value={assignComp}
+                      onChange={(e) => setAssignComp(e.target.value)}
+                    >
+                      {openFor(user).map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.title}
+                        </option>
+                      ))}
+                    </select>
+                    {isSuper && (
+                      <select
+                        aria-label={`${user.name}'s role`}
+                        value={assignRole}
+                        onChange={(e) => setAssignRole(e.target.value as Role)}
+                      >
+                        <option value="admin">Admin</option>
+                        <option value="scorer">Scorer</option>
+                      </select>
+                    )}
+                    <button type="button" disabled={busy || !assignComp} onClick={() => assign(user)}>
+                      Add
+                    </button>
+                    <button type="button" className="link-button" onClick={() => setAssigningId(null)}>
+                      Cancel
+                    </button>
+                  </span>
+                )}
                 <span className="hint">
                   {user.email && user.email !== user.name ? `${user.email} · ` : ""}
                   {user.lastSignInAt

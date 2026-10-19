@@ -1,3 +1,4 @@
+import type { User } from "@supabase/supabase-js";
 import { isNameLogin, loginEmailFor } from "@/lib/loginName";
 import { generatePassword } from "@/lib/password";
 import { canAssign, toStaffUser, visibleTo, type CompetitionChoice, type StaffAssignment } from "@/lib/staffUsers";
@@ -48,28 +49,37 @@ export async function GET(request: Request) {
 
 // Adds someone to a competition as an admin or scorer. If they don't have a
 // login yet, one is made with a generated password, sent back once so it can
-// be passed on. Body: { login: full name or email, competitionId, role }.
+// be passed on. Body: { login: full name or email, competitionId, role }, or
+// { userId, competitionId, role } to add someone already on the Users page.
 export async function POST(request: Request) {
   const auth = await requireStaff(request);
   if ("response" in auth) return auth.response;
 
   const body = await request.json().catch(() => null);
   const login = typeof body?.login === "string" ? body.login.trim().replace(/\s+/g, " ") : "";
+  const userId = typeof body?.userId === "string" ? body.userId : "";
   const competitionId = typeof body?.competitionId === "string" ? body.competitionId : "";
   const role = body?.role === "admin" ? "admin" : "scorer";
 
-  const email = loginEmailFor(login);
-  if (!email) return jsonError(400, "Enter their full name or email address.");
+  const email = userId ? null : loginEmailFor(login);
+  if (!userId && !email) return jsonError(400, "Enter their full name or email address.");
   if (!competitionId || !auth.adminOf.has(competitionId)) return jsonError(400, "Choose a competition you run.");
   if (!canAssign(competitionId, role, auth)) return jsonError(403, "Only Super can make someone an admin.");
 
   // Already got a login? Then they're just added to this competition.
-  const { data: list, error: listError } = await auth.admin.auth.admin.listUsers({ perPage: 1000 });
-  if (listError) return jsonError(500, listError.message);
-  let user = list.users.find((u) => u.email?.toLowerCase() === email.toLowerCase()) ?? null;
+  let user: User | null = null;
+  if (userId) {
+    const { data, error } = await auth.admin.auth.admin.getUserById(userId);
+    if (error || !data.user) return jsonError(404, "That login no longer exists.");
+    user = data.user;
+  } else {
+    const { data: list, error: listError } = await auth.admin.auth.admin.listUsers({ perPage: 1000 });
+    if (listError) return jsonError(500, listError.message);
+    user = list.users.find((u) => u.email?.toLowerCase() === email!.toLowerCase()) ?? null;
+  }
   let password: string | null = null;
 
-  if (!user) {
+  if (!user && email) {
     password = generatePassword();
     const { data, error } = await auth.admin.auth.admin.createUser({
       email,
@@ -84,6 +94,7 @@ export async function POST(request: Request) {
     if (error) return jsonError(400, error.message);
     user = data.user;
   }
+  if (!user) return jsonError(400, "Couldn't find that login.");
 
   const { data: existing } = await auth.admin
     .from("assignments")
