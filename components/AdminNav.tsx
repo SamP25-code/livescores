@@ -9,7 +9,8 @@ import { displayNameOf } from "@/lib/adminUsers";
 
 // The admin menu: down the left on a computer, a row of tabs across the
 // top on a phone. Competitions and Users are there for Super and for admins
-// (their own competitions); People - the shared list of players - for Super.
+// (their own competitions); People (the shared list of players) and Venues
+// for Super.
 export default function AdminNav() {
   const pathname = usePathname();
   const access = useAccess();
@@ -28,7 +29,12 @@ export default function AdminNav() {
     ...(admin
       ? [{ href: "/admin/competitions", label: "Competitions", active: pathname.startsWith("/admin/competitions") }]
       : []),
-    ...(isSuper ? [{ href: "/admin/people", label: "People", active: pathname === "/admin/people" }] : []),
+    ...(isSuper
+      ? [
+          { href: "/admin/people", label: "People", active: pathname === "/admin/people" },
+          { href: "/admin/venues", label: "Venues", active: pathname === "/admin/venues" },
+        ]
+      : []),
     ...(admin ? [{ href: "/admin/users", label: "Users", active: pathname === "/admin/users" }] : []),
     { href: "/admin/settings", label: "Settings", active: pathname === "/admin/settings" },
   ];

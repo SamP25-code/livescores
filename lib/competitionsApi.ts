@@ -213,3 +213,29 @@ export async function uploadSponsorLogo(file: File): Promise<string> {
   if (error) throw error;
   return supabase.storage.from("sponsor-logos").getPublicUrl(path).data.publicUrl;
 }
+
+// Super: every venue, A to Z
+export async function listVenues(): Promise<Venue[]> {
+  const { data, error } = await supabase.from("venues").select("*").order("name");
+  if (error) throw error;
+  return data ?? [];
+}
+
+// How many competitions and sessions use each venue
+export async function venueUsage(): Promise<Map<string, number>> {
+  const [{ data: comps }, { data: nights }] = await Promise.all([
+    supabase.from("competitions").select("venue_id").not("venue_id", "is", null),
+    supabase.from("nights").select("venue_id").not("venue_id", "is", null),
+  ]);
+  const used = new Map<string, number>();
+  for (const r of [...(comps ?? []), ...(nights ?? [])]) used.set(r.venue_id, (used.get(r.venue_id) ?? 0) + 1);
+  return used;
+}
+
+// Super: removes a venue nothing uses any more
+export async function deleteVenue(id: string): Promise<void> {
+  const used = (await venueUsage()).get(id) ?? 0;
+  if (used > 0) throw new Error("A competition or session still uses this venue - choose another for it first.");
+  const { error } = await supabase.from("venues").delete().eq("id", id);
+  if (error) throw error;
+}

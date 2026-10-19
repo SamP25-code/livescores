@@ -314,9 +314,13 @@ people and 64 entries, every player row pointing at an entry, Sam's test login S
 Funerals & Penwortham Limousines** - and an empty `nights.competition_id` column. Part 1 would fail
 on live because of them. **Floodlit 2027 is real** (Sam, 2026-10-18), so on live only: run a
 small "Part 0" that drops the old `clubs` and `competitions` tables and the empty
-`nights.competition_id` column, then Parts 1 and 2, then recreate Floodlit 2027 in the new
-structure (Penwortham -> Floodlit Singles -> 2027, sponsor Neal Buckley Funerals & Penwortham
-Limousines) through the new set-up screens. The test database never had them.
+`nights.competition_id` column, then the numbered parts in order. The test database never had them.
+
+**The real competitions are copied across, not re-entered (Sam, 2026-10-19).** Floodlit Singles
+2027 and the other competitions being set up on the test database are definitely happening, so at
+the switch they are copied from test to live - organisers, series, competitions and settings,
+sessions (dates, practice and start times), venues, sponsors and their logos, people and entries.
+Test scores and practice draws are left behind. Sam says which test competitions are real first.
 
 ---
 

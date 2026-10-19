@@ -366,6 +366,20 @@ the names filled in as they become known:
   else about the competition.
 - Once all 32 are known, the draw is made in advance and published ahead of the day.
 
+**Qualifying competitions (Sam, 2026-10-19)** - concept in
+`docs/concepts/qualifying-competitions.jpg`:
+- Any competition can be **entered by qualification**; it then has a **Qualifying** tab for Super
+  and its admins, listing its places (each a qualifying competition's winner, or a wildcard).
+- **A qualifying competition on this site** (e.g. the October Singles) - pick it; its champion
+  fills the place automatically when its final finishes.
+- **A qualifying competition not on this site** - add its **name, where it's played and the date
+  of its final**, and choose **how many results to enter**: just the final, semi-finals and final,
+  quarter-finals onwards, or just the winner (no scores). Results are entered with the person
+  search, and **the winner takes that competition's place** in the list. It also becomes a small
+  results page of its own.
+- The list doubles as the public **"How to qualify"** page ("Fylde Classic · Kirkham · Sat 5 Jun -
+  Alan Hart, Qualified" / "To be decided"), which also advertises those competitions.
+
 **Exceptions are handled by hand (agreed 2026-10-16)** - rather than automatic rules:
 - **Someone qualifies twice** - their **first** qualification counts; the second place becomes a
   **wildcard**. The site doesn't do this itself: it **flags** the duplicate to the admin ("Tim
@@ -616,23 +630,35 @@ API routes and React itself, so it needs its own branch and a full test on a pre
    missing. Shapes 2027 better than guessing.
 4. Tidy the old merged git branches.
 
-## Timeline to the first 2027 competition (agreed 2026-10-16)
+## Timeline - everything before Christmas (brought forward 2026-10-19)
 
 **First competition: Saturday 13 March 2027 - a one-day doubles at Penwortham, 32 pairs.**
-Nothing is expected before it, so that's the deadline for version 1.
+Sam brought the plan forward (2026-10-19): **build everything before Christmas 2026**, leaving
+January and February for additions and changes, the dry run, and plenty of slack before 13 March.
 
 | When | What |
 |---|---|
-| **November 2026** | Next.js 15 upgrade; set up the test database |
-| **December - January** | Core build: competitions + settings, people + doubles entries, roles + assignments, competition page, home page (calendar + list), venues |
-| **Late January - early February** | Draws + time slots, changing people, scoring with poor signal, postponements, correcting results, the 32-draw bracket on a phone |
+| **October 2026 (done)** | Next.js 15, test database, competitions + settings, people + doubles entries, draws (random / physical) + start times, changing people, roles + assignments, scoring with poor signal, correcting results, postponements + venues, new home page / calendar / competition pages, sponsor logos, practice times - each on its own branch, tested on the preview |
+| **Late October - early November** | Finish version 1 (privacy notice, easy-to-read pass, "Get in touch"), then **go live**: review and merge the branches, run the database parts on live, **copy the real competitions across from the test database** (see below), assign existing logins |
+| **November - mid December** | Everything else: **qualifying places and qualifying competitions** (Blackpool Masters), the **multi-competition event page** (Blackpool weekend), **player pages and Find a player**, the **SuperAdmin overview**, **Share results as text**, **backgrounds** (general + per competition), the **help guide** for admins, the privacy removal process, "Larger text" |
+| **Before Christmas** | All of it built and on the live site |
+| **January - early February** | Additions and changes from Sam and the organisers |
 | **About 14 February** | Feature freeze - bug fixes only from here |
 | **About 20-27 February** | **Full dry run** with real Penwortham organisers and scorers, on the test database |
 | **Sat 13 March 2027** | First competition |
 
-### Version 1 (needed for 13 March)
+The new domain is switched over whenever Sam has picked the name (the year-less addresses already
+work).
 
-Only what that competition needs:
+**The real competitions stay (Sam, 2026-10-19)** - the competitions being set up on the test
+database (Floodlit Singles, the March doubles, the Blackpool Masters, ...) are definitely happening,
+so they are **copied across to the live database** at the switch rather than entered again: their
+organisers, series, settings, sessions (dates, practice and start times), venues, sponsors and
+logos, people and entries. Test scores and practice draws are not copied. Before the switch, Sam
+says which competitions on test are real and which were only for trying things out.
+
+### Version 1 (needed for 13 March) - built, apart from the last three
+
 - Competitions + the settings form (Super sets it up): single day, doubles, 32 entries, 21 up
 - People + entries with **doubles pairs**, using the person search
 - Roles: **Super, Admin, Scorer**, assigned per competition; admins create scorer logins
@@ -640,36 +666,29 @@ Only what that competition needs:
   scores / Next up, calendar, competition list)
 - Draw (in advance or on the day), **time slots** for round 1, and **changing people** (bye /
   replace)
-- **Scoring with poor signal** (queued taps), **correcting results**, **postponements** (March
-  weather)
-- **Doubles names in the narrow bracket view** and the **32-draw bracket layout on a phone** -
-  both were "to be designed" and are now needed, since this competition is 32 pairs
-- Privacy notice (names are public)
-- "Easy to read for every age" throughout
-
-**After 13 March, before the next club's first date:** the new domain and year-less addresses,
-the SuperAdmin overview across many competitions, qualifying places (Blackpool Masters, Sept),
-player pages, Share results as text, the help guide, then the pilot with other clubs.
+- **Scoring with poor signal** (queued taps), **correcting results**, **postponements**
+- **Doubles names in the narrow bracket view** and the **32-draw bracket layout on a phone**
+- Still to do: **privacy notice** (names are public), the **"Easy to read for every age"** pass,
+  and the **"Running a competition? Get in touch"** contact
 
 ## Order of work
 
-0. Next.js 15 upgrade (November 2026)
-1. Test database
-2. Competitions + settings form, **people and entries (singles and doubles)**, and
-   **qualifying places** (a place filled from another competition's result - generalises how
-   Finals Day is filled today), **venues** and **postponed nights** (+ the finals-night bug fix) -
-   one database change, since they're all tied together
-3. Clubs, per-club branding, **roles (Super / Admin / Scorer, assigned per competition)**;
-   **on-the-day draw tools** and **time slots**; **scoring with poor signal** (queued taps);
-   **correcting results**; the **SuperAdmin overview**
-4. New domain, routing and the home page (including the calendar with competition highlighting)
-5. Player pages and honours boards; privacy notice and removal process; **"Share results" as
-   text**
-6. Help guide for club admins
-7. Pilot with one or two clubs, then open up
+Done (October 2026): Next.js 15 upgrade; test database; competitions + settings, people and
+entries (singles and doubles), venues and postponed nights; roles (Super / Admin / Scorer,
+assigned per competition); draws and time slots; scoring with poor signal; correcting results;
+the home page, calendar and competition pages with year-less addresses; sponsor logos.
+
+Still to do, in order:
+1. Privacy notice, easy-to-read pass, "Get in touch" - then go live (merge, live database,
+   copy the real competitions across)
+2. **Qualifying places and qualifying competitions** (Blackpool Masters) and the
+   **multi-competition event page**
+3. **Player pages and Find a player**; honours boards filled with past winners
+4. The **SuperAdmin overview**; **"Share results" as text**
+5. **Backgrounds** - a general one, and uploaded per competition
+6. Help guide for club admins; privacy removal process
+7. New domain when the name is chosen; pilot with other clubs, then open up
 8. After the pilot: shareable results images, sponsor reports, follow a player
 
 Throughout: the "Easy to read for every age" rules apply to every screen.
 
-The numbering is the logical order; the **Timeline** above sets what has to be ready for 13 March
-2027 (version 1) and what follows before other clubs join.

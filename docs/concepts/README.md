@@ -12,6 +12,7 @@ show what it was describing.
 | `calendar-gold-ring.jpg` | The chosen calendar: dots for qualifying nights, competition-coloured circle with a gold ring for trophy days | Calendar |
 | `calendar-options-compared.jpg` | The two calendar options side by side - A plain circle, B gold ring (B chosen) | Calendar |
 | `blackpool-masters-weekend.jpg` | A multi-competition event page (Blackpool Masters, three competitions over a weekend) | Navigation; Blackpool Masters 2027 |
+| `qualifying-competitions.jpg` (+ `.html`) | A competition's Qualifying tab: places from qualifying competitions and wildcards, adding a qualifying competition not on the site, entering its results, and the public "How to qualify" list | Blackpool Masters 2027 - Qualifying competitions |
 
 Not kept, because later decisions replaced them: the early club pages (no club pages now), the
 first calendar without gold rings, and the on-the-day draw screens (they had a "who's here" step,

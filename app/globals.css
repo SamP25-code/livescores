@@ -1872,6 +1872,16 @@ label {
   flex: 1;
 }
 
+/* On a phone, up to three tabs a row so six still fit */
+@media (max-width: 640px) {
+  .admin-nav-links {
+    flex-wrap: wrap;
+  }
+  .admin-nav-links li {
+    flex: 1 1 30%;
+  }
+}
+
 .admin-nav-link {
   display: block;
   padding: 11px 8px;
@@ -3750,4 +3760,28 @@ a.venue-card-directions {
 .comp-form-logo-pick {
   cursor: pointer;
   font-weight: 600;
+}
+
+/* Set-up form: practice on or off */
+.comp-form-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+
+.comp-form-check input {
+  width: 20px;
+  height: 20px;
+}
+
+/* Venues page */
+.venue-row-editing {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.venue-editor {
+  margin: 0;
 }
