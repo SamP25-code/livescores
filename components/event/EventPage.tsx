@@ -9,11 +9,10 @@ import { longDate } from "@/lib/competitionSetup";
 import { listPosts, POST_KIND_LABEL, type EventPost } from "@/lib/postsApi";
 import {
   PALETTE,
-  STATUS_LABEL,
   competitionPath,
   dateRange,
   daysUntil,
-  formatLine,
+  whatItIs,
   isTrophyDay,
   publicStatus,
   shortDate,
@@ -24,6 +23,7 @@ import {
 import { loadPublicQualifying } from "@/lib/publicQualifying";
 import { SITE_NAME } from "@/lib/site";
 import SiteHeader from "@/components/SiteHeader";
+import StatusLabel from "@/components/home/StatusLabel";
 
 type Tab = "overview" | "competitions" | "qualifying" | "news";
 const TABS: Record<Tab, string> = { overview: "Overview", competitions: "Competitions", qualifying: "Qualifying", news: "News" };
@@ -195,14 +195,16 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
                 <span className="comp-row-text">
                   <span className="comp-row-top">
                     <strong className="comp-row-name">{c.name}</strong>
-                    <span className={`comp-pill comp-pill-${status}`}>
-                      {status === "live" && <span className="live-dot" />}
-                      {STATUS_LABEL[status]}
-                    </span>
+                    <StatusLabel status={status} />
                   </span>
-                  <span className="comp-row-line">{formatLine(c).replace(/^Event · /, "")}</span>
                   <span className="comp-row-line">
-                    {c.champion ? <>Champion <strong>{c.champion.name}</strong></> : day?.date ? longDate(day.date) : "Date to be confirmed"}
+                    {c.champion ? (
+                      <>
+                        Champion <strong>{c.champion.name}</strong>
+                      </>
+                    ) : (
+                      `${whatItIs(c)} · ${day?.date ? longDate(day.date) : "Date to be confirmed"}`
+                    )}
                   </span>
                 </span>
               </Link>

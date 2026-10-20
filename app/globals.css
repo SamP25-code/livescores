@@ -2849,22 +2849,27 @@ label {
 /* Where it's played, with directions */
 .venue-card {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  margin-top: 20px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 10px 14px;
 }
 
-.venue-card-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.venue-card-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.venue-card-address {
+  font-size: 0.9rem;
   color: var(--ink-soft);
 }
 
+
 .venue-card strong {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
 }
 
 .venue-card .hint {
@@ -2872,7 +2877,12 @@ label {
 }
 
 .venue-card-directions {
-  margin-top: 8px;
+  flex: none;
+  padding: 8px 12px;
+  border: 1px solid var(--green-mid);
+  border-radius: var(--radius);
+  color: var(--green-deep);
+  font-weight: 700;
 }
 
 /* Admin: a session's date (postponing) and venue */
@@ -3547,20 +3557,7 @@ a.venue-card-directions {
   font-weight: 700;
 }
 
-.comp-page-pills {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-}
 
-.comp-page-pill {
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: rgba(20, 40, 28, 0.85);
-  color: #fff;
-  font-weight: 600;
-}
 
 .comp-schedule {
   padding-top: 0;
@@ -3598,6 +3595,12 @@ a.venue-card-directions {
 
 .comp-schedule-main span {
   color: var(--ink-soft);
+}
+
+.comp-schedule-line strong {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.2rem;
+  color: var(--green-deep);
 }
 
 .comp-schedule-was {

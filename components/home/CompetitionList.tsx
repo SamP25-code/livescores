@@ -4,20 +4,19 @@ import { useState } from "react";
 import Link from "next/link";
 import { matchesSearch } from "@/lib/people";
 import {
-  STATUS_LABEL,
   competitionPath,
   dateRange,
   eventDates,
   eventPath,
   datesSummary,
   filterList,
-  formatLine,
+  whatItIs,
   publicStatus,
   sortForList,
   type ListFilter,
   type PublicCompetition,
-  type PublicStatus,
 } from "@/lib/publicCompetitions";
+import StatusLabel from "@/components/home/StatusLabel";
 
 // Every competition in the chosen year: live first, then coming up, planned,
 // finished. Earlier years are the archive. Tap a row to open it. With a
@@ -139,9 +138,9 @@ export default function CompetitionList({
                     <StatusLabel status={status} />
                   </span>
                   <span className="comp-row-line">
-                    Event · {members.length} competition{members.length === 1 ? "" : "s"}
+                    {members.length} competition{members.length === 1 ? "" : "s"} &middot;{" "}
+                    {dates ? dateRange(dates.from, dates.to) : "Dates to be confirmed"}
                   </span>
-                  <span className="comp-row-line">{dates ? dateRange(dates.from, dates.to) : "Dates to be confirmed"}</span>
                 </span>
               </Link>
             );
@@ -162,16 +161,15 @@ export default function CompetitionList({
                   <StatusLabel status={status} />
                 </span>
                 <span className="comp-row-line">
+                  {c.organiser.kind === "event" ? c.organiser.name : c.organiser.short_name} &middot;{" "}
                   {status === "finished" && c.champion ? (
                     <>
-                      {c.organiser.kind === "event" ? "Event" : c.organiser.short_name} &middot; Champion{" "}
-                      <strong>{c.champion.name}</strong>
+                      Champion <strong>{c.champion.name}</strong>
                     </>
                   ) : (
-                    formatLine(c)
+                    `${whatItIs(c)} · ${datesSummary(c.sessions)}`
                   )}
                 </span>
-                <span className="comp-row-line">{datesSummary(c.sessions)}</span>
               </span>
             </>
           );
@@ -186,15 +184,3 @@ export default function CompetitionList({
   );
 }
 
-// Live gets a pill - it's the one that matters - everything else is just words
-function StatusLabel({ status }: { status: PublicStatus }) {
-  if (status === "live") {
-    return (
-      <span className="comp-pill comp-pill-live">
-        <span className="live-dot" />
-        {STATUS_LABEL.live}
-      </span>
-    );
-  }
-  return <span className={`comp-status comp-status-${status}`}>{STATUS_LABEL[status]}</span>;
-}

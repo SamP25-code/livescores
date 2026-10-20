@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { organiserPath, type PublicCompetition } from "@/lib/publicCompetitions";
+import { organiserPath, whatItIs, type PublicCompetition } from "@/lib/publicCompetitions";
 
 // Who runs it and what it is, for someone new to the site: the club (or
 // event) as a pill - tap it for all their competitions - then singles or
@@ -16,10 +16,7 @@ export default function CompetitionPills({ competition: c, all }: { competition:
       ) : (
         <span className="info-pill info-pill-club">{who}</span>
       )}
-      <span className="info-pills-text">
-        {c.team_size === 2 ? "Doubles" : "Singles"}
-        {c.label ? ` · ${c.label}` : ""}
-      </span>
+      <span className="info-pills-text">{whatItIs(c)}</span>
     </p>
   );
 }

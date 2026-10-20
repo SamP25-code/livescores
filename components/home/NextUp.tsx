@@ -3,7 +3,6 @@ import { longDate } from "@/lib/competitionSetup";
 import {
   competitionPath,
   daysUntil,
-  formatLine,
   sessionTitle,
   sessionTimes,
   type PublicCompetition,
@@ -32,7 +31,6 @@ export default function NextUp({
             <span className="home-next-label">Next up</span>
             <h2 className="home-next-name">{c.name}</h2>
             <CompetitionPills competition={c} all={all} />
-            <p className="home-next-format">{formatLine(c)}</p>
             <div className="home-next-when">
               <span className="home-next-count">
                 {days === 0 ? (

@@ -122,7 +122,7 @@ export default function HomeCalendar({
           <span className="cal-dot cal-key-dot" /> Qualifying session
         </span>
         <span>
-          <span className="cal-key-ring" /> Finals Day / single day
+          <span className="cal-key-ring" /> Finals Day / one day
         </span>
       </div>
 

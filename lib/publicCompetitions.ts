@@ -127,7 +127,7 @@ export function isTrophyDay(kind: PublicSessionKind): boolean {
 
 export const TROPHY_LABEL: Record<Exclude<PublicSessionKind, "qualifier">, string> = {
   finals: "Finals Day",
-  single_day: "Single day",
+  single_day: "One day",
   final: "Final",
 };
 
@@ -158,6 +158,21 @@ export function formatLine(c: Pick<PublicCompetition, "organiser" | "team_size" 
   return [c.organiser.kind === "event" ? "Event" : c.organiser.short_name, kind, c.label, shape]
     .filter(Boolean)
     .join(" · ");
+}
+
+// What it is, without who runs it: "Singles · Ladies · 32 players",
+// "Doubles · 5 sessions + Finals Day". A one-day competition's "one day"
+// is left to its date ("One day Sat 18 Sep"), so it isn't said twice.
+export function whatItIs(c: Pick<PublicCompetition, "team_size" | "label" | "format" | "draw_size" | "qualifying_nights">): string {
+  const shape =
+    c.format === "qualifying_and_finals"
+      ? `${c.qualifying_nights ?? "?"} sessions + Finals Day`
+      : c.format === "single_day"
+        ? c.draw_size
+          ? `${c.draw_size} ${c.team_size === 2 ? "pairs" : "players"}`
+          : null
+        : "Final";
+  return [c.team_size === 2 ? "Doubles" : "Singles", c.label, shape].filter(Boolean).join(" · ");
 }
 
 export function publicStatus(c: Pick<PublicCompetition, "sessions" | "champion">, today: string): PublicStatus {
@@ -325,7 +340,7 @@ export function resolveCompetition<C extends Pick<PublicCompetition, "slug" | "y
   return all.find((c) => c.slug === match[1] && c.year === Number(match[2])) ?? null;
 }
 
-// "Qualifying session 3", "Finals Day", "Single day", "Final"
+// "Qualifying session 3", "Finals Day", "One day", "Final"
 export function sessionTitle(s: Pick<PublicSession, "kind" | "session_number">): string {
   return s.kind === "qualifier" ? `Qualifying session ${s.session_number ?? ""}`.trim() : TROPHY_LABEL[s.kind];
 }

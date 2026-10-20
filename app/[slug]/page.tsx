@@ -6,7 +6,6 @@ import { supabase } from "@/lib/supabaseClient";
 import { settingsSummary } from "@/lib/competitionSetup";
 import { loadHonours, loadPublicCompetitions, type HonoursRow } from "@/lib/publicData";
 import {
-  STATUS_LABEL,
   competitionPath,
   publicStatus,
   resolveCompetition,
@@ -113,21 +112,16 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
         <h1 className="comp-page-title">
           {c.name} {c.year}
         </h1>
-        <p className="comp-page-by">Run by {runBy}</p>
+        <p className="comp-page-by">
+          {status === "live" && (
+            <span className="comp-pill comp-pill-live">
+              <span className="live-dot" />
+              Live
+            </span>
+          )}{" "}
+          {[runBy, settingsSummary(c).replace(", one day", "")].join(" · ")}
+        </p>
         <SponsorPanel sponsors={c.sponsors} />
-        <div className="comp-page-pills">
-          <span className={`comp-pill comp-pill-${status}`}>
-            {status === "live" && <span className="live-dot" />}
-            {STATUS_LABEL[status]}
-          </span>
-          {settingsSummary(c)
-            .split(" · ")
-            .map((p) => (
-              <span key={p} className="comp-page-pill">
-                {p}
-              </span>
-            ))}
-        </div>
       </header>
 
       {c.champion && (
@@ -153,14 +147,15 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
 
       {venue && (
         <section className="card venue-card">
-          <span className="venue-card-label">Venue</span>
-          <strong>{venue.name}</strong>
-          {(venue.address || venue.postcode) && (
-            <span className="venue-card-address">{[venue.address, venue.postcode].filter(Boolean).join(" ")}</span>
-          )}
-          {venue.notes && <span className="hint">{venue.notes}</span>}
-          <a className="button venue-card-directions" href={directionsUrl(venue)} target="_blank" rel="noopener noreferrer">
-            Get directions
+          <span className="venue-card-text">
+            <strong>{venue.name}</strong>
+            {(venue.address || venue.postcode) && (
+              <span className="venue-card-address">{[venue.address, venue.postcode].filter(Boolean).join(" ")}</span>
+            )}
+            {venue.notes && <span className="hint">{venue.notes}</span>}
+          </span>
+          <a className="venue-card-directions" href={directionsUrl(venue)} target="_blank" rel="noopener noreferrer">
+            Directions
           </a>
         </section>
       )}
@@ -243,11 +238,13 @@ function ScheduleRow({ session: s, competition: c, today }: { session: PublicSes
       className={`comp-schedule-row ${finals ? "comp-schedule-finals" : ""} ${s.status === "live" ? "comp-schedule-live" : ""}`}
     >
       <span className="comp-schedule-main">
-        <strong>
-          {s.status === "complete" && <span aria-label="Finished">&#10003; </span>}
-          {sessionTitle(s)}
-        </strong>
-        <span>{details.join(" · ")}</span>
+        <span className="comp-schedule-line">
+          <strong>
+            {s.status === "complete" && <span aria-label="Finished">&#10003; </span>}
+            {sessionTitle(s)}
+          </strong>{" "}
+          &middot; {details.join(" · ")}
+        </span>
         {was && <span className="comp-schedule-was">{was}</span>}
       </span>
       {s.status === "live" ? (

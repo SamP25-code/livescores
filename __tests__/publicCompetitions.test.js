@@ -86,7 +86,7 @@ describe("dates written out", () => {
 
   test("a competition's dates", () => {
     expect(datesSummary(floodlit.sessions)).toBe("Qualifying Mon 7 – Thu 10 Jun · Finals Day Sat 12 Jun");
-    expect(datesSummary(march.sessions)).toBe("Single day Sat 13 Mar");
+    expect(datesSummary(march.sessions)).toBe("One day Sat 13 Mar");
     expect(datesSummary(tbc.sessions)).toBe("Dates to be confirmed");
   });
 

@@ -491,7 +491,7 @@ export default function CompetitionForm({
           {(
             [
               ["qualifying_and_finals", "Qualifying sessions + Finals Day"],
-              ["single_day", "Single day"],
+              ["single_day", "One day"],
               ["final_only", "Final only (results from elsewhere)"],
             ] as const
           ).map(([value, text]) => (
