@@ -89,9 +89,6 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
     <div className="page page-photo event-page">
       <div className="public-background" aria-hidden="true" />
       <SiteHeader compact />
-      <Link href="/competitions" className="page-back-link">
-        <span aria-hidden="true">&lsaquo;</span> All competitions
-      </Link>
       <header className="comp-page-head">
         <h1 className="comp-page-title">{event.organiser.name}</h1>
         <p className="comp-page-by">

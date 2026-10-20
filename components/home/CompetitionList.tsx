@@ -114,10 +114,10 @@ export default function CompetitionList({
         />
       )}
 
-      <div className="card comp-rows">
-        {shown.length === 0 && (
-          <p className="hint">{query.trim() ? `Nothing in ${year} matches “${query.trim()}”.` : "Nothing here yet."}</p>
-        )}
+      {shown.length === 0 && (
+        <p className="quiet-line">{query.trim() ? `Nothing in ${year} matches “${query.trim()}”` : "Nothing here yet"}</p>
+      )}
+      <div className="card comp-rows" hidden={shown.length === 0}>
         {rows.map((row) => {
           if (row.kind === "event") {
             const members = row.members;

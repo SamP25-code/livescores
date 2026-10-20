@@ -18,7 +18,7 @@ import {
   type PublicSession,
 } from "@/lib/publicCompetitions";
 import { SITE_NAME } from "@/lib/site";
-import { directionsUrl, originalDateLabel, postponedLabel } from "@/lib/venues";
+import { originalDateLabel, postponedLabel } from "@/lib/venues";
 import PlayerName from "@/components/PlayerName";
 import { SponsorPanel } from "@/components/Sponsors";
 import WhosEntered from "@/components/WhosEntered";
@@ -27,6 +27,7 @@ import EventPage from "@/components/event/EventPage";
 import type { Venue } from "@/lib/types";
 import PublicFooter from "@/components/PublicFooter";
 import SiteHeader from "@/components/SiteHeader";
+import VenueCard from "@/components/VenueCard";
 
 export const dynamic = "force-dynamic";
 
@@ -134,31 +135,21 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
         </div>
       )}
 
-      <div className="card comp-schedule">
-        {c.sessions.length === 0 && <p className="hint">Dates to be confirmed.</p>}
-        {c.sessions.map((s) => (
-          <ScheduleRow key={s.id} session={s} competition={c} today={today} />
-        ))}
-      </div>
+      {c.sessions.length === 0 ? (
+        <p className="quiet-line">Dates to be confirmed</p>
+      ) : (
+        <div className="card comp-schedule">
+          {c.sessions.map((s) => (
+            <ScheduleRow key={s.id} session={s} competition={c} today={today} />
+          ))}
+        </div>
+      )}
 
       {c.entry_method === "qualification" && <HowToQualify competitionId={c.id} all={all} />}
 
       <WhosEntered competition={c} />
 
-      {venue && (
-        <section className="card venue-card">
-          <span className="venue-card-text">
-            <strong>{venue.name}</strong>
-            {(venue.address || venue.postcode) && (
-              <span className="venue-card-address">{[venue.address, venue.postcode].filter(Boolean).join(" ")}</span>
-            )}
-            {venue.notes && <span className="hint">{venue.notes}</span>}
-          </span>
-          <a className="venue-card-directions" href={directionsUrl(venue)} target="_blank" rel="noopener noreferrer">
-            Directions
-          </a>
-        </section>
-      )}
+      {venue && <VenueCard venue={venue} />}
 
       {honours.length > 0 && (
         <section className="home-section">
@@ -208,9 +199,6 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="page page-photo comp-page">
       <div className="public-background" aria-hidden="true" />
       <SiteHeader compact />
-      <Link href="/competitions" className="page-back-link">
-        <span aria-hidden="true">&lsaquo;</span> All competitions
-      </Link>
       {children}
       <PublicFooter />
     </div>

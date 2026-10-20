@@ -59,9 +59,12 @@ function shortNightLabel(night: Night): string {
 export default function NightNav({
   currentId,
   variant = "compact",
+  hideSingle = false,
 }: {
   currentId?: string;
   variant?: "compact" | "home";
+  // A one-session competition has nothing to switch between
+  hideSingle?: boolean;
 }) {
   const [nights, setNights] = useState<Night[]>([]);
   const [statuses, setStatuses] = useState<Record<string, NightStatus>>({});
@@ -108,7 +111,7 @@ export default function NightNav({
     };
   }, [variant]);
 
-  if (nights.length === 0) return null;
+  if (nights.length === 0 || (hideSingle && nights.length === 1)) return null;
 
   if (variant === "home") {
     return (

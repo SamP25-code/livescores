@@ -5,8 +5,8 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, computeNightStatus, isWalkover, roundLabel } from "@/lib/bracket";
 import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
-import { directionsUrl, originalDateLabel, postponedLabel, venueAddressLine } from "@/lib/venues";
-import { sessionTimes, sessionTitle, timeOfDay } from "@/lib/publicCompetitions";
+import { originalDateLabel, postponedLabel } from "@/lib/venues";
+import { sessionTimes, sessionTitle, shortDate, timeOfDay } from "@/lib/publicCompetitions";
 import { startViewerPings } from "@/lib/viewerLog";
 import NightNav, { splitNightName } from "@/components/NightNav";
 import Brand from "@/components/Brand";
@@ -20,6 +20,7 @@ import { SITE_NAME } from "@/lib/site";
 import PublicFooter from "@/components/PublicFooter";
 import FindYourMatch from "@/components/FindYourMatch";
 import SiteHeader from "@/components/SiteHeader";
+import VenueCard from "@/components/VenueCard";
 
 export default function NightPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: nightId } = use(params);
@@ -304,11 +305,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         >
           <span aria-hidden="true">&lsaquo;</span> {competition.name} {competition.year}
         </Link>
-      ) : (
-        <Link href="/" className="page-back-link">
-          <span aria-hidden="true">&lsaquo;</span> Home
-        </Link>
-      )}
+      ) : null}
       {/* The competition's own sponsors; a night from before the 2027 move
           keeps the October Singles sponsor it always had */}
       {competition ? (
@@ -317,50 +314,64 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         night && !night.competition_id && <Brand variant="slim" />
       )}
 
-      <NightNav currentId={nightId} />
+      <NightNav currentId={nightId} hideSingle={Boolean(competition)} />
 
       <div className="night-header-card">
-        {/* Which competition this is, and which session of it */}
-        {competition && night && (
-          <p className="night-header-comp">
-            {competition.name} {competition.year} &middot; {sessionTitle(night as Parameters<typeof sessionTitle>[0])}
-          </p>
-        )}
-        <div
-          className={`night-header-title ${slimHeader ? "night-header-title-slim" : ""} ${
-            showField ? "night-header-title-field" : ""
-          } ${night?.kind === "finals" ? "night-header-title-finals" : ""} ${
-            qualifierDraw ? "night-header-title-bare" : ""
-          }`}
-        >
-          {/* Kept for screen readers wherever it's hidden on screen. */}
-          <span className={hideName ? "visually-hidden" : "night-header-name"}>
-            {titleSplit && (finalsDraw || finalsField) ? (
-              <>
-                <span className="visually-hidden">{titleSplit.day}</span>
-                <span className="night-header-day">
-                  {finalsDraw ? shortenMonth(titleSplit.rest) : titleSplit.rest}
-                </span>
-              </>
-            ) : titleSplit ? (
-              <>
-                <span className="night-header-day">{titleSplit.day}</span>
-                <span className="night-header-date">{titleSplit.rest}</span>
-              </>
-            ) : (
-              <span className="night-header-day">{night?.name ?? "Loading…"}</span>
+        {competition && night ? (
+          // A competition's session: one line - which session, when, and how
+          // many are watching. The back link above already names the competition.
+          <div className={`night-header-simple ${night.kind === "finals" ? "night-header-simple-finals" : ""}`}>
+            <h1>
+              <strong>{sessionTitle(night as Parameters<typeof sessionTitle>[0])}</strong>{" "}
+              &middot;{" "}
+              {[
+                night.date ? shortDate(night.date) : "Date to be confirmed",
+                !playStarted ? sessionTimes(night) : null,
+                showDraw && viewerCount > 0 ? `${viewerCount} watching now` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </h1>
+          </div>
+        ) : (
+          <>
+          <div
+            className={`night-header-title ${slimHeader ? "night-header-title-slim" : ""} ${
+              showField ? "night-header-title-field" : ""
+            } ${night?.kind === "finals" ? "night-header-title-finals" : ""} ${
+              qualifierDraw ? "night-header-title-bare" : ""
+            }`}
+          >
+            {/* Kept for screen readers wherever it's hidden on screen. */}
+            <span className={hideName ? "visually-hidden" : "night-header-name"}>
+              {titleSplit && (finalsDraw || finalsField) ? (
+                <>
+                  <span className="visually-hidden">{titleSplit.day}</span>
+                  <span className="night-header-day">
+                    {finalsDraw ? shortenMonth(titleSplit.rest) : titleSplit.rest}
+                  </span>
+                </>
+              ) : titleSplit ? (
+                <>
+                  <span className="night-header-day">{titleSplit.day}</span>
+                  <span className="night-header-date">{titleSplit.rest}</span>
+                </>
+              ) : (
+                <span className="night-header-day">{night?.name ?? "Loading…"}</span>
+              )}
+            </span>
+            {!loadError && night && !playStarted && !showDraw && !finalsField && headerTimes(night, showField) && (
+              <span className="night-header-times">{headerTimes(night, showField)}</span>
             )}
-          </span>
-          {!loadError && night && !playStarted && !showDraw && !finalsField && headerTimes(night, showField) && (
-            <span className="night-header-times">{headerTimes(night, showField)}</span>
-          )}
-          {/* Only once the draw is up - before that it's the field of
-              players that needs the room. Finals Day waits for the first
-              scores, so the strip stays one line until play begins. */}
-          {!loadError && showDraw && (night?.kind !== "finals" || playStarted) && viewerCount > 0 && (
-            <span className="night-header-viewers">{viewerCount} watching now</span>
-          )}
-        </div>
+            {/* Only once the draw is up - before that it's the field of
+                players that needs the room. Finals Day waits for the first
+                scores, so the strip stays one line until play begins. */}
+            {!loadError && showDraw && (night?.kind !== "finals" || playStarted) && viewerCount > 0 && (
+              <span className="night-header-viewers">{viewerCount} watching now</span>
+            )}
+          </div>
+          </>
+        )}
 
         {loadError && (
           <p className="night-header-hint">
@@ -399,8 +410,8 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
       )}
 
       {!loadError && rounds.length === 0 && finalsSlots.length === 0 && qualifierPlayers.length === 0 && (
-        <p className="empty" style={{ textAlign: "center" }}>
-          No draw yet.
+        <p className="quiet-line" style={{ textAlign: "center" }}>
+          No draw yet
         </p>
       )}
 
@@ -535,19 +546,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         </section>
       )}
 
-      {!loadError && venue && (
-        <section className="card venue-card">
-          <span className="venue-card-label">Venue</span>
-          <strong>{venue.name}</strong>
-          {venueAddressLine(venue) !== venue.name && (
-            <span className="venue-card-address">{[venue.address, venue.postcode].filter(Boolean).join(" ")}</span>
-          )}
-          {venue.notes && <span className="hint">{venue.notes}</span>}
-          <a className="button venue-card-directions" href={directionsUrl(venue)} target="_blank" rel="noopener noreferrer">
-            Get directions
-          </a>
-        </section>
-      )}
+      {!loadError && venue && <VenueCard venue={venue} />}
 
       <PublicFooter />
     </div>

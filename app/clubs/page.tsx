@@ -13,9 +13,9 @@ export default function ClubsPage() {
 
   return (
     <PublicPage title="Clubs" loading={competitions === null} failed={failed}>
-      {competitions !== null && (
+      {competitions !== null && list.length === 0 && <p className="quiet-line">No clubs yet</p>}
+      {list.length > 0 && (
         <div className="card comp-rows">
-          {list.length === 0 && <p className="hint">No clubs yet.</p>}
           {list.map((club) => (
             <Link key={club.id} href={club.href} className="comp-row" style={{ color: "inherit", textDecoration: "none" }}>
               <span className="comp-row-text">

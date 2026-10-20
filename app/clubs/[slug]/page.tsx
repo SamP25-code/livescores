@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { usePublicCompetitions } from "@/lib/usePublicCompetitions";
 import { coloursFor, todayIso, type ListFilter } from "@/lib/publicCompetitions";
@@ -27,9 +26,6 @@ export default function ClubPage() {
 
   return (
     <PublicPage title={club?.name ?? "Club"} loading={competitions === null} failed={failed}>
-      <Link href="/clubs" className="page-back-link">
-        <span aria-hidden="true">&lsaquo;</span> All clubs
-      </Link>
       {competitions !== null && !club && <p className="night-header-hint">No club at this address.</p>}
       {club && (
         <CompetitionList

@@ -13,6 +13,9 @@
   --gold: #c9972c;
   --gold-deep: #8a6a12;
   --gold-pale: #fbf1d6;
+  /* The space between blocks on a page, and between sections */
+  --gap: 12px;
+  --section-gap: 24px;
 }
 
 * {
@@ -246,7 +249,7 @@ a {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: var(--gap);
   padding: 2px 0;
   font-size: 0.92rem;
   color: rgba(255, 255, 255, 0.85);
@@ -367,7 +370,7 @@ a {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 14px 16px;
-  margin-bottom: 12px;
+  margin-bottom: var(--gap);
 }
 
 /* Admin's scoring panel nests a .match inside a .card - the card is the
@@ -1024,7 +1027,7 @@ label {
 }
 
 .night-header-card {
-  margin: 0 0 20px;
+  margin: 0 0 var(--gap);
   text-align: center;
 }
 
@@ -1319,9 +1322,10 @@ label {
   text-align: center;
   background: var(--gold-pale);
   border: 1px solid var(--gold);
+  border-left: 4px solid var(--gold);
   border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 24px;
+  padding: 14px 16px;
+  margin-bottom: var(--gap);
 }
 
 .champion-banner .name {
@@ -2831,7 +2835,7 @@ label {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin: 0 0 16px;
+  margin: 0 0 var(--gap);
   padding: 14px 16px;
   border-radius: var(--radius);
   background: var(--gold-pale);
@@ -2852,7 +2856,7 @@ label {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 0;
   padding: 10px 14px;
 }
 
@@ -2941,7 +2945,7 @@ label {
 }
 
 .home-section {
-  margin-top: 26px;
+  margin-top: var(--section-gap);
 }
 
 .home-section-head {
@@ -3062,7 +3066,7 @@ label {
 
 /* Next up */
 .home-next {
-  margin-bottom: 12px;
+  margin-bottom: var(--gap);
 }
 
 .home-next-label {
@@ -3537,7 +3541,7 @@ a.venue-card-directions {
 /* A competition's page */
 .comp-page-head {
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: var(--gap);
 }
 
 .comp-page-title {
@@ -3611,6 +3615,12 @@ a.venue-card-directions {
   border-left: 4px solid var(--maroon);
 }
 
+/* Finals Day: the same gold as the champion banner */
+.comp-schedule-finals {
+  border-left: 4px solid var(--gold);
+  background: var(--gold-pale);
+}
+
 .comp-schedule-finals .comp-schedule-main strong {
   color: var(--gold-deep);
 }
@@ -3653,7 +3663,7 @@ a.venue-card-directions {
 }
 
 .comp-page-years {
-  margin-top: 20px;
+  margin-top: var(--section-gap);
   text-align: center;
   color: #fff;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
@@ -4084,17 +4094,6 @@ html.larger-text {
 
 .find-match-result button {
   flex: none;
-}
-
-.night-header-comp {
-  margin: 0 0 8px;
-  text-align: center;
-  color: #fff;
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.2rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
 }
 
 .latest-champion {
@@ -4906,4 +4905,48 @@ a.info-pill-club:focus-visible {
 
 .site-menu-item .live-dot {
   flex: none;
+}
+
+/* A gap with nothing in it yet: one quiet line on the photo, not a box */
+.quiet-line {
+  margin: 4px 0 var(--gap);
+  color: #fff;
+  font-size: 0.95rem;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+/* A competition's session page: one line under the session's name */
+.night-header-simple {
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--cream);
+}
+
+.night-header-simple-finals {
+  border-left: 4px solid var(--gold);
+  background: var(--gold-pale);
+}
+
+/* Same as a session's line on the competition page */
+.page-photo .night-header-simple h1 {
+  margin: 0;
+  font-family: var(--font-body), sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-soft);
+  text-shadow: none;
+}
+
+.night-header-simple h1 strong {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+.night-header-simple-finals h1 strong {
+  color: var(--gold-deep);
 }
