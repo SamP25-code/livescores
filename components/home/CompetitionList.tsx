@@ -4,6 +4,9 @@ import Link from "next/link";
 import {
   STATUS_LABEL,
   competitionPath,
+  dateRange,
+  eventDates,
+  eventPath,
   datesSummary,
   filterList,
   formatLine,
@@ -51,6 +54,16 @@ export default function CompetitionList({
     ...labels.map((l) => ({ key: `label:${l}` as ListFilter, text: l })),
   ];
   const shown = sortForList(filterList(thisYear, filter, today), today);
+  // A multi-competition event is one row (where its first competition sorts)
+  const seenEvents = new Set<string>();
+  type Row = { kind: "comp"; c: PublicCompetition } | { kind: "event"; c: PublicCompetition; members: PublicCompetition[] };
+  const rows = shown.flatMap((c): Row[] => {
+    if (c.organiser.kind !== "event" || !c.organiser.slug) return [{ kind: "comp" as const, c }];
+    if (seenEvents.has(c.organiser.id)) return [];
+    seenEvents.add(c.organiser.id);
+    return [{ kind: "event" as const, c, members: thisYear.filter((x) => x.organiser.id === c.organiser.id) }];
+  });
+  const rank: Record<string, number> = { live: 0, coming_up: 1, planned: 2, finished: 3 };
 
   return (
     <section className="home-section">
@@ -82,7 +95,38 @@ export default function CompetitionList({
 
       <div className="card comp-rows">
         {shown.length === 0 && <p className="hint">Nothing to show here.</p>}
-        {shown.map((c) => {
+        {rows.map((row) => {
+          if (row.kind === "event") {
+            const members = row.members;
+            const status = members.map((m) => publicStatus(m, today)).sort((a, b) => rank[a] - rank[b])[0];
+            const dates = eventDates(members);
+            const colour = colours.get(members.find((m) => colours.has(m.id))?.id ?? "");
+            return (
+              <Link
+                key={`event-${row.c.organiser.id}`}
+                href={eventPath(row.c.organiser.slug!, year, all)}
+                className="comp-row"
+                style={{ color: "inherit", textDecoration: "none" }}
+              >
+                <span className={`comp-bar ${dates ? "" : "comp-bar-dashed"}`} style={colour ? { background: colour } : undefined} />
+                <span className="comp-row-text">
+                  <span className="comp-row-top">
+                    <strong className="comp-row-name">{row.c.organiser.name}</strong>
+                    <span className={`comp-pill comp-pill-${status}`}>
+                      {status === "live" && <span className="live-dot" />}
+                      {STATUS_LABEL[status]}
+                    </span>
+                  </span>
+                  <span className="comp-row-line">
+                    Event · {members.length} competition{members.length === 1 ? "" : "s"}
+                  </span>
+                  <span className="comp-row-line">{dates ? dateRange(dates.from, dates.to) : "Dates to be confirmed"}</span>
+                </span>
+                <span className="comp-row-open">Open &rsaquo;</span>
+              </Link>
+            );
+          }
+          const c = row.c;
           const status = publicStatus(c, today);
           const colour = colours.get(c.id);
           const dated = c.sessions.some((s) => s.date);

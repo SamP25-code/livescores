@@ -25,7 +25,7 @@ export async function loadPublicCompetitions(): Promise<PublicCompetition[]> {
     supabase
       .from("competitions")
       .select(
-        "*, series:series_id(id, name, slug, organiser:organiser_id(name, short_name, kind)), sponsors:competition_sponsors(*)"
+        "*, series:series_id(id, name, slug, organiser:organiser_id(*)), sponsors:competition_sponsors(*)"
       ),
     supabase
       .from("nights")
@@ -109,6 +109,7 @@ export async function loadPublicCompetitions(): Promise<PublicCompetition[]> {
       name: series.name,
       slug: series.slug,
       label: c.label,
+      entry_method: c.entry_method,
       format: c.format,
       team_size: c.team_size,
       draw_size: c.draw_size,
@@ -117,7 +118,13 @@ export async function loadPublicCompetitions(): Promise<PublicCompetition[]> {
       qualifiers_per_night: c.qualifiers_per_night,
       target_score: c.target_score,
       venue_id: c.venue_id,
-      organiser: series.organiser,
+      organiser: {
+        id: series.organiser.id,
+        name: series.organiser.name,
+        short_name: series.organiser.short_name,
+        kind: series.organiser.kind,
+        slug: series.organiser.slug ?? null,
+      },
       sponsors: [
         ...((c.sponsors as { name: string; url: string | null; logo_url?: string | null; position: number }[]) ?? []),
       ]

@@ -232,3 +232,24 @@ describe("practice and start times", () => {
     expect(addMinutes("00:15", -30)).toBe("23:45");
   });
 });
+
+const { resolveEvent, eventPath, eventDates } = require("../lib/publicCompetitions.ts");
+
+describe("event pages", () => {
+  const masters = { id: "bm", name: "Blackpool Masters", short_name: "Blackpool Masters", kind: "event", slug: "blackpool-masters" };
+  const e = (id, year, date) => comp({ id, year, organiser: masters, sessions: [session({ date, kind: "single_day" })] });
+  const all = [e("c31", 2027, "2027-09-17"), e("inv", 2027, "2027-09-18"), e("old", 2026, "2026-09-19"), floodlit];
+
+  test("the latest year, or the year asked for", () => {
+    expect(resolveEvent(all, "blackpool-masters").competitions.map((c) => c.id)).toEqual(["c31", "inv"]);
+    expect(resolveEvent(all, "blackpool-masters-2026").competitions.map((c) => c.id)).toEqual(["old"]);
+    expect(resolveEvent(all, "blackpool-masters-2019")).toBeNull();
+    expect(resolveEvent(all, "floodlit-singles")).toBeNull(); // a club's competition, not an event
+  });
+
+  test("its address and dates", () => {
+    expect(eventPath("blackpool-masters", 2027, all)).toBe("/blackpool-masters");
+    expect(eventPath("blackpool-masters", 2026, all)).toBe("/blackpool-masters-2026");
+    expect(eventDates(resolveEvent(all, "blackpool-masters").competitions)).toEqual({ from: "2027-09-17", to: "2027-09-18" });
+  });
+});

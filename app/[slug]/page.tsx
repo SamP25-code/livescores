@@ -10,6 +10,7 @@ import {
   competitionPath,
   publicStatus,
   resolveCompetition,
+  resolveEvent,
   shortDate,
   sessionTitle,
   sessionTimes,
@@ -22,6 +23,8 @@ import { directionsUrl, originalDateLabel, postponedLabel } from "@/lib/venues";
 import PlayerName from "@/components/PlayerName";
 import { SponsorPanel } from "@/components/Sponsors";
 import WhosEntered from "@/components/WhosEntered";
+import HowToQualify from "@/components/HowToQualify";
+import EventPage from "@/components/event/EventPage";
 import type { Venue } from "@/lib/types";
 import PublicFooter from "@/components/PublicFooter";
 
@@ -86,6 +89,10 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
       </Shell>
     );
   }
+  // An event's address (/blackpool-masters): its own page
+  const event = !c ? resolveEvent(all, slug) : null;
+  if (event) return <EventPage event={event} all={all} />;
+
   if (!c) {
     return (
       <Shell>
@@ -138,6 +145,8 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
           <ScheduleRow key={s.id} session={s} competition={c} today={today} />
         ))}
       </div>
+
+      {c.entry_method === "qualification" && <HowToQualify competitionId={c.id} all={all} />}
 
       <WhosEntered competition={c} />
 

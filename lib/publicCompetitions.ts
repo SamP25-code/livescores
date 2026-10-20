@@ -40,7 +40,8 @@ export type PublicCompetition = {
   qualifiers_per_night: number | null;
   target_score: 21 | 31;
   venue_id: string | null;
-  organiser: { name: string; short_name: string; kind: "club" | "event" };
+  organiser: { id: string; name: string; short_name: string; kind: "club" | "event"; slug: string | null };
+  entry_method: "open" | "qualification" | "on_the_night";
   sponsors: { name: string; url: string | null; logo_url: string | null }[];
   sessions: PublicSession[];
   entryCount: number;
@@ -332,4 +333,37 @@ export function sessionTimes(s: { practice_time?: string | null; start_time?: st
   const start = timeOfDay(s.start_time ?? null);
   if (!practice && !start) return null;
   return [practice && `Practice ${practice}`, start && `Start ${start}`].filter(Boolean).join(" · ");
+}
+
+// ---------------------------------------------------------------------------
+// Events (the Blackpool Masters): one page for all their competitions.
+// /blackpool-masters is the latest year; /blackpool-masters-2027 that year.
+// ---------------------------------------------------------------------------
+
+export type EventRef = { organiser: PublicCompetition["organiser"]; year: number; competitions: PublicCompetition[] };
+
+export function resolveEvent(all: PublicCompetition[], address: string): EventRef | null {
+  const events = all.filter((c) => c.organiser.kind === "event" && c.organiser.slug);
+  const pick = (slug: string, year?: number) => {
+    const mine = events.filter((c) => c.organiser.slug === slug);
+    if (mine.length === 0) return null;
+    const y = year ?? Math.max(...mine.map((c) => c.year));
+    const competitions = mine.filter((c) => c.year === y);
+    return competitions.length ? { organiser: competitions[0].organiser, year: y, competitions } : null;
+  };
+  const exact = pick(address);
+  if (exact) return exact;
+  const match = address.match(/^(.+)-(\d{4})$/);
+  return match ? pick(match[1], Number(match[2])) : null;
+}
+
+export function eventPath(organiserSlug: string, year: number, all: PublicCompetition[]): string {
+  const years = all.filter((c) => c.organiser.slug === organiserSlug).map((c) => c.year);
+  return Math.max(...years, year) === year ? `/${organiserSlug}` : `/${organiserSlug}-${year}`;
+}
+
+// The first and last days an event's competitions are played
+export function eventDates(competitions: Pick<PublicCompetition, "sessions">[]): { from: string; to: string } | null {
+  const dates = competitions.flatMap((c) => c.sessions.map((s) => s.date)).filter((d): d is string => Boolean(d)).sort();
+  return dates.length ? { from: dates[0], to: dates[dates.length - 1] } : null;
 }

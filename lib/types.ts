@@ -26,6 +26,8 @@ export type Organiser = {
   short_name: string;
   kind: "club" | "event";
   background_image: string | null;
+  // Part 11: an event's web address (/blackpool-masters)
+  slug?: string | null;
   created_at: string;
 };
 

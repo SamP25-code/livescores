@@ -2,7 +2,7 @@
 // lib/competitionSetup.ts; the database's own security rules make sure only
 // a Super login can do any of this.
 import { supabase } from "@/lib/supabaseClient";
-import { planSessions, sessionName, type SessionKind } from "@/lib/competitionSetup";
+import { planSessions, sessionName, slugify, type SessionKind } from "@/lib/competitionSetup";
 import type { Competition, CompetitionSponsor, Night, Organiser, Series, Venue } from "@/lib/types";
 
 export type CompetitionWithSeries = Competition & {
@@ -54,9 +54,15 @@ export async function listChoices(): Promise<{ organisers: Organiser[]; series: 
   return { organisers: o.data ?? [], series: s.data ?? [], venues: v.data ?? [] };
 }
 
+// A new club or event. An event also gets its page's web address
+// (/blackpool-masters), from its short name.
 export async function createOrganiser(o: Pick<Organiser, "name" | "short_name" | "kind">): Promise<Organiser> {
-  const { data, error } = await supabase.from("organisers").insert(o).select().single();
-  if (error) throw error;
+  const slug = slugify(o.short_name);
+  const { data, error } = await supabase.from("organisers").insert({ ...o, slug: slug || null }).select().single();
+  if (error) {
+    if (error.code === "23505") throw new Error(`The address /${slug} is already taken - choose a different short name.`);
+    throw error;
+  }
   return data;
 }
 

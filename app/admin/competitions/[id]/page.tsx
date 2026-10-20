@@ -10,6 +10,7 @@ import { errorMessage } from "@/lib/errors";
 import CompetitionForm from "@/components/CompetitionForm";
 import EntriesManager from "@/components/EntriesManager";
 import UserManager from "@/components/UserManager";
+import QualifyingManager from "@/components/QualifyingManager";
 import { sessionTimes } from "@/lib/publicCompetitions";
 import type { Night } from "@/lib/types";
 import { SITE_NAME } from "@/lib/site";
@@ -28,11 +29,12 @@ function sessionTitle(night: Night): string {
   return "The day";
 }
 
-type Tab = "overview" | "entries" | "people" | "settings";
+type Tab = "overview" | "entries" | "qualifying" | "people" | "settings";
 
 const TAB_LABEL: Record<Tab, string> = {
   overview: "Overview",
   entries: "Entries",
+  qualifying: "Qualifying",
   people: "Admins & scorers",
   settings: "Settings",
 };
@@ -41,7 +43,7 @@ const TAB_LABEL: Record<Tab, string> = {
 function tabFromHash(): Tab {
   if (typeof window === "undefined") return "overview";
   const hash = window.location.hash.replace("#", "");
-  return (["overview", "entries", "people", "settings"] as Tab[]).includes(hash as Tab) ? (hash as Tab) : "overview";
+  return (["overview", "entries", "qualifying", "people", "settings"] as Tab[]).includes(hash as Tab) ? (hash as Tab) : "overview";
 }
 
 // One competition, in tabs: Overview (settings at a glance and its sessions,
@@ -113,7 +115,15 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
             {c.series.name} {c.year}
           </h1>
           <div className="comp-tabs" role="tablist" aria-label="Competition">
-            {(["overview", "entries", "people", ...(isSuper ? ["settings"] : [])] as Tab[]).map((t) => (
+            {(
+              [
+                "overview",
+                "entries",
+                ...(c.entry_method === "qualification" ? ["qualifying"] : []),
+                "people",
+                ...(isSuper ? ["settings"] : []),
+              ] as Tab[]
+            ).map((t) => (
               <button
                 key={t}
                 type="button"
@@ -164,6 +174,8 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
           )}
 
           {tab === "entries" && <EntriesManager competition={c} sessions={data.sessions} />}
+
+          {tab === "qualifying" && c.entry_method === "qualification" && <QualifyingManager competitionId={c.id} />}
 
           {tab === "people" && (
             <>

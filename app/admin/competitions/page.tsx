@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { isAnyAdmin, useAccess, visibleCompetition } from "@/lib/access";
-import { listCompetitions, type CompetitionWithSeries } from "@/lib/competitionsApi";
+import { listChoices, listCompetitions, type CompetitionWithSeries } from "@/lib/competitionsApi";
+import type { Organiser } from "@/lib/types";
 import { settingsSummary } from "@/lib/competitionSetup";
 import { errorMessage } from "@/lib/errors";
 import { SITE_NAME } from "@/lib/site";
@@ -17,6 +18,8 @@ export default function CompetitionsPage() {
   const isSuper = Boolean(access?.isSuper);
   const admin = access ? isAnyAdmin(access) : null;
   const [competitions, setCompetitions] = useState<CompetitionWithSeries[] | null>(null);
+  // Events (like the Blackpool Masters) have a page of their own, with posts
+  const [events, setEvents] = useState<Organiser[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,6 +31,11 @@ export default function CompetitionsPage() {
     listCompetitions()
       .then((all) => setCompetitions(all.filter((c) => visibleCompetition(access, c.id))))
       .catch((err) => setError(errorMessage(err)));
+    if (access.isSuper) {
+      listChoices()
+        .then((c) => setEvents(c.organisers.filter((o) => o.kind === "event")))
+        .catch(() => {});
+    }
   }, [access, admin]);
 
   if (admin === false) {
@@ -86,6 +94,22 @@ export default function CompetitionsPage() {
           </div>
         </section>
       ))}
+      {events.length > 0 && (
+        <section>
+          <h2 className="comp-list-year">Events</h2>
+          <div className="card comp-list">
+            {events.map((e) => (
+              <Link key={e.id} href={`/admin/events/${e.id}`} className="comp-list-row">
+                <span className="comp-list-main">
+                  <strong>{e.name}</strong>
+                  <span className="hint">Its page, news, qualifier updates and adverts</span>
+                </span>
+                <span className="comp-list-open">Open ›</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

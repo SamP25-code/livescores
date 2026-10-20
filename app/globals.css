@@ -4173,3 +4173,355 @@ html.larger-text {
 .whos-entered li:last-child {
   border-bottom: none;
 }
+
+/* Qualifying tab: places, qualifying competitions and their results */
+.qualifying-total {
+  font-size: 1.15rem;
+}
+
+.qualifying-meter {
+  display: flex;
+  height: 10px;
+  margin: 8px 0 6px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--line);
+}
+
+.qualifying-meter i {
+  display: block;
+}
+
+.qualifying-place {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.qualifying-place:last-child {
+  border-bottom: none;
+}
+
+.qualifying-place-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.qualifying-num {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+}
+
+.qualifying-num-done {
+  background: var(--green-deep);
+  color: #fff;
+}
+
+.qualifying-num-wild {
+  background: var(--gold);
+  color: #fff;
+}
+
+.qualifying-num-open {
+  background: var(--line);
+  color: var(--ink-soft);
+}
+
+.qualifying-flag {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--gold-pale);
+  border: 1px solid var(--gold);
+  color: var(--gold-deep);
+  font-size: 0.85rem;
+}
+
+.qualifying-actions {
+  flex-wrap: wrap;
+  margin: 6px 0 0 38px;
+}
+
+.qualifier-stage {
+  margin: 12px 0 6px;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.1rem;
+  color: var(--green-deep);
+}
+
+.qualifier-match {
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.qualifier-side {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5em;
+  align-items: end;
+  gap: 8px;
+}
+
+.qualifier-side .field {
+  margin-bottom: 6px;
+}
+
+.qualifier-side .result-input {
+  margin-bottom: 8px;
+}
+
+.qualifier-depth label {
+  flex-basis: 100%;
+}
+
+.how-to-qualify .qualifying-place {
+  align-items: center;
+}
+
+.how-to-qualify-who {
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+/* Posts: the form */
+.post-form textarea {
+  width: 100%;
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.post-form-image {
+  display: block;
+  max-width: 100%;
+  max-height: 200px;
+  margin-bottom: 6px;
+  border-radius: var(--radius);
+}
+
+.post-form-pin {
+  align-self: end;
+  margin-bottom: 18px;
+}
+
+/* Event page (the Blackpool Masters) */
+.event-tabs .comp-tab {
+  flex: 1 0 auto;
+}
+
+.event-countdown {
+  margin-bottom: 12px;
+}
+
+.event-days {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.event-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border-radius: var(--radius);
+  background: var(--cream);
+  color: var(--ink);
+  text-align: center;
+  text-decoration: none;
+}
+
+.event-day-today {
+  outline: 3px solid var(--green-deep);
+}
+
+.event-day-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.event-day-ring {
+  width: 44px;
+  height: 44px;
+  font-size: 1.25rem;
+}
+
+.event-day-name {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  color: var(--green-deep);
+  line-height: 1.1;
+}
+
+.event-more {
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+.event-post {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.event-post:last-child {
+  border-bottom: none;
+}
+
+.event-post-pic {
+  flex: none;
+  width: 88px;
+  height: 66px;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+.event-post-pic-empty {
+  background: linear-gradient(135deg, var(--green-mid), var(--green-deep));
+}
+
+.event-post-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.event-post-text strong {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.15rem;
+  line-height: 1.15;
+  color: var(--green-deep);
+}
+
+.event-post-text .hint {
+  margin: 0;
+}
+
+.event-post-tag {
+  align-self: flex-start;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.event-post-tag-news {
+  background: var(--green-pale);
+  color: var(--green-deep);
+}
+
+.event-post-tag-qualifier {
+  background: var(--gold-pale);
+  border: 1px solid var(--gold);
+  color: var(--gold-deep);
+}
+
+.event-post-tag-advert {
+  background: var(--line);
+  color: var(--ink-soft);
+}
+
+.event-advert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.event-advert-logo {
+  flex: none;
+  max-width: 90px;
+  max-height: 60px;
+  object-fit: contain;
+}
+
+.event-advert-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.event-advert-text .hint {
+  margin: 0;
+}
+
+.event-advert-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* A post */
+.event-article-image {
+  display: block;
+  width: calc(100% + 28px);
+  max-height: 320px;
+  margin: -14px -14px 12px;
+  object-fit: cover;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.page-photo .card .event-article-title {
+  margin: 6px 0 2px;
+  font-size: 1.8rem;
+  line-height: 1.1;
+  color: var(--green-deep);
+  text-shadow: none;
+}
+
+.event-article p {
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.event-qualified {
+  display: flex;
+  flex-direction: column;
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--gold-pale);
+  border: 1px solid var(--gold);
+}
+
+.event-qualified-name {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+.event-share {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+}
