@@ -12,8 +12,12 @@ export default function NewCompetitionPage() {
   const isSuper = useIsSuper();
   // ?event=<id>: adding another competition to that event
   const [presetEvent, setPresetEvent] = useState<string | null | undefined>(undefined);
+  // ?kind=event: a new event, starting on "Part of an event"
+  const [presetKind, setPresetKind] = useState<"club" | "event" | undefined>(undefined);
   useEffect(() => {
-    setPresetEvent(new URLSearchParams(window.location.search).get("event"));
+    const q = new URLSearchParams(window.location.search);
+    setPresetEvent(q.get("event"));
+    if (q.get("kind") === "event") setPresetKind("event");
   }, []);
 
   useEffect(() => {
@@ -30,6 +34,7 @@ export default function NewCompetitionPage() {
       {isSuper && presetEvent !== undefined && (
         <CompetitionForm
           presetOrganiserId={presetEvent ?? undefined}
+          presetKind={presetKind}
           onSaved={(id) => router.replace(`/admin/competitions/${id}`)}
         />
       )}

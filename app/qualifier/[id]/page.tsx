@@ -1,13 +1,13 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import Link from "next/link";
 import PlayerName from "@/components/PlayerName";
 import PublicFooter from "@/components/PublicFooter";
 import { longDate } from "@/lib/competitionSetup";
 import { STAGE_LABEL } from "@/lib/qualifying";
 import { loadQualifierResults, type QualifierResults } from "@/lib/publicQualifying";
 import { SITE_NAME } from "@/lib/site";
+import SiteHeader from "@/components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -31,9 +31,7 @@ export default function QualifierPage({ params }: { params: Promise<{ id: string
   return (
     <div className="page page-photo">
       <div className="public-background" aria-hidden="true" />
-      <Link href="/" className="page-back-link">
-        <span aria-hidden="true">&lsaquo;</span> Home
-      </Link>
+      <SiteHeader compact />
       {data === undefined && <p className="night-header-hint">Loading&hellip;</p>}
       {data === null && <p className="night-header-hint">There&rsquo;s nothing at this address.</p>}
       {data && (

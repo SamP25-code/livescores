@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { isAnyAdmin, useAccess, visibleCompetition } from "@/lib/access";
-import { listChoices, listCompetitions, type CompetitionWithSeries } from "@/lib/competitionsApi";
-import type { Organiser } from "@/lib/types";
+import { listCompetitions, type CompetitionWithSeries } from "@/lib/competitionsApi";
 import { settingsSummary } from "@/lib/competitionSetup";
 import { errorMessage } from "@/lib/errors";
 import { SITE_NAME } from "@/lib/site";
@@ -18,8 +17,6 @@ export default function CompetitionsPage() {
   const isSuper = Boolean(access?.isSuper);
   const admin = access ? isAnyAdmin(access) : null;
   const [competitions, setCompetitions] = useState<CompetitionWithSeries[] | null>(null);
-  // Events (like the Blackpool Masters) have a page of their own, with posts
-  const [events, setEvents] = useState<Organiser[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,11 +28,6 @@ export default function CompetitionsPage() {
     listCompetitions()
       .then((all) => setCompetitions(all.filter((c) => visibleCompetition(access, c.id))))
       .catch((err) => setError(errorMessage(err)));
-    if (access.isSuper) {
-      listChoices()
-        .then((c) => setEvents(c.organisers.filter((o) => o.kind === "event")))
-        .catch(() => {});
-    }
   }, [access, admin]);
 
   if (admin === false) {
@@ -74,42 +66,44 @@ export default function CompetitionsPage() {
           </p>
         </div>
       )}
-      {years.map((year) => (
-        <section key={year}>
-          <h2 className="comp-list-year">{year}</h2>
-          <div className="card comp-list">
-            {competitions!
-              .filter((c) => c.year === year)
-              .map((c) => (
-                <Link key={c.id} href={`/admin/competitions/${c.id}`} className="comp-list-row">
-                  <span className="comp-list-main">
-                    <strong>{c.series.name}</strong>
-                    <span className="hint">
-                      {c.series.organiser.short_name} · {settingsSummary(c)}
-                    </span>
-                  </span>
-                  <span className={`status-pill comp-status-${c.status}`}>{STATUS_LABEL[c.status]}</span>
-                </Link>
-              ))}
-          </div>
-        </section>
-      ))}
-      {events.length > 0 && (
-        <section>
-          <h2 className="comp-list-year">Events</h2>
-          <div className="card comp-list">
-            {events.map((e) => (
-              <Link key={e.id} href={`/admin/events/${e.id}`} className="comp-list-row">
-                <span className="comp-list-main">
-                  <strong>{e.name}</strong>
-                  <span className="hint">Its page, news, qualifier updates and adverts</span>
-                </span>
-                <span className="comp-list-open">Open ›</span>
-              </Link>
+      {years.map((year) => {
+        // Grouped by who runs them: clubs A to Z, then events (the Blackpool
+        // Masters' competitions together)
+        const thisYear = competitions!.filter((c) => c.year === year);
+        const groups = [...new Map(thisYear.map((c) => [c.series.organiser.id, c.series.organiser])).values()].sort(
+          (a, b) => (a.kind === b.kind ? a.name.localeCompare(b.name) : a.kind === "club" ? -1 : 1)
+        );
+        return (
+          <section key={year}>
+            <h2 className="comp-list-year">{year}</h2>
+            {groups.map((o) => (
+              <div key={o.id} className="comp-group">
+                <div className="comp-group-head">
+                  <h3>{o.name}</h3>
+                  {o.kind === "event" && isSuper && (
+                    <Link href={`/admin/events/${o.id}`} className="comp-group-link">
+                      Event page and posts ›
+                    </Link>
+                  )}
+                </div>
+                <div className="card comp-list">
+                  {thisYear
+                    .filter((c) => c.series.organiser.id === o.id)
+                    .map((c) => (
+                      <Link key={c.id} href={`/admin/competitions/${c.id}`} className="comp-list-row">
+                        <span className="comp-list-main">
+                          <strong>{c.series.name}</strong>
+                          <span className="hint">{settingsSummary(c)}</span>
+                        </span>
+                        <span className={`status-pill comp-status-${c.status}`}>{STATUS_LABEL[c.status]}</span>
+                      </Link>
+                    ))}
+                </div>
+              </div>
             ))}
-          </div>
-        </section>
-      )}
+          </section>
+        );
+      })}
     </div>
   );
 }

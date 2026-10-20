@@ -4532,3 +4532,336 @@ html.larger-text {
   flex-direction: column;
   gap: 8px;
 }
+
+/* Admin Competitions page: grouped by club and event */
+.comp-group {
+  margin-bottom: 14px;
+}
+
+.comp-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.comp-group-head h3 {
+  margin: 4px 0 6px;
+  color: #fff;
+  font-size: 1.15rem;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+.comp-group-link {
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+/* Admin Events page */
+.event-admin-card {
+  margin-bottom: 14px;
+}
+
+.event-admin-card .comp-list {
+  margin-bottom: 12px;
+  border-top: 1px solid var(--line);
+}
+
+/* ===========================================================================
+   The site header and side menu (☰) on every public page, the home page's
+   big buttons, and the pages reached from the menu
+   =========================================================================== */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+
+.site-header-compact {
+  margin-bottom: 4px;
+}
+
+.site-menu-button {
+  flex: none;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 48px;
+  height: 48px;
+  padding: 0 12px;
+  border: 1px solid rgba(239, 235, 221, 0.6);
+  border-radius: var(--radius);
+  background: rgba(31, 61, 43, 0.75);
+  cursor: pointer;
+}
+
+.site-menu-button span {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--cream);
+}
+
+.site-brand {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  color: #fff;
+  text-decoration: none;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+.site-brand-name {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.9rem;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.site-header-compact .site-brand-name {
+  font-size: 1.25rem;
+}
+
+.site-brand-tagline {
+  font-size: 0.95rem;
+}
+
+.site-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+}
+
+.site-menu-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(340px, 88vw);
+  height: 100%;
+  overflow-y: auto;
+  padding: 14px 16px 24px;
+  background: var(--cream);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+  animation: site-menu-in 0.18s ease-out;
+}
+
+@keyframes site-menu-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-menu-panel {
+    animation: none;
+  }
+}
+
+.site-menu-shade {
+  flex: 1;
+  border: none;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+.site-menu-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.site-menu-title {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  color: var(--green-deep);
+}
+
+.site-menu-close {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: none;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.site-menu-search,
+.home-search {
+  width: 100%;
+  min-height: 46px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  font-size: 1rem;
+}
+
+.home-search {
+  margin-top: 4px;
+}
+
+.site-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.site-menu-item:hover,
+.site-menu-item:focus-visible {
+  background: var(--green-pale);
+}
+
+.site-menu-sub {
+  font-weight: 500;
+  min-height: 44px;
+}
+
+.site-menu-sub > span {
+  display: flex;
+  flex-direction: column;
+}
+
+.site-menu-sub .hint {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.site-menu-icon {
+  display: inline-flex;
+  justify-content: center;
+  width: 24px;
+  font-size: 1.15rem;
+}
+
+.site-menu-live {
+  margin-left: auto;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--maroon);
+}
+
+.site-menu-heading {
+  margin: 18px 0 2px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.site-menu-results .hint {
+  padding: 8px 6px;
+}
+
+.site-menu-foot {
+  margin: auto 0 0;
+  padding-top: 22px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.site-menu-foot a {
+  color: var(--green-deep);
+}
+
+/* The home page's big buttons: two across, an event's full width in gold */
+.home-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.home-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 104px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--cream);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.home-tile:hover,
+.home-tile:focus-visible {
+  border-color: var(--green-mid);
+  background: var(--green-pale);
+}
+
+.home-tile strong {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.2rem;
+  color: var(--green-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.home-tile > span:not(.home-tile-icon),
+.home-tile-event > span > span {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.home-tile-icon {
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.home-tile-event {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  min-height: 84px;
+  border-color: var(--gold);
+  background: var(--gold-pale);
+}
+
+.home-tile-event > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-tile-event strong {
+  color: var(--gold-deep);
+}
+
+.public-page-title {
+  margin: 12px 0 4px;
+  color: #fff;
+  font-size: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+.public-page-intro {
+  margin: 0 0 8px;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}

@@ -2,18 +2,29 @@ import Link from "next/link";
 import PlayerName from "@/components/PlayerName";
 import { competitionPath, shortDate, type PublicCompetition } from "@/lib/publicCompetitions";
 
-// The last few winners, newest first, each with a gold trophy badge
-export default function RecentChampions({ all }: { all: PublicCompetition[] }) {
+// Winners, newest first, each with a gold trophy badge: the last few, or
+// (on the Champions page) everyone in one year
+export default function RecentChampions({
+  all,
+  year,
+  limit = 3,
+  title = "Recent champions",
+}: {
+  all: PublicCompetition[];
+  year?: number;
+  limit?: number;
+  title?: string;
+}) {
   const recent = all
-    .filter((c) => c.champion)
+    .filter((c) => c.champion && (year === undefined || c.year === year))
     .sort((a, b) => (b.champion!.date ?? `${b.year}`).localeCompare(a.champion!.date ?? `${a.year}`))
-    .slice(0, 3);
+    .slice(0, limit);
   if (recent.length === 0) return null;
 
   return (
     <section className="home-section">
       <div className="home-section-head">
-        <h2>Recent champions</h2>
+        <h2>{title}</h2>
       </div>
       <div className="card comp-rows">
         {recent.map((c) => (

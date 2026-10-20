@@ -19,6 +19,7 @@ import type { MatchRow, Night, Player, Venue } from "@/lib/types";
 import { SITE_NAME } from "@/lib/site";
 import PublicFooter from "@/components/PublicFooter";
 import FindYourMatch from "@/components/FindYourMatch";
+import SiteHeader from "@/components/SiteHeader";
 
 export default function NightPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: nightId } = use(params);
@@ -295,6 +296,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
   return (
     <div className="page page-photo">
       <div className="public-background" aria-hidden="true" />
+      <SiteHeader compact />
       {competition ? (
         <Link
           href={competition.latest ? `/${competition.slug}` : `/${competition.slug}-${competition.year}`}

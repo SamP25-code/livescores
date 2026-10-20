@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { loadLiveMatches, loadPublicCompetitions, type LiveMatch } from "@/lib/publicData";
 import {
-  coloursFor,
-  monthFor,
-  monthGrid,
+  dateRange,
+  eventDates,
+  eventPath,
   nextUp,
+  publicStatus,
   todayIso,
-  type ListFilter,
   type PublicCompetition,
 } from "@/lib/publicCompetitions";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
@@ -19,30 +19,21 @@ import Brand from "@/components/Brand";
 import LiveNowBanner from "@/components/LiveNowBanner";
 import LiveScores from "@/components/home/LiveScores";
 import NextUp from "@/components/home/NextUp";
-import HomeCalendar from "@/components/home/HomeCalendar";
-import CompetitionList from "@/components/home/CompetitionList";
-import RecentChampions from "@/components/home/RecentChampions";
+import SiteHeader from "@/components/SiteHeader";
 import PublicFooter from "@/components/PublicFooter";
 import LatestResults from "@/components/home/LatestResults";
 
 export const dynamic = "force-dynamic";
 
-// The home page, built around why people arrive: what's the score, when am I
-// playing, what's on and who won. The top changes with what's happening -
-// live scores, or Next up - and the rest is always the same: the calendar,
-// the competitions, recent champions. Full draws are one tap away.
+// The home page: short, like a front page. The latest - live scores when
+// something's on, otherwise the latest winner and what's next - then big
+// buttons to the main pages: competitions, the calendar, any event coming
+// up (the Blackpool Masters), champions. Everything else is in the menu (☰).
 export default function HomePage() {
   const [competitions, setCompetitions] = useState<PublicCompetition[] | null>(null);
   const [live, setLive] = useState<LiveMatch[]>([]);
   const [failed, setFailed] = useState(false);
   const today = todayIso();
-  const [view, setView] = useState(() => {
-    const [y, m] = today.split("-").map(Number);
-    return { year: y, month: m - 1 };
-  });
-  const [listYear, setListYear] = useState<number | null>(null);
-  const [filter, setFilter] = useState<ListFilter>("all");
-  const [highlightId, setHighlightId] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = `${SITE_NAME} · ${SITE_TAGLINE}`;
@@ -91,92 +82,74 @@ export default function HomePage() {
   }, []);
 
   const all = competitions ?? [];
-  const years = useMemo(() => [...new Set(all.map((c) => c.year))].sort((a, b) => b - a), [all]);
-  const thisYear = Number(today.slice(0, 4));
-  const year = listYear ?? (years.includes(thisYear) ? thisYear : years[0] ?? thisYear);
-  const gridDays = useMemo(() => monthGrid(view.year, view.month).flat().map((d) => d.iso), [view]);
-  const colours = useMemo(() => coloursFor(all, gridDays), [all, gridDays]);
-
-  function highlight(id: string | null) {
-    setHighlightId(id);
-    const c = all.find((x) => x.id === id);
-    if (c) {
-      const dates = c.sessions.map((s) => s.date).filter((d): d is string => Boolean(d));
-      if (dates.length && !dates.some((d) => gridDays.includes(d))) setView(monthFor(dates, today));
-    }
-  }
 
   // A database not yet moved to the 2027 structure: the home page as it was
   if (competitions !== null && competitions.length === 0 && !failed) return <OldHome />;
 
   const picks = live.length === 0 ? nextUp(all, today) : [];
-  const highlighted = all.find((c) => c.id === highlightId);
+
+  // Events still to come (or on now) get a button of their own
+  const events = [...new Map(all.filter((c) => c.organiser.kind === "event" && c.organiser.slug).map((c) => [`${c.organiser.id}:${c.year}`, c])).values()]
+    .map((c) => {
+      const members = all.filter((x) => x.organiser.id === c.organiser.id && x.year === c.year);
+      return { organiser: c.organiser, year: c.year, members, dates: eventDates(members) };
+    })
+    .filter((e) => e.members.some((m) => ["live", "coming_up", "planned"].includes(publicStatus(m, today))))
+    .sort((a, b) => (a.dates?.from ?? "9").localeCompare(b.dates?.from ?? "9"));
 
   return (
     <div className="page page-photo home">
       <div className="public-background" aria-hidden="true" />
-      <header className="home-header">
-        <h1 className="home-title">{SITE_NAME}</h1>
-        <p className="home-tagline">{SITE_TAGLINE}</p>
-      </header>
+      <SiteHeader />
 
       {failed && (
         <p className="night-header-hint">Having trouble loading this page? Check your connection and try refreshing.</p>
       )}
       {competitions === null && !failed && <p className="night-header-hint">Loading&hellip;</p>}
 
-      {live.length > 0 ? (
-        <LiveScores matches={live} competitions={all} />
-      ) : picks.length > 0 ? (
-        <NextUp picks={picks} all={all} today={today} />
-      ) : (
-        // Nothing live or coming up: the latest results instead of an empty top
-        <LatestResults all={all} today={today} />
-      )}
+      <div id="live">
+        {live.length > 0 ? (
+          <LiveScores matches={live} competitions={all} />
+        ) : (
+          <>
+            <LatestResults all={all} today={today} />
+            <NextUp picks={picks} all={all} today={today} />
+          </>
+        )}
+      </div>
 
       {competitions !== null && (
-        <>
-          <section className="home-section">
-            <div className="home-section-head">
-              <h2>Calendar</h2>
-            </div>
-            <HomeCalendar
-              competitions={all}
-              colours={colours}
-              year={view.year}
-              month={view.month}
-              onMonth={(y, m) => setView({ year: y, month: m })}
-              today={today}
-              highlightId={highlightId}
-              onHighlight={highlight}
-            />
-            {highlighted && (
-              <div className="home-showing">
+        <nav className="home-tiles" aria-label="Go to">
+          <Link href="/competitions" className="home-tile">
+            <span className="home-tile-icon" aria-hidden="true">🏅</span>
+            <strong>Competitions</strong>
+            <span>All of them, by club</span>
+          </Link>
+          <Link href="/calendar" className="home-tile">
+            <span className="home-tile-icon" aria-hidden="true">📅</span>
+            <strong>Calendar</strong>
+            <span>What&rsquo;s on when</span>
+          </Link>
+          {events.map((e) => (
+            <Link key={`${e.organiser.id}-${e.year}`} href={eventPath(e.organiser.slug!, e.year, all)} className="home-tile home-tile-event">
+              <span className="home-tile-icon" aria-hidden="true">⭐</span>
+              <span>
+                <strong>
+                  {e.organiser.name} {e.year}
+                </strong>
                 <span>
-                  Showing <strong>{highlighted.name}</strong>
+                  {e.dates ? `${dateRange(e.dates.from, e.dates.to)} · ` : ""}
+                  {e.members.length} competition{e.members.length === 1 ? "" : "s"}
                 </span>
-                <button type="button" className="link-button" onClick={() => setHighlightId(null)}>
-                  Show all
-                </button>
-              </div>
-            )}
-          </section>
-
-          <CompetitionList
-            all={all}
-            year={year}
-            years={years}
-            onYear={setListYear}
-            filter={filter}
-            onFilter={setFilter}
-            colours={colours}
-            today={today}
-            highlightId={highlightId}
-            onHighlight={highlight}
-          />
-
-          <RecentChampions all={all} />
-        </>
+              </span>
+            </Link>
+          ))}
+          <Link href="/champions" className="home-tile">
+            <span className="home-tile-icon" aria-hidden="true">🏆</span>
+            <strong>Champions</strong>
+            <span>Winners and honours</span>
+          </Link>
+        </nav>
       )}
 
       <PublicFooter line="Live scores for crown green competitions, free to follow." />

@@ -10,6 +10,7 @@ import { getPost, listPosts, POST_KIND_LABEL, type EventPost } from "@/lib/posts
 import { todayIso } from "@/lib/publicCompetitions";
 import { loadQualifierResults, type QualifierResults } from "@/lib/publicQualifying";
 import { SITE_NAME } from "@/lib/site";
+import SiteHeader from "@/components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,7 @@ export default function PostPage({ params }: { params: Promise<{ slug: string; p
   return (
     <div className="page page-photo">
       <div className="public-background" aria-hidden="true" />
+      <SiteHeader compact />
       <Link href={back} className="page-back-link">
         <span aria-hidden="true">&lsaquo;</span> News
       </Link>

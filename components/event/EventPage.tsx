@@ -23,6 +23,7 @@ import {
 } from "@/lib/publicCompetitions";
 import { loadPublicQualifying } from "@/lib/publicQualifying";
 import { SITE_NAME } from "@/lib/site";
+import SiteHeader from "@/components/SiteHeader";
 
 type Tab = "overview" | "competitions" | "qualifying" | "news";
 const TABS: Record<Tab, string> = { overview: "Overview", competitions: "Competitions", qualifying: "Qualifying", news: "News" };
@@ -87,7 +88,8 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
   return (
     <div className="page page-photo event-page">
       <div className="public-background" aria-hidden="true" />
-      <Link href="/" className="page-back-link">
+      <SiteHeader compact />
+      <Link href="/competitions" className="page-back-link">
         <span aria-hidden="true">&lsaquo;</span> All competitions
       </Link>
       <header className="comp-page-head">

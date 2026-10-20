@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
 import { SITE_NAME } from "@/lib/site";
 import PublicFooter from "@/components/PublicFooter";
+import SiteHeader from "@/components/SiteHeader";
 
 // The privacy notice, in plain words. Names are public on this site, so it
 // says what's shown, what isn't kept, and how to have a name taken off.
@@ -15,9 +15,7 @@ export default function PrivacyPage() {
   return (
     <div className="page page-photo">
       <div className="public-background" aria-hidden="true" />
-      <Link href="/" className="page-back-link">
-        <span aria-hidden="true">&lsaquo;</span> Home
-      </Link>
+      <SiteHeader compact />
       <h1 className="comp-page-title" style={{ textAlign: "center" }}>
         Privacy
       </h1>

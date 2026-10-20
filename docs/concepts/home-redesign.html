@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home page redesign concept</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+  :root { --green-deep:#1f3d2b; --green-pale:#e4ecdf; --cream:#efebdd; --maroon:#7a2e2e; --ink:#1b211c; --ink-soft:#4a5148;
+    --line:#cfc8b3; --gold:#c9972c; --gold-deep:#8a6a12; --gold-pale:#fbf1d6; --c1:#2f7d4a; --c2:#2f63a8; --c3:#c2477f; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:22px; background:#151a16; font-family:"Source Sans 3",sans-serif; color:var(--ink); }
+  .set { display:none; } .set.on { display:flex; gap:22px; align-items:flex-start; }
+  .col { width:390px; }
+  .cap { color:#fff; font:700 22px "Barlow Condensed"; margin:0 0 10px; letter-spacing:.02em; }
+  .cap b { color:var(--gold); margin-right:6px; }
+  .phone { position:relative; height:1000px; overflow:hidden; border-radius:18px; padding:14px 16px;
+    background: linear-gradient(180deg, rgba(10,14,11,.55), rgba(10,14,11,.25) 45%, rgba(20,40,28,.55)),
+      radial-gradient(circle at 62% 14%, #6b3a2e 0, #1d1611 33%, #121512 58%), #1d2a1f; }
+  .phone::after { content:"CONCEPT"; position:absolute; top:18px; right:-34px; transform:rotate(45deg); background:var(--gold);
+    color:#fff; font:700 12px "Barlow Condensed"; letter-spacing:.1em; padding:4px 40px; z-index:5; }
+  h1,h2,h3 { font-family:"Barlow Condensed"; margin:0; }
+  .bar { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .burger { width:44px; height:44px; border-radius:6px; background:rgba(20,40,28,.9); display:flex; flex-direction:column;
+    justify-content:center; align-items:center; gap:5px; }
+  .burger i { display:block; width:22px; height:3px; background:#fff; border-radius:2px; }
+  .brand { color:#fff; font:700 28px "Barlow Condensed"; text-transform:uppercase; letter-spacing:.02em; text-shadow:0 1px 8px #000; line-height:1; }
+  .brand small { display:block; font:400 13px "Source Sans 3"; text-transform:none; letter-spacing:0; opacity:.9; }
+  .card { background:var(--cream); border:1px solid var(--line); border-radius:6px; padding:12px 14px; margin-bottom:10px; }
+  .lab { font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--gold-deep); }
+  .champ { display:flex; gap:12px; align-items:center; margin-top:6px; }
+  .badge { width:50px; height:50px; border-radius:50%; background:var(--gold-pale); border:2px solid var(--gold); display:flex;
+    align-items:center; justify-content:center; font-size:24px; flex:none; }
+  .champ b { font:700 23px "Barlow Condensed"; color:var(--green-deep); display:block; line-height:1.05; }
+  .hint { color:var(--ink-soft); font-size:13.5px; margin:2px 0 0; }
+  .btn { display:block; text-align:center; background:var(--green-deep); color:#fff; border-radius:5px; padding:10px; font-weight:700; margin-top:10px; }
+  .next { display:flex; gap:12px; align-items:center; }
+  .count { width:60px; height:60px; border-radius:5px; background:var(--green-deep); color:#fff; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; font-size:10px; letter-spacing:.06em; text-transform:uppercase; flex:none; }
+  .count b { font:700 26px "Barlow Condensed"; line-height:1; letter-spacing:0; }
+  .tiles { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .tile { background:var(--cream); border-radius:6px; padding:14px 12px; min-height:96px; display:flex; flex-direction:column; justify-content:space-between; }
+  .tile .ic { font-size:24px; }
+  .tile b { font:700 19px "Barlow Condensed"; color:var(--green-deep); line-height:1.1; }
+  .tile span { font-size:12.5px; color:var(--ink-soft); }
+  .tile.wide { grid-column:1 / -1; flex-direction:row; align-items:center; gap:12px; min-height:auto; background:linear-gradient(90deg,var(--cream),#f6efd9); border:2px solid var(--gold); }
+  .sec { color:#fff; font:700 19px "Barlow Condensed"; text-transform:uppercase; margin:14px 0 8px; text-shadow:0 1px 8px #000; }
+  .row { display:flex; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); }
+  .row:last-child { border-bottom:none; }
+  .bar2 { width:5px; align-self:stretch; border-radius:3px; flex:none; }
+  .row b { font:700 17px "Barlow Condensed"; color:var(--green-deep); }
+  .row .go { margin-left:auto; color:var(--green-deep); font-weight:700; font-size:20px; }
+  .menuitem { display:flex; align-items:center; gap:12px; padding:13px 2px; border-bottom:1px solid var(--line); font-size:17px; font-weight:600; color:var(--ink); }
+  .menuitem .ic { width:26px; text-align:center; font-size:19px; }
+  .menuitem .go { margin-left:auto; color:var(--ink-soft); }
+  .live { margin-left:6px; background:var(--maroon); color:#fff; font-size:11px; font-weight:700; padding:1px 8px; border-radius:99px; }
+  .drawer { position:absolute; inset:0; z-index:3; display:flex; }
+  .drawer .panel { width:300px; background:var(--cream); padding:16px; box-shadow:4px 0 20px rgba(0,0,0,.5); }
+  .drawer .shade { flex:1; background:rgba(0,0,0,.45); }
+  .drawer h3 { font-size:24px; color:var(--green-deep); text-transform:uppercase; }
+  .sub { font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); margin:14px 0 2px; }
+  .indent { padding-left:38px; font-weight:400; font-size:16px; }
+  .small { display:flex; gap:16px; margin-top:16px; font-size:14px; color:var(--green-deep); font-weight:700; text-decoration:underline; }
+  .phone > .small { color:#fff; text-shadow:0 1px 6px #000; }
+  .tile.wide > span:last-child { flex:1; }
+  .cal { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; }
+  .cal span { padding:7px 0; font:600 16px "Barlow Condensed"; }
+  .cal .wd { font:600 12px "Source Sans 3"; color:var(--ink-soft); }
+  .cal .out { opacity:.4; }
+  .ring { display:inline-flex; width:32px; height:32px; border-radius:50%; align-items:center; justify-content:center; color:#fff;
+    box-shadow:0 0 0 2px var(--cream), 0 0 0 4px var(--gold); }
+  .dot { display:block; width:7px; height:7px; border-radius:50%; margin:2px auto 0; }
+  .pagetitle { color:#fff; font:700 30px "Barlow Condensed"; text-transform:uppercase; text-shadow:0 1px 8px #000; margin:2px 0 10px; }
+  .chips { display:flex; gap:6px; margin-bottom:10px; }
+  .chip { padding:7px 12px; border-radius:99px; background:rgba(20,40,28,.9); color:#fff; font-weight:600; font-size:14px; }
+  .chip.on { background:var(--cream); color:var(--green-deep); }
+</style>
+</head>
+<body>
+
+<div class="set" id="A">
+  <div class="col">
+    <p class="cap"><b>1</b>Home - option A: big buttons</p>
+    <div class="phone">
+      <div class="bar"><span class="burger"><i></i><i></i><i></i></span><span class="brand">Bowls Live<small>Live crown green scores</small></span></div>
+      <div class="card">
+        <span class="lab">Latest</span>
+        <div class="champ"><span class="badge">🏆</span><span><b>Wayne Ditchfield</b><span class="hint">wins the October Singles 2026 · Sat 17 Oct</span></span></div>
+        <span class="btn">See the results ›</span>
+      </div>
+      <div class="card">
+        <span class="lab">Next up</span>
+        <div class="next" style="margin-top:6px"><span class="count"><b>12</b>days</span>
+          <span><b style="font:700 19px 'Barlow Condensed';color:var(--green-deep)">Jack Rees Doubles</b><br><span class="hint">Sat 13 Mar · Penwortham · Start 10am</span></span></div>
+      </div>
+      <div class="tiles">
+        <div class="tile"><span class="ic">🏅</span><span><b>Competitions</b><br><span>All of them, by club</span></span></div>
+        <div class="tile"><span class="ic">📅</span><span><b>Calendar</b><br><span>What's on when</span></span></div>
+        <div class="tile wide"><span class="ic" style="font-size:28px">⭐</span><span><b>Blackpool Masters 2027</b><br><span>Fri 17 – Sun 19 Sep · who's qualified, news</span></span></div>
+        <div class="tile"><span class="ic">🔍</span><span><b>Find a player</b><br><span>Your matches and results</span></span></div>
+        <div class="tile"><span class="ic">🏆</span><span><b>Champions</b><br><span>Recent winners, honours</span></span></div>
+      </div>
+      <p class="small" style="justify-content:center">Privacy · Larger text · Log in</p>
+    </div>
+  </div>
+
+  <div class="col">
+    <p class="cap"><b>2</b>Home - option B: a short list</p>
+    <div class="phone">
+      <div class="bar"><span class="burger"><i></i><i></i><i></i></span><span class="brand">Bowls Live<small>Live crown green scores</small></span></div>
+      <div class="card">
+        <span class="lab">Latest</span>
+        <div class="champ"><span class="badge">🏆</span><span><b>Wayne Ditchfield</b><span class="hint">wins the October Singles 2026 · Sat 17 Oct</span></span></div>
+        <span class="btn">See the results ›</span>
+      </div>
+      <h2 class="sec">Coming up</h2>
+      <div class="card" style="padding-top:2px;padding-bottom:2px">
+        <div class="row"><span class="bar2" style="background:var(--c1)"></span><span><b>Jack Rees Doubles</b><br><span class="hint">Sat 13 Mar · Penwortham</span></span><span class="go">›</span></div>
+        <div class="row"><span class="bar2" style="background:var(--c2)"></span><span><b>Floodlit Singles</b><br><span class="hint">Fri 23 Apr – Sat 8 May · Penwortham</span></span><span class="go">›</span></div>
+        <div class="row"><span class="bar2" style="background:var(--c3)"></span><span><b>Blackpool Masters</b><br><span class="hint">Fri 17 – Sun 19 Sep · Event · 3 competitions</span></span><span class="go">›</span></div>
+      </div>
+      <h2 class="sec">Go to</h2>
+      <div class="card" style="padding-top:2px;padding-bottom:2px">
+        <div class="menuitem"><span class="ic">🏅</span>All competitions<span class="go">›</span></div>
+        <div class="menuitem"><span class="ic">📅</span>Calendar<span class="go">›</span></div>
+        <div class="menuitem"><span class="ic">🔍</span>Find a player<span class="go">›</span></div>
+        <div class="menuitem" style="border-bottom:none"><span class="ic">🏆</span>Champions<span class="go">›</span></div>
+      </div>
+      <p class="small" style="justify-content:center">Privacy · Larger text · Log in</p>
+    </div>
+  </div>
+</div>
+
+<div class="set" id="B">
+  <div class="col">
+    <p class="cap"><b>3</b>The side menu (☰), on every page</p>
+    <div class="phone">
+      <div class="bar"><span class="burger"><i></i><i></i><i></i></span><span class="brand">Bowls Live<small>Live crown green scores</small></span></div>
+      <div class="card" style="height:300px"></div>
+      <div class="drawer">
+        <div class="panel">
+          <h3>Bowls Live</h3>
+          <div class="menuitem"><span class="ic">🏠</span>Home</div>
+          <div class="menuitem"><span class="ic">●</span>Live now<span class="live">2 matches</span></div>
+          <div class="menuitem"><span class="ic">🏅</span>Competitions<span class="go">›</span></div>
+          <div class="menuitem"><span class="ic">📅</span>Calendar</div>
+          <div class="menuitem"><span class="ic">🔍</span>Find a player</div>
+          <div class="menuitem"><span class="ic">🏆</span>Champions</div>
+          <p class="sub">Events</p>
+          <div class="menuitem indent">Blackpool Masters 2027</div>
+          <p class="sub">Clubs' competitions</p>
+          <div class="menuitem indent">Jack Rees Doubles</div>
+          <div class="menuitem indent">Floodlit Singles</div>
+          <div class="menuitem indent" style="border-bottom:none">October Singles</div>
+          <p class="small">Privacy · Larger text · Log in</p>
+        </div>
+        <div class="shade"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <p class="cap"><b>4</b>The calendar, on its own page</p>
+    <div class="phone">
+      <div class="bar"><span class="burger"><i></i><i></i><i></i></span><span class="brand">Bowls Live<small>Live crown green scores</small></span></div>
+      <h1 class="pagetitle">Calendar</h1>
+      <div class="chips"><span class="chip on">Month</span><span class="chip">List</span></div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:20px">‹</b>
+          <b style="font:700 22px 'Barlow Condensed';color:var(--green-deep)">MARCH 2027</b><b style="font-size:20px">›</b></div>
+        <div class="cal">
+          <span class="wd">M</span><span class="wd">T</span><span class="wd">W</span><span class="wd">T</span><span class="wd">F</span><span class="wd">S</span><span class="wd">S</span>
+          <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>
+          <span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span><span class="ring" style="background:var(--c1)">13</span></span><span>14</span>
+          <span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span>
+          <span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span>
+          <span>29</span><span>30</span><span>31</span><span class="out">1</span><span class="out">2</span><span class="out">3</span><span class="out">4</span>
+        </div>
+      </div>
+      <div class="card" style="padding-top:2px;padding-bottom:2px">
+        <div class="row"><span class="bar2" style="background:var(--c1)"></span><span><b>Jack Rees Doubles</b><br><span class="hint">Penwortham · Single day Sat 13 Mar</span></span><span class="go">›</span></div>
+      </div>
+      <p class="hint" style="color:#fff;text-shadow:0 1px 6px #000;text-align:center">Tap a competition to light up its dates · tap a date to see what's on</p>
+    </div>
+  </div>
+</div>
+
+<script>document.getElementById(location.hash.replace("#", "") || "A").classList.add("on");</script>
+</body>
+</html>

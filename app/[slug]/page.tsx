@@ -27,6 +27,7 @@ import HowToQualify from "@/components/HowToQualify";
 import EventPage from "@/components/event/EventPage";
 import type { Venue } from "@/lib/types";
 import PublicFooter from "@/components/PublicFooter";
+import SiteHeader from "@/components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -211,7 +212,8 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="page page-photo comp-page">
       <div className="public-background" aria-hidden="true" />
-      <Link href="/" className="page-back-link">
+      <SiteHeader compact />
+      <Link href="/competitions" className="page-back-link">
         <span aria-hidden="true">&lsaquo;</span> All competitions
       </Link>
       {children}

@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { matchesSearch } from "@/lib/people";
 import {
   STATUS_LABEL,
   competitionPath,
@@ -17,8 +19,9 @@ import {
 } from "@/lib/publicCompetitions";
 
 // Every competition in the chosen year: live first, then coming up, planned,
-// finished. Tap a row to light up its dates on the calendar; "Open" goes to
-// the competition. Earlier years are the archive.
+// finished. Earlier years are the archive. Beside the calendar, tapping a row
+// lights up its dates and "Open" goes to the competition; on its own, a row
+// just opens it. With a search box, typing a club or event narrows the list.
 export default function CompetitionList({
   all,
   year,
@@ -28,8 +31,9 @@ export default function CompetitionList({
   onFilter,
   colours,
   today,
-  highlightId,
+  highlightId = null,
   onHighlight,
+  searchable = false,
 }: {
   all: PublicCompetition[];
   year: number;
@@ -39,9 +43,11 @@ export default function CompetitionList({
   onFilter: (f: ListFilter) => void;
   colours: Map<string, string>;
   today: string;
-  highlightId: string | null;
-  onHighlight: (id: string | null) => void;
+  highlightId?: string | null;
+  onHighlight?: (id: string | null) => void;
+  searchable?: boolean;
 }) {
+  const [query, setQuery] = useState("");
   const thisYear = all.filter((c) => c.year === year);
   const labels = [...new Set(thisYear.map((c) => c.label).filter((l): l is string => Boolean(l)))];
   const filters: { key: ListFilter; text: string }[] = [
@@ -53,7 +59,12 @@ export default function CompetitionList({
     ...(thisYear.some((c) => c.team_size === 2) ? [{ key: "doubles" as ListFilter, text: "Doubles" }] : []),
     ...labels.map((l) => ({ key: `label:${l}` as ListFilter, text: l })),
   ];
-  const shown = sortForList(filterList(thisYear, filter, today), today);
+  const found = (c: PublicCompetition) =>
+    !query.trim() ||
+    matchesSearch(c.name, query) ||
+    matchesSearch(c.organiser.name, query) ||
+    matchesSearch(c.organiser.short_name, query);
+  const shown = sortForList(filterList(thisYear, filter, today), today).filter(found);
   // A multi-competition event is one row (where its first competition sorts)
   const seenEvents = new Set<string>();
   type Row = { kind: "comp"; c: PublicCompetition } | { kind: "event"; c: PublicCompetition; members: PublicCompetition[] };
@@ -93,8 +104,21 @@ export default function CompetitionList({
         ))}
       </div>
 
+      {searchable && (
+        <input
+          type="search"
+          className="home-search"
+          placeholder="Search by club, event or competition"
+          aria-label="Search by club, event or competition"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      )}
+
       <div className="card comp-rows">
-        {shown.length === 0 && <p className="hint">Nothing to show here.</p>}
+        {shown.length === 0 && (
+          <p className="hint">{query.trim() ? `Nothing in ${year} matches “${query.trim()}”.` : "Nothing to show here."}</p>
+        )}
         {rows.map((row) => {
           if (row.kind === "event") {
             const members = row.members;
@@ -130,22 +154,8 @@ export default function CompetitionList({
           const status = publicStatus(c, today);
           const colour = colours.get(c.id);
           const dated = c.sessions.some((s) => s.date);
-          return (
-            <div
-              key={c.id}
-              className={`comp-row ${highlightId === c.id ? "comp-row-on" : ""}`}
-              role="button"
-              tabIndex={0}
-              aria-pressed={highlightId === c.id}
-              aria-label={`Show ${c.name}'s dates on the calendar`}
-              onClick={() => onHighlight(highlightId === c.id ? null : c.id)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onHighlight(highlightId === c.id ? null : c.id);
-                }
-              }}
-            >
+          const text = (
+            <>
               <span
                 className={`comp-bar ${dated ? "" : "comp-bar-dashed"}`}
                 style={colour ? { background: colour } : undefined}
@@ -170,6 +180,33 @@ export default function CompetitionList({
                 </span>
                 <span className="comp-row-line">{datesSummary(c.sessions)}</span>
               </span>
+            </>
+          );
+          if (!onHighlight) {
+            return (
+              <Link key={c.id} href={competitionPath(c, all)} className="comp-row" style={{ color: "inherit", textDecoration: "none" }}>
+                {text}
+                <span className="comp-row-open">Open &rsaquo;</span>
+              </Link>
+            );
+          }
+          return (
+            <div
+              key={c.id}
+              className={`comp-row ${highlightId === c.id ? "comp-row-on" : ""}`}
+              role="button"
+              tabIndex={0}
+              aria-pressed={highlightId === c.id}
+              aria-label={`Show ${c.name}'s dates on the calendar`}
+              onClick={() => onHighlight(highlightId === c.id ? null : c.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onHighlight(highlightId === c.id ? null : c.id);
+                }
+              }}
+            >
+              {text}
               <Link
                 href={competitionPath(c, all)}
                 className="comp-row-open"

@@ -52,11 +52,14 @@ const numberOrNull = (v: string) => (v.trim() === "" ? null : Number(v));
 export default function CompetitionForm({
   existing,
   presetOrganiserId,
+  presetKind,
   onSaved,
 }: {
   existing?: { competition: CompetitionWithSeries; sessions: Night[] };
   // "+ Add another competition to the Blackpool Masters": that event, chosen already
   presetOrganiserId?: string;
+  // "New event" on the Events page: start on "Part of an event"
+  presetKind?: "club" | "event";
   onSaved: (competitionId: string) => void;
 }) {
   const c = existing?.competition;
@@ -68,7 +71,7 @@ export default function CompetitionForm({
 
   // What it is (new only): a club's competition, or part of an event - and
   // which club or event ("new" for one not in the list yet)
-  const [kind, setKind] = useState<"club" | "event">("club");
+  const [kind, setKind] = useState<"club" | "event">(presetKind ?? "club");
   const [organiserId, setOrganiserId] = useState<string>(presetOrganiserId ?? "");
   const [newOrgName, setNewOrgName] = useState("");
   // Changing: which club or event it's part of (moves every year of it)

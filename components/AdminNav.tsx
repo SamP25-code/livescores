@@ -32,6 +32,7 @@ export default function AdminNav() {
       : []),
     ...(isSuper
       ? [
+          { href: "/admin/events", label: "Events", active: pathname.startsWith("/admin/events") },
           { href: "/admin/people", label: "People", active: pathname === "/admin/people" },
           { href: "/admin/venues", label: "Venues", active: pathname === "/admin/venues" },
         ]

@@ -87,8 +87,8 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="page page-photo">
-      <Link href="/admin/competitions" className="page-back-link">
-        <span aria-hidden="true">&lsaquo;</span> Competitions
+      <Link href="/admin/events" className="page-back-link">
+        <span aria-hidden="true">&lsaquo;</span> Events
       </Link>
       <h1>{event?.name ?? "Loading…"}</h1>
       {event?.slug && (
@@ -124,7 +124,7 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
               if (!confirm(`Remove the event "${event.name}"?`)) return;
               try {
                 await deleteOrganiser(event.id);
-                window.location.href = "/admin/competitions";
+                window.location.href = "/admin/events";
               } catch (err) {
                 setError(errorMessage(err));
               }
