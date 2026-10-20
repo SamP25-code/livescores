@@ -245,3 +245,22 @@ export async function deleteVenue(id: string): Promise<void> {
   const { error } = await supabase.from("venues").delete().eq("id", id);
   if (error) throw error;
 }
+
+// Super: moves a competition (every year of it) to a different club or event
+export async function moveSeries(seriesId: string, organiserId: string): Promise<void> {
+  const { error } = await supabase.from("series").update({ organiser_id: organiserId }).eq("id", seriesId);
+  if (error) throw error;
+}
+
+// Super: removes a club or event with no competitions left (its posts go too)
+export async function deleteOrganiser(id: string): Promise<void> {
+  const { count, error: countError } = await supabase
+    .from("series")
+    .select("id", { count: "exact", head: true })
+    .eq("organiser_id", id);
+  if (countError) throw countError;
+  if ((count ?? 0) > 0) throw new Error("It still has competitions - move or remove them first.");
+  await supabase.from("people").update({ club_id: null }).eq("club_id", id);
+  const { error } = await supabase.from("organisers").delete().eq("id", id);
+  if (error) throw error;
+}

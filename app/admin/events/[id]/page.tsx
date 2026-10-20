@@ -9,6 +9,7 @@ import { shortDate, todayIso } from "@/lib/publicCompetitions";
 import { SITE_NAME } from "@/lib/site";
 import { supabase } from "@/lib/supabaseClient";
 import PostForm from "@/components/PostForm";
+import { deleteOrganiser } from "@/lib/competitionsApi";
 import type { Organiser } from "@/lib/types";
 
 // An event's page, behind the scenes (Super): its web address, and its posts
@@ -111,6 +112,28 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
           </Link>
         ))}
       </div>
+      {comps.length === 0 && years.length === 0 && event && (
+        <div className="card">
+          <p style={{ marginTop: 0 }}>
+            This event has no competitions. If it was made by mistake, it can be removed.
+          </p>
+          <button
+            type="button"
+            className="danger"
+            onClick={async () => {
+              if (!confirm(`Remove the event "${event.name}"?`)) return;
+              try {
+                await deleteOrganiser(event.id);
+                window.location.href = "/admin/competitions";
+              } catch (err) {
+                setError(errorMessage(err));
+              }
+            }}
+          >
+            Remove this event
+          </button>
+        </div>
+      )}
       <p>
         <Link href={`/admin/competitions/new?event=${id}`} className="button">
           + Add a competition to the {event?.name ?? "event"}

@@ -11,6 +11,7 @@ import {
 } from "@/lib/competitionSetup";
 import {
   listCompetitions,
+  moveSeries,
   createCompetition,
   createOrganiser,
   createSeries,
@@ -70,6 +71,8 @@ export default function CompetitionForm({
   const [kind, setKind] = useState<"club" | "event">("club");
   const [organiserId, setOrganiserId] = useState<string>(presetOrganiserId ?? "");
   const [newOrgName, setNewOrgName] = useState("");
+  // Changing: which club or event it's part of (moves every year of it)
+  const [partOf, setPartOf] = useState<string>(c?.series.organiser_id ?? "");
   // Each competition's venue, for defaulting to the one a club used last
   const [pastVenues, setPastVenues] = useState<{ organiserId: string; venueId: string; year: number }[]>([]);
   const [seriesId, setSeriesId] = useState<string>("");
@@ -248,6 +251,7 @@ export default function CompetitionForm({
       };
 
       if (existing && c) {
+        if (partOf && partOf !== c.series.organiser_id) await moveSeries(c.series.id, partOf);
         await updateCompetition(c, settings, existing.sessions, sessions);
         await saveSponsors(c.id, sponsors);
         onSaved(c.id);
@@ -455,6 +459,25 @@ export default function CompetitionForm({
 
       <section className="card">
         <h2>Format</h2>
+        {existing && (
+          <div className="field">
+            <label htmlFor="cf-part-of">Part of</label>
+            <select id="cf-part-of" value={partOf} onChange={(e) => setPartOf(e.target.value)}>
+              {(["event", "club"] as const).map((k) => (
+                <optgroup key={k} label={k === "event" ? "Events" : "Clubs"}>
+                  {organisers
+                    .filter((o) => o.kind === k)
+                    .map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.name}
+                      </option>
+                    ))}
+                </optgroup>
+              ))}
+            </select>
+            <p className="hint">Moves this competition (every year of it) to a different club or event.</p>
+          </div>
+        )}
         {locked && (
           <p className="comp-form-locked">
             A draw has been made, so the format is locked. Dates, venue, sponsor and status can still change.
