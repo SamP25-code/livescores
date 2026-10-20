@@ -37,7 +37,7 @@ const ROLE_LABEL: Record<Role, string> = { admin: "Admin", scorer: "Scorer" };
 // competitions and adds scorers to them. Someone new gets a login with a
 // generated password, shown once to pass on; someone with a login already is
 // just added to the competition.
-export default function UserManager() {
+export default function UserManager({ competitionId: only }: { competitionId?: string } = {}) {
   const [users, setUsers] = useState<StaffUser[] | null>(null);
   const [competitions, setCompetitions] = useState<CompetitionChoice[]>([]);
   const [callerId, setCallerId] = useState<string | null>(null);
@@ -46,7 +46,8 @@ export default function UserManager() {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [handover, setHandover] = useState<Handover | null>(null);
-  const [filter, setFilter] = useState(""); // competition id, or "" for all
+  // A competition id, or "" for all. Fixed when shown on a competition's page.
+  const [filter, setFilter] = useState(only ?? "");
 
   const [login, setLogin] = useState("");
   const [competitionId, setCompetitionId] = useState("");
@@ -184,7 +185,7 @@ export default function UserManager() {
       {handover && <PasswordHandover handover={handover} onDone={() => setHandover(null)} />}
       {error && <p className="error">{error}</p>}
 
-      {competitions.length > 1 && (
+      {competitions.length > 1 && !only && (
         <div className="field user-filter">
           <label htmlFor="user-filter">Competition</label>
           <select id="user-filter" value={filter} onChange={(e) => setFilter(e.target.value)}>

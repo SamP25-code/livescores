@@ -23,6 +23,7 @@ import HomeCalendar from "@/components/home/HomeCalendar";
 import CompetitionList from "@/components/home/CompetitionList";
 import RecentChampions from "@/components/home/RecentChampions";
 import PublicFooter from "@/components/PublicFooter";
+import LatestResults from "@/components/home/LatestResults";
 
 export const dynamic = "force-dynamic";
 
@@ -124,7 +125,14 @@ export default function HomePage() {
       )}
       {competitions === null && !failed && <p className="night-header-hint">Loading&hellip;</p>}
 
-      {live.length > 0 ? <LiveScores matches={live} competitions={all} /> : <NextUp picks={picks} all={all} today={today} />}
+      {live.length > 0 ? (
+        <LiveScores matches={live} competitions={all} />
+      ) : picks.length > 0 ? (
+        <NextUp picks={picks} all={all} today={today} />
+      ) : (
+        // Nothing live or coming up: the latest results instead of an empty top
+        <LatestResults all={all} today={today} />
+      )}
 
       {competitions !== null && (
         <>

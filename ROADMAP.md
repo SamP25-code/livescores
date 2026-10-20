@@ -366,6 +366,18 @@ the names filled in as they become known:
   else about the competition.
 - Once all 32 are known, the draw is made in advance and published ahead of the day.
 
+**The Blackpool Masters as its own event (Sam, 2026-10-20)** - the event gets its own tab / page,
+not just a row of competitions, because there will be more on it: **advertisements**, **short
+articles** about the event, and **updates on who's qualified**, alongside its three competitions,
+the weekend's schedule and the qualifying list. So the event page needs simple **posts** (a title,
+some words, a picture, a date), and room for adverts. Built with the qualifying competitions.
+Concepts: `docs/concepts/blackpool-event-page.jpg` and `blackpool-event-posts.jpg`.
+- **Who writes posts (Sam, 2026-10-20)** - Sam only: the organisers send him the words and
+  pictures and he uploads them.
+- **Adverts** - placed wherever the admin chooses on the page; details TBC.
+- **Automatic qualifier posts** (the site drafting "X wins the Y and qualifies" when a winner is
+  entered) - undecided, TBC.
+
 **Qualifying competitions (Sam, 2026-10-19)** - concept in
 `docs/concepts/qualifying-competitions.jpg`:
 - Any competition can be **entered by qualification**; it then has a **Qualifying** tab for Super

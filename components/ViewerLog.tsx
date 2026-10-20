@@ -70,7 +70,7 @@ export function ViewerLogChart({ series, uniqueViewers }: { series: ViewerPoint[
   if (series.length === 0) {
     return (
       <p className="hint">
-        No viewers logged yet. The log starts the first time someone opens this night&rsquo;s public page.
+        No viewers logged yet. The log starts the first time someone opens this session&rsquo;s public page.
       </p>
     );
   }

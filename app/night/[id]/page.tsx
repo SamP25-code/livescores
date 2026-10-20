@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, computeNightStatus, isWalkover, roundLabel } from "@/lib/bracket";
 import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
 import { directionsUrl, originalDateLabel, postponedLabel, venueAddressLine } from "@/lib/venues";
-import { sessionTimes, timeOfDay } from "@/lib/publicCompetitions";
+import { sessionTimes, sessionTitle, timeOfDay } from "@/lib/publicCompetitions";
 import { startViewerPings } from "@/lib/viewerLog";
 import NightNav, { splitNightName } from "@/components/NightNav";
 import Brand from "@/components/Brand";
@@ -18,6 +18,7 @@ import BracketTree from "@/components/BracketTree";
 import type { MatchRow, Night, Player, Venue } from "@/lib/types";
 import { SITE_NAME } from "@/lib/site";
 import PublicFooter from "@/components/PublicFooter";
+import FindYourMatch from "@/components/FindYourMatch";
 
 export default function NightPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: nightId } = use(params);
@@ -317,6 +318,12 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
       <NightNav currentId={nightId} />
 
       <div className="night-header-card">
+        {/* Which competition this is, and which session of it */}
+        {competition && night && (
+          <p className="night-header-comp">
+            {competition.name} {competition.year} &middot; {sessionTitle(night as Parameters<typeof sessionTitle>[0])}
+          </p>
+        )}
         <div
           className={`night-header-title ${slimHeader ? "night-header-title-slim" : ""} ${
             showField ? "night-header-title-field" : ""
@@ -416,6 +423,24 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
             </div>
           ))}
         </div>
+      )}
+
+      {!loadError && showDraw && Object.keys(players).length > 0 && (
+        <FindYourMatch
+          players={players}
+          matches={matches}
+          roundName={(m) =>
+            roundLabel(night?.kind ?? "qualifier", m.round, rounds.find(([r]) => r === m.round)?.[1].length ?? 1)
+          }
+          startTime={(m) => (startTimes[m.id] && startTimes[m.id] !== "Time to follow" ? startTimes[m.id] : null)}
+          onShow={(playerId, matchId) => {
+            setHighlightPlayerId(playerId);
+            // Scroll once the highlight has been drawn
+            setTimeout(() => {
+              document.querySelector(`[data-match="${matchId}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 50);
+          }}
+        />
       )}
 
       {!loadError && knockout && showDraw && (

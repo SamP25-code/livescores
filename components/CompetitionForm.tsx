@@ -460,7 +460,7 @@ export default function CompetitionForm({
             <select id="cf-entry" disabled={locked} value={entryMethod} onChange={(e) => setEntryMethod(e.target.value as typeof entryMethod)}>
               <option value="open">Open - the organiser enters players</option>
               <option value="qualification">By qualification and wildcards</option>
-              <option value="on_the_night">Entered on the night</option>
+              <option value="on_the_night">Entered on the day</option>
             </select>
           </div>
           <div className="field">

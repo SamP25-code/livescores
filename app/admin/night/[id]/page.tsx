@@ -63,6 +63,7 @@ import { drawSizeFor, randomDrawNumbers } from "@/lib/draw";
 import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
 import { pageRoleFor, useAccess } from "@/lib/access";
 import { errorMessage } from "@/lib/errors";
+import { FILTER_LABEL, showMatch, startingFilter, type MatchFilter } from "@/lib/matchFilter";
 import { displayMatch, isNetworkError, makeOp, resultEntry, tapResult } from "@/lib/scoreQueue";
 import { enqueue, useScoreQueue } from "@/lib/scoreSync";
 import ScoreQueueBar from "@/components/ScoreQueueBar";
@@ -137,6 +138,9 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   const [serverMatches, setMatches] = useState<MatchRow[]>([]);
   const [finalsRoster, setFinalsRoster] = useState<Player[]>([]);
   const [context, setContext] = useState<CompetitionContext | null>(null);
+  // Narrowing the matches down (null until chosen: scorers start on Live or Up next)
+  const [chosenFilter, setFilter] = useState<MatchFilter | null>(null);
+  const [matchQuery, setMatchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -373,6 +377,8 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   }, [players, isFinals]);
 
   const playerNames = useMemo(() => Object.fromEntries(players.map((p) => [p.id, p.name])), [players]);
+  const matchFilter: MatchFilter = chosenFilter ?? startingFilter(matches, role === "scorer");
+  const shownCount = matches.filter((m) => showMatch(m, matchFilter, playerNames, matchQuery)).length;
 
   const qualifiers = useMemo(() => {
     if (!night || night.kind !== "qualifier" || lastRound === 0) return [];
@@ -410,7 +416,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
         </Link>
       ) : (
         <Link href="/admin" className="page-back-link">
-          <span aria-hidden="true">&lsaquo;</span> All nights
+          <span aria-hidden="true">&lsaquo;</span> Home
         </Link>
       )}
 
@@ -490,7 +496,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
             </span>
           </div>
           <p className="hint">
-            Fills in on its own as qualifiers are confirmed on each qualifying night, nothing to add here
+            Fills in on its own as qualifiers are confirmed on each qualifying session, nothing to add here
             normally. To change someone&rsquo;s number, pick a new one beside their name, or &ldquo;No
             number&rdquo; to take them out.
           </p>
@@ -595,12 +601,26 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
 
       {bracketExists && role !== null && (role === "owner" || night?.draw_published) && (
         <>
-          {rounds.map(([round, roundMatches]) => (
+          <MatchFilterBar
+            filter={matchFilter}
+            onFilter={setFilter}
+            query={matchQuery}
+            onQuery={setMatchQuery}
+          />
+          {shownCount === 0 && (
+            <p className="empty">
+              {matchQuery.trim() ? "No match with that name here." : `No ${FILTER_LABEL[matchFilter].toLowerCase()} matches.`}
+            </p>
+          )}
+          {rounds.map(([round, roundMatches]) => {
+            const shownMatches = roundMatches.filter((m) => showMatch(m, matchFilter, playerNames, matchQuery));
+            if (shownMatches.length === 0) return null;
+            return (
             <section key={round}>
               <div className="round-heading">
                 <h2>{roundLabel(night?.kind ?? "qualifier", round, roundMatches.length)}</h2>
               </div>
-              {roundMatches.map((m) => (
+              {shownMatches.map((m) => (
                 <MatchEditor
                   key={m.id}
                   match={m}
@@ -639,7 +659,8 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
                 />
               ))}
             </section>
-          ))}
+            );
+          })}
 
           {role === "owner" && night?.kind === "qualifier" && qualifiers.length > 0 && (
             <section>
@@ -729,7 +750,7 @@ function PlayerSection({
         <>
           <p className="hint">
             Add players in any order, then drag them into position for round 1 pairing &mdash; player 1 plays
-            player 2, player 3 plays player 4, and so on. Didn&rsquo;t show up on the night? Mark their spot as
+            player 2, player 3 plays player 4, and so on. Didn&rsquo;t show up on the day? Mark their spot as
             a bye instead of removing them, so everyone else&rsquo;s position stays put.
           </p>
           {entryAdder ?? (
@@ -884,7 +905,7 @@ function AddExtraFinalsPlayer({
   if (!open) {
     return (
       <p className="hint">
-        Need to add someone who didn&rsquo;t come through a qualifying night?{" "}
+        Need to add someone who didn&rsquo;t come through a qualifying session?{" "}
         <button className="secondary" style={{ padding: "2px 10px" }} onClick={() => setOpen(true)}>
           Add a player
         </button>
@@ -1165,10 +1186,10 @@ function ResetBracketControl({ nightName, onReset }: { nightName: string; onRese
   return (
     <div className="card" style={{ borderColor: "var(--maroon)" }}>
       <p className="error" style={{ marginTop: 0 }}>
-        This deletes every match and score for this night. There&rsquo;s no way to undo it.
+        This deletes every match and score for this session. There&rsquo;s no way to undo it.
       </p>
       <p className="hint">
-        Type the night&rsquo;s name to confirm: <strong>{nightName}</strong>
+        Type the session&rsquo;s name to confirm: <strong>{nightName}</strong>
       </p>
       <div className="field">
         <input
@@ -1417,3 +1438,43 @@ function ResultEntry({
   );
 }
 
+
+// Live · Up next · Finished, and Find a match - for getting to the right
+// match quickly on a phone at the green
+function MatchFilterBar({
+  filter,
+  onFilter,
+  query,
+  onQuery,
+}: {
+  filter: MatchFilter;
+  onFilter: (f: MatchFilter) => void;
+  query: string;
+  onQuery: (q: string) => void;
+}) {
+  return (
+    <div className="match-filter">
+      <div className="match-filter-chips" role="group" aria-label="Show matches">
+        {(["all", "live", "next", "finished"] as MatchFilter[]).map((f) => (
+          <button
+            key={f}
+            type="button"
+            className={`match-filter-chip ${filter === f ? "match-filter-on" : ""}`}
+            aria-pressed={filter === f}
+            onClick={() => onFilter(f)}
+          >
+            {FILTER_LABEL[f]}
+          </button>
+        ))}
+      </div>
+      <input
+        type="search"
+        className="match-filter-find"
+        aria-label="Find a match by name"
+        placeholder="Find a match - type a name"
+        value={query}
+        onChange={(e) => onQuery(e.target.value)}
+      />
+    </div>
+  );
+}

@@ -62,6 +62,7 @@ export default function MatchCard({
   return (
     <div
       id={id}
+      data-match={match.id}
       className={`card match ${compact ? "compact" : ""} ${match.status === "complete" ? "complete" : ""} ${
         match.status === "live" ? "live" : ""
       } ${isBye ? "bye" : ""}`}

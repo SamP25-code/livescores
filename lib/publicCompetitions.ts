@@ -20,6 +20,8 @@ export type PublicSession = {
   // From its matches
   status: "upcoming" | "live" | "complete";
   liveCount: number;
+  // How many matches it has - none until its draw is made
+  matchCount?: number;
 };
 
 export type Champion = { name: string; runnerUp: string | null; date: string | null };

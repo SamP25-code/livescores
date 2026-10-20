@@ -8,6 +8,7 @@ import { errorMessage } from "@/lib/errors";
 import { fetchNightStatuses } from "@/lib/nightStatus";
 import { isAnyAdmin, pageRoleFor, useAccess, visibleCompetition } from "@/lib/access";
 import { SITE_NAME } from "@/lib/site";
+import YourCompetitions from "@/components/admin/YourCompetitions";
 import { splitNightName } from "@/components/NightNav";
 import type { NightStatus } from "@/lib/bracket";
 import type { Night } from "@/lib/types";
@@ -105,6 +106,29 @@ export default function AdminDashboard() {
     } catch (err) {
       setError(errorMessage(err));
     }
+  }
+
+  // 2027: one card per competition, with what's next and the job at hand.
+  // Old nights from before the move (no competition) are listed underneath.
+  if (access && nights.length > 0 && !oldStyle) {
+    const olderNights = visibleNights.filter((n) => !n.competition_id);
+    return (
+      <div className="page page-photo">
+        <YourCompetitions access={access} />
+        {olderNights.length > 0 && (
+          <>
+            <h2 className="admin-cards-finished">Older nights</h2>
+            <nav className="night-list">
+              {olderNights.map((night) => (
+                <Link key={night.id} href={`/admin/night/${night.id}`} className={`night-card night-card-${night.kind}`}>
+                  <span className="night-card-name">{night.name}</span>
+                </Link>
+              ))}
+            </nav>
+          </>
+        )}
+      </div>
+    );
   }
 
   return (

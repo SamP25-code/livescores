@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Blackpool Masters event concept</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+  :root { --green-deep:#1f3d2b; --green-pale:#e4ecdf; --cream:#efebdd; --maroon:#7a2e2e; --ink:#1b211c; --ink-soft:#4a5148;
+    --line:#cfc8b3; --gold:#c9972c; --gold-deep:#8a6a12; --gold-pale:#fbf1d6; --c1:#2f7d4a; --c2:#c2477f; --c3:#2f63a8; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:22px; background:#151a16; font-family:"Source Sans 3",sans-serif; color:var(--ink); }
+  .set { display:none; }
+  .set.on { display:flex; gap:22px; align-items:flex-start; }
+  .col { width:390px; }
+  .cap { color:#fff; font:700 22px "Barlow Condensed"; margin:0 0 10px; letter-spacing:.02em; }
+  .cap b { color:var(--gold); margin-right:6px; }
+  .phone { position:relative; height:1060px; overflow:hidden; border-radius:18px; padding:16px;
+    background: linear-gradient(180deg, rgba(10,14,11,.5), rgba(10,14,11,.25) 45%, rgba(20,40,28,.55)),
+      radial-gradient(circle at 62% 14%, #6b3a2e 0, #1d1611 33%, #121512 58%), #1d2a1f; }
+  .phone::after { content:"CONCEPT"; position:absolute; top:18px; right:-34px; transform:rotate(45deg); background:var(--gold);
+    color:#fff; font:700 12px "Barlow Condensed"; letter-spacing:.1em; padding:4px 40px; }
+  h1,h2,h3 { font-family:"Barlow Condensed"; margin:0; }
+  .back { color:#fff; font-weight:700; font-size:14px; text-shadow:0 1px 6px #000; }
+  .title { color:#fff; font-size:36px; text-transform:uppercase; text-align:center; margin:6px 0 0; text-shadow:0 1px 8px #000; }
+  .sub { color:#fff; text-align:center; font-size:15px; margin:2px 0 10px; text-shadow:0 1px 6px #000; }
+  .sponsor { background:var(--cream); border-radius:4px; text-align:center; padding:8px 10px; margin:0 auto 12px; width:280px; }
+  .sponsor small { display:block; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); }
+  .logo { display:inline-block; margin-top:4px; padding:6px 16px; border:2px dashed var(--line); border-radius:4px;
+    font:700 18px "Barlow Condensed"; color:var(--green-deep); }
+  .tabs { display:flex; gap:5px; margin:0 0 12px; }
+  .tab { flex:1; text-align:center; padding:9px 2px; border-radius:4px; background:rgba(20,40,28,.85); color:#fff; font:700 15px "Barlow Condensed"; }
+  .tab.on { background:var(--cream); color:var(--green-deep); }
+  .card { background:var(--cream); border:1px solid var(--line); border-radius:4px; padding:12px 14px; margin-bottom:10px; }
+  .hint { color:var(--ink-soft); font-size:13px; margin:2px 0 0; }
+  .sec { color:#fff; font-size:21px; text-transform:uppercase; margin:16px 0 8px; text-shadow:0 1px 8px #000; display:flex; justify-content:space-between; align-items:baseline; }
+  .sec a { font:700 14px "Source Sans 3"; color:#fff; text-transform:none; text-decoration:underline; }
+  .count { display:flex; gap:12px; align-items:center; }
+  .box { width:74px; height:74px; border-radius:4px; background:var(--green-deep); color:#fff; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; font-size:11px; letter-spacing:.06em; text-transform:uppercase; }
+  .box b { font:700 32px "Barlow Condensed"; line-height:1; letter-spacing:0; }
+  .tiles { display:flex; gap:8px; }
+  .tile { flex:1; background:var(--cream); border-radius:4px; padding:8px 4px; text-align:center; }
+  .tile small { font-size:11px; font-weight:700; color:var(--ink-soft); letter-spacing:.06em; }
+  .ring { width:44px; height:44px; border-radius:50%; margin:4px auto; display:flex; align-items:center; justify-content:center;
+    color:#fff; font:700 20px "Barlow Condensed"; box-shadow:0 0 0 3px var(--cream), 0 0 0 5px var(--gold); }
+  .tile .n { font:700 15px "Barlow Condensed"; color:var(--green-deep); }
+  .meter { display:flex; height:10px; border-radius:5px; overflow:hidden; background:var(--line); margin:8px 0 4px; }
+  .post { display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); }
+  .post:last-child { border-bottom:none; }
+  .pic { flex:none; width:84px; height:64px; border-radius:4px; background:linear-gradient(135deg,#3d6b4a,#1f3d2b);
+    color:#e4ecdf; font-size:11px; display:flex; align-items:center; justify-content:center; text-align:center; }
+  .tag { display:inline-block; font-size:11px; font-weight:700; padding:1px 8px; border-radius:99px; margin-bottom:2px; }
+  .t-news { background:var(--green-pale); color:var(--green-deep); }
+  .t-q { background:var(--gold-pale); border:1px solid var(--gold); color:var(--gold-deep); }
+  .pt { font:700 17px "Barlow Condensed"; color:var(--green-deep); line-height:1.15; }
+  .ad { border:1px solid var(--line); border-radius:4px; background:#fff; padding:10px 12px; margin-bottom:10px; display:flex; gap:10px; align-items:center; }
+  .ad small { position:absolute; }
+  .adlab { font-size:10px; font-weight:700; letter-spacing:.1em; color:var(--ink-soft); text-transform:uppercase; }
+  .adlogo { flex:none; width:70px; height:46px; border:2px dashed var(--line); border-radius:4px; display:flex; align-items:center; justify-content:center;
+    font:700 13px "Barlow Condensed"; color:var(--green-deep); }
+  .place { display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); align-items:flex-start; }
+  .place:last-child { border-bottom:none; }
+  .num { flex:none; width:26px; height:26px; border-radius:50%; background:var(--green-deep); color:#fff; display:flex; align-items:center;
+    justify-content:center; font:700 14px "Barlow Condensed"; }
+  .num.open { background:var(--line); color:var(--ink-soft); }
+  .num.wild { background:var(--gold); }
+  .src { font-size:13px; color:var(--ink-soft); }
+  .who { font-weight:700; color:var(--green-deep); }
+  .tbc { color:var(--ink-soft); font-style:italic; font-size:14px; }
+  .pill { flex:none; font-size:11px; font-weight:700; padding:1px 8px; border-radius:99px; }
+  .p-done { background:var(--green-deep); color:#fff; }
+  .p-wait { background:var(--gold-pale); border:1px solid var(--gold); color:var(--gold-deep); }
+  .hero { height:190px; border-radius:4px; background:linear-gradient(135deg,#3d6b4a,#1f3d2b 60%,#c9972c); margin:-2px 0 10px;
+    display:flex; align-items:flex-end; padding:10px; color:#e4ecdf; font-size:12px; }
+  .art h2 { font-size:28px; color:var(--green-deep); line-height:1.05; }
+  .art p { font-size:15.5px; line-height:1.5; margin:8px 0; }
+  .q { background:var(--gold-pale); border:1px solid var(--gold); border-radius:4px; padding:10px 12px; margin:10px 0; }
+  .q b { color:var(--green-deep); font:700 19px "Barlow Condensed"; }
+  label { display:block; font-weight:600; font-size:13px; margin:9px 0 3px; }
+  .inp { background:#fff; border:1px solid var(--line); border-radius:4px; padding:8px 10px; font-size:14px; }
+  .ta { min-height:96px; line-height:1.4; }
+  .choice { display:flex; align-items:center; gap:8px; padding:6px 8px; border:1px solid var(--line); border-radius:4px; margin-bottom:5px; background:#fff; font-size:14px; }
+  .choice.on { border-color:var(--green-deep); background:var(--green-pale); font-weight:600; }
+  .dot { width:14px; height:14px; border-radius:50%; border:2px solid var(--green-deep); flex:none; }
+  .choice.on .dot { background:var(--green-deep); box-shadow:inset 0 0 0 2px #fff; }
+  .chk { display:flex; gap:8px; align-items:center; font-size:14px; margin-top:8px; }
+  .sq { width:18px; height:18px; border:2px solid var(--green-deep); border-radius:3px; background:var(--green-deep); box-shadow:inset 0 0 0 3px #fff; }
+  .btn { display:block; text-align:center; background:var(--green-deep); color:#fff; border-radius:4px; padding:10px; font-weight:700; margin-top:10px; }
+  .btn.sec2 { background:#fff; color:var(--green-deep); border:1px solid var(--green-deep); }
+  .upl { border:2px dashed var(--line); border-radius:4px; padding:16px; text-align:center; color:var(--ink-soft); font-size:13px; background:#fff; }
+  .notes { margin-top:14px; background:var(--cream); border-radius:6px; padding:12px 16px; font-size:14px; }
+  .notes h3 { color:var(--green-deep); font-size:19px; margin-bottom:4px; }
+  .notes ul { margin:0; padding-left:18px; } .notes li { margin:3px 0; }
+</style>
+</head>
+<body>
+
+<!-- A: the public event page -->
+<div class="set" id="A">
+  <div class="col">
+    <p class="cap"><b>1</b>Event page · Overview (in June)</p>
+    <div class="phone">
+      <span class="back">‹ All competitions</span>
+      <h1 class="title">Blackpool Masters</h1>
+      <p class="sub">Fri 17 – Sun 19 September 2027 · Blackpool</p>
+      <div class="sponsor"><small>Sponsored by</small><span class="logo">SPONSOR LOGO</span></div>
+      <div class="tabs"><span class="tab on">Overview</span><span class="tab">Competitions</span><span class="tab">Qualifying</span><span class="tab">News</span></div>
+      <div class="card count"><span class="box"><b>98</b>days</span>
+        <span><b style="font:700 19px 'Barlow Condensed';color:var(--green-deep)">Three days of crown green</b><br>
+        <span class="hint" style="font-size:14px">31-up Challenge · Masters Invitation 32 · Ladies 32</span></span></div>
+      <div class="tiles">
+        <div class="tile"><small>FRI 17</small><div class="ring" style="background:var(--c1)">17</div><span class="n">31-up Challenge</span></div>
+        <div class="tile"><small>SAT 18</small><div class="ring" style="background:var(--c2)">18</div><span class="n">Invitation 32</span></div>
+        <div class="tile"><small>SUN 19</small><div class="ring" style="background:var(--c3)">19</div><span class="n">Ladies 32</span></div>
+      </div>
+      <h2 class="sec">Who's qualified <a>See all ›</a></h2>
+      <div class="card">
+        <b>18 of 32 places decided</b>
+        <div class="meter"><i style="width:47%;background:#1f3d2b"></i><i style="width:9%;background:#c9972c"></i></div>
+        <p class="hint">Latest: <b style="color:var(--green-deep)">Alan Hart</b> - winner of the Fylde Classic, Sat 5 Jun</p>
+      </div>
+      <div class="ad"><div class="adlogo">LOGO</div><div><span class="adlab">Advert</span><br><b>Advertiser Name</b><br><span class="hint">Stay for the weekend - 10% off for Masters visitors ›</span></div></div>
+      <h2 class="sec">News <a>All news ›</a></h2>
+      <div class="card" style="padding-top:2px;padding-bottom:2px">
+        <div class="post"><div class="pic">photo</div><div><span class="tag t-q">Qualifier</span><div class="pt">Alan Hart wins the Fylde Classic and books his Masters place</div><p class="hint">Sat 5 Jun</p></div></div>
+        <div class="post"><div class="pic">photo</div><div><span class="tag t-news">News</span><div class="pt">Ladies 32 confirmed for Sunday - entries open in July</div><p class="hint">Tue 1 Jun</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <p class="cap"><b>2</b>Event page · Qualifying tab</p>
+    <div class="phone">
+      <span class="back">‹ All competitions</span>
+      <h1 class="title">Blackpool Masters</h1>
+      <p class="sub">Masters Invitation 32 · Sat 18 September</p>
+      <div class="tabs"><span class="tab">Overview</span><span class="tab">Competitions</span><span class="tab on">Qualifying</span><span class="tab">News</span></div>
+      <div class="card">
+        <b style="font:700 19px 'Barlow Condensed';color:var(--green-deep)">How to qualify</b>
+        <p class="hint" style="font-size:14px">Win one of these competitions to earn a place. The rest are wildcards, chosen nearer the time.</p>
+        <div class="meter"><i style="width:47%;background:#1f3d2b"></i><i style="width:9%;background:#c9972c"></i></div>
+        <p class="hint">15 qualified · 3 wildcards · 14 to be decided</p>
+      </div>
+      <div class="card" style="padding-top:2px;padding-bottom:2px">
+        <div class="place"><span class="num">1</span><span style="flex:1"><span class="src">Spring Open · St Anne's · Sun 18 Apr</span><br><span class="who">Tim Hodge</span></span><span class="pill p-done">Qualified</span></div>
+        <div class="place"><span class="num">2</span><span style="flex:1"><span class="src">Fylde Classic · Kirkham · Sat 5 Jun</span><br><span class="who">Alan Hart</span></span><span class="pill p-done">Qualified</span></div>
+        <div class="place"><span class="num open">3</span><span style="flex:1"><span class="src">Summer Pairs Plate · Preston · Sun 4 Jul</span><br><span class="tbc">To be decided</span></span><span class="pill p-wait">Coming up</span></div>
+        <div class="place"><span class="num open">4</span><span style="flex:1"><span class="src">Floodlit Singles · Penwortham · Sat 8 May</span><br><span class="tbc">Final on this site - fills itself</span></span><span class="pill p-wait">Coming up</span></div>
+        <div class="place"><span class="num open">5</span><span style="flex:1"><span class="src">October Singles · Penwortham · Sat 16 Oct</span><br><span class="tbc">To be decided</span></span><span class="pill p-wait">Oct</span></div>
+        <div class="place"><span class="num wild">6</span><span style="flex:1"><span class="src">Wildcard</span><br><span class="who">Keith Rigby</span></span><span class="pill p-done">Qualified</span></div>
+        <div class="place"><span class="num open">7</span><span style="flex:1"><span class="src">Wildcard</span><br><span class="tbc">Chosen nearer the time</span></span></div>
+      </div>
+      <p class="sub" style="font-size:13px">Each qualifying competition's name opens its results</p>
+    </div>
+  </div>
+</div>
+
+<!-- B: posts -->
+<div class="set" id="B">
+  <div class="col">
+    <p class="cap"><b>3</b>A news post, as visitors see it</p>
+    <div class="phone">
+      <span class="back">‹ Blackpool Masters · News</span>
+      <div class="card art" style="margin-top:10px">
+        <div class="hero">photo - added with the post</div>
+        <span class="tag t-q">Qualifier</span>
+        <h2>Alan Hart wins the Fylde Classic and books his Masters place</h2>
+        <p class="hint">Saturday 5th June 2027</p>
+        <p>Alan Hart beat Colin Ashworth 21-17 in a tense final at Kirkham to win the Fylde Classic - and with it, a place in this year's Masters Invitation 32.</p>
+        <p>It's Alan's first Masters since 2023. He joins Tim Hodge as the second qualifier from the Fylde coast.</p>
+        <div class="q"><span class="adlab">Qualified</span><br><b>Alan Hart</b><br><span class="hint">Place 2 · Masters Invitation 32 · Sat 18 Sep</span></div>
+        <p class="hint">See the full Fylde Classic results ›</p>
+      </div>
+      <div class="ad"><div class="adlogo">LOGO</div><div><span class="adlab">Advert</span><br><b>Advertiser Name</b><br><span class="hint">New season woods in stock ›</span></div></div>
+      <span class="btn sec2">Share this post</span>
+    </div>
+  </div>
+
+  <div class="col">
+    <p class="cap"><b>4</b>Admin: add a post</p>
+    <div class="phone">
+      <span class="back">‹ Blackpool Masters</span>
+      <h1 class="title" style="font-size:28px">Add a post</h1>
+      <div class="card">
+        <label>What kind</label>
+        <div class="choice on"><span class="dot"></span>News or article</div>
+        <div class="choice"><span class="dot"></span>Qualifier update (links to the place they filled)</div>
+        <div class="choice"><span class="dot"></span>Advert (logo, a line of text and a link)</div>
+        <label>Headline</label><div class="inp">Ladies 32 confirmed for Sunday</div>
+        <label>Picture (optional)</label><div class="upl">Tap to add a photo from your phone</div>
+        <label>Words</label><div class="inp ta">The Ladies 32 returns on Sunday 19 September. Entries open in July - 32 places, 21 up, single day…</div>
+        <label>Show from</label><div class="inp">Tue 1 June 2027 · now</div>
+        <div class="chk"><span class="sq"></span>Pin to the top of the event page</div>
+        <span class="btn">Publish</span>
+        <span class="btn sec2">Save as a draft</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const which = location.hash.replace("#", "") || "A";
+  document.getElementById(which).classList.add("on");
+</script>
+</body>
+</html>

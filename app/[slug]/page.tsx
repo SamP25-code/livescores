@@ -21,6 +21,7 @@ import { SITE_NAME } from "@/lib/site";
 import { directionsUrl, originalDateLabel, postponedLabel } from "@/lib/venues";
 import PlayerName from "@/components/PlayerName";
 import { SponsorPanel } from "@/components/Sponsors";
+import WhosEntered from "@/components/WhosEntered";
 import type { Venue } from "@/lib/types";
 import PublicFooter from "@/components/PublicFooter";
 
@@ -137,6 +138,8 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
           <ScheduleRow key={s.id} session={s} competition={c} today={today} />
         ))}
       </div>
+
+      <WhosEntered competition={c} />
 
       {venue && (
         <section className="card venue-card">

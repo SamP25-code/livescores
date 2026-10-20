@@ -13,6 +13,8 @@ show what it was describing.
 | `calendar-options-compared.jpg` | The two calendar options side by side - A plain circle, B gold ring (B chosen) | Calendar |
 | `blackpool-masters-weekend.jpg` | A multi-competition event page (Blackpool Masters, three competitions over a weekend) | Navigation; Blackpool Masters 2027 |
 | `qualifying-competitions.jpg` (+ `.html`) | A competition's Qualifying tab: places from qualifying competitions and wildcards, adding a qualifying competition not on the site, entering its results, and the public "How to qualify" list | Blackpool Masters 2027 - Qualifying competitions |
+| `blackpool-event-page.jpg` (+ `blackpool-event.html`) | The Blackpool Masters as its own event: Overview tab (countdown, the weekend, who's qualified, an advert, news) and the Qualifying tab | Blackpool Masters 2027 - its own event |
+| `blackpool-event-posts.jpg` | A news / qualifier post as visitors see it, and the admin's "Add a post" (news, qualifier update or advert) | Blackpool Masters 2027 - its own event |
 
 Not kept, because later decisions replaced them: the early club pages (no club pages now), the
 first calendar without gold rings, and the on-the-day draw screens (they had a "who's here" step,
