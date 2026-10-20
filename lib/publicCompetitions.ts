@@ -48,6 +48,17 @@ export type PublicCompetition = {
   champion: Champion | null;
 };
 
+// A club's own page, listing all its competitions
+export function clubPath(organiser: Pick<PublicCompetition["organiser"], "slug">): string | null {
+  return organiser.slug ? `/clubs/${organiser.slug}` : null;
+}
+
+// Where a competition's club or event pill goes: the club's page, or the event's
+export function organiserPath(c: PublicCompetition, all: PublicCompetition[]): string | null {
+  if (!c.organiser.slug) return null;
+  return c.organiser.kind === "event" ? eventPath(c.organiser.slug, c.year, all) : clubPath(c.organiser);
+}
+
 export type PublicStatus = "live" | "coming_up" | "planned" | "finished";
 
 export const STATUS_LABEL: Record<PublicStatus, string> = {

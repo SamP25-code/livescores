@@ -14,7 +14,7 @@ export default function ChampionsPage() {
   return (
     <PublicPage title="Champions" loading={competitions === null} failed={failed}>
       {competitions !== null && years.length === 0 && (
-        <p className="night-header-hint">No champions yet &ndash; they&rsquo;ll be here once the first Finals Day is played.</p>
+        <p className="night-header-hint">No champions yet.</p>
       )}
       {years.map((y) => (
         <RecentChampions key={y} all={all} year={y} limit={Infinity} title={String(y)} />

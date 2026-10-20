@@ -2,16 +2,16 @@
 // what's been typed, narrowing as more letters go in. A club or event
 // matching brings in all its competitions.
 import { matchesSearch } from "@/lib/people";
-import { competitionPath, eventPath, type PublicCompetition } from "@/lib/publicCompetitions";
+import { clubPath, competitionPath, eventPath, type PublicCompetition } from "@/lib/publicCompetitions";
 
 export type MenuItem = {
-  kind: "competition" | "event";
+  kind: "competition" | "event" | "club";
   title: string; // "Floodlit Singles", "Blackpool Masters"
-  detail: string; // "Penwortham · 2027", "Event · 3 competitions · 2027"
+  detail: string; // "Penwortham · 2027", "Event · 3 competitions · 2027", "Club · 2 competitions"
   href: string;
 };
 
-// One entry per competition (its latest year), and one per event
+// One entry per competition (its latest year), one per event and one per club
 export function menuItems(all: PublicCompetition[]): MenuItem[] {
   const items: MenuItem[] = [];
   const latestBySlug = new Map<string, PublicCompetition>();
@@ -39,12 +39,39 @@ export function menuItems(all: PublicCompetition[]): MenuItem[] {
       href: eventPath(list[0].organiser.slug!, year, all),
     });
   }
+  for (const club of clubs(all)) {
+    items.push({
+      kind: "club",
+      title: club.name,
+      detail: `Club · ${club.count} competition${club.count === 1 ? "" : "s"}`,
+      href: club.href,
+    });
+  }
   return items.sort((a, b) => a.title.localeCompare(b.title));
+}
+
+// Every club with a competition on the site, A to Z, with how many
+// competitions it runs (each counted once, however many years)
+export function clubs(all: PublicCompetition[]): { id: string; name: string; short_name: string; href: string; count: number }[] {
+  const found = new Map<string, { id: string; name: string; short_name: string; href: string; slugs: Set<string> }>();
+  for (const c of all) {
+    const href = c.organiser.kind === "club" ? clubPath(c.organiser) : null;
+    if (!href) continue;
+    if (!found.has(c.organiser.id)) {
+      found.set(c.organiser.id, { id: c.organiser.id, name: c.organiser.name, short_name: c.organiser.short_name, href, slugs: new Set() });
+    }
+    found.get(c.organiser.id)!.slugs.add(c.slug);
+  }
+  return [...found.values()]
+    .map(({ slugs, ...club }) => ({ ...club, count: slugs.size }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 // What matches the search: by the competition's or event's own name, or by
 // the club that runs it ("pen" finds all of Penwortham's)
 export function searchMenu(items: MenuItem[], query: string): MenuItem[] {
   if (!query.trim()) return [];
-  return items.filter((i) => matchesSearch(i.title, query) || matchesSearch(i.detail.split(" · ")[0], query));
+  return items.filter(
+    (i) => matchesSearch(i.title, query) || (i.kind === "competition" && matchesSearch(i.detail.split(" · ")[0], query))
+  );
 }

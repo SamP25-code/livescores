@@ -205,7 +205,6 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
                     {c.champion ? <>Champion <strong>{c.champion.name}</strong></> : day?.date ? longDate(day.date) : "Date to be confirmed"}
                   </span>
                 </span>
-                <span className="comp-row-open">Open ›</span>
               </Link>
             );
           })}

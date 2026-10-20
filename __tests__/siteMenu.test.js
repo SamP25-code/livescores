@@ -1,4 +1,4 @@
-const { menuItems, searchMenu } = require("../lib/siteMenu.ts");
+const { clubs, menuItems, searchMenu } = require("../lib/siteMenu.ts");
 
 const club = { id: "pen", name: "Penwortham SSC", short_name: "Penwortham", kind: "club", slug: "penwortham" };
 const event = { id: "bm", name: "Blackpool Masters", short_name: "Blackpool Masters", kind: "event", slug: "blackpool-masters" };
@@ -15,11 +15,12 @@ const all = [
 describe("side menu search", () => {
   const items = menuItems(all);
 
-  test("one entry per competition (latest year) and one per event", () => {
+  test("one entry per competition (latest year), per event and per club", () => {
     expect(items.map((i) => `${i.title} | ${i.detail} | ${i.href}`)).toEqual([
       "Blackpool Masters | Event · 2 competitions · 2027 | /blackpool-masters",
       "Jack Rees Doubles | Penwortham · 2027 | /jack-rees-doubles",
       "October Singles | Penwortham · 2027 | /october-singles",
+      "Penwortham SSC | Club · 2 competitions | /clubs/penwortham",
     ]);
   });
 
@@ -29,7 +30,11 @@ describe("side menu search", () => {
     expect(searchMenu(items, "")).toEqual([]);
   });
 
-  test("a club's name finds all its competitions", () => {
-    expect(searchMenu(items, "pen").map((i) => i.title)).toEqual(["Jack Rees Doubles", "October Singles"]);
+  test("a club's name finds the club and all its competitions", () => {
+    expect(searchMenu(items, "pen").map((i) => i.title)).toEqual(["Jack Rees Doubles", "October Singles", "Penwortham SSC"]);
+  });
+
+  test("the Clubs page: each club once, A to Z, competitions counted once across years", () => {
+    expect(clubs(all)).toEqual([{ id: "pen", name: "Penwortham SSC", short_name: "Penwortham", href: "/clubs/penwortham", count: 2 }]);
   });
 });

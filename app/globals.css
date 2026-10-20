@@ -2944,8 +2944,6 @@ label {
 
 .home-section-head h2 {
   margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
 }
 
 .home-year {
@@ -3060,8 +3058,6 @@ label {
 .home-next-label {
   font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--gold-deep);
 }
 
@@ -3141,7 +3137,6 @@ a.venue-card-directions {
 .cal-title {
   margin: 0;
   font-size: 1.5rem;
-  text-transform: uppercase;
   color: var(--green-deep);
 }
 
@@ -3436,16 +3431,6 @@ a.venue-card-directions {
   color: var(--ink-soft);
 }
 
-.comp-row-open {
-  flex: none;
-  align-self: center;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  font-weight: 700;
-  color: var(--green-deep);
-}
-
 .comp-pill {
   flex: none;
   display: inline-flex;
@@ -3716,8 +3701,6 @@ a.venue-card-directions {
 .sponsor-panel-label {
   font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--ink-soft);
 }
 
@@ -4124,8 +4107,6 @@ html.larger-text {
 .latest-champion > span:first-child {
   font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--gold-deep);
 }
 
@@ -4351,8 +4332,6 @@ html.larger-text {
 .event-day-label {
   font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--ink-soft);
 }
 
@@ -4475,8 +4454,6 @@ html.larger-text {
 .event-advert-label {
   font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--ink-soft);
 }
 
@@ -4748,13 +4725,6 @@ html.larger-text {
   font-size: 0.85rem;
 }
 
-.site-menu-icon {
-  display: inline-flex;
-  justify-content: center;
-  width: 24px;
-  font-size: 1.15rem;
-}
-
 .site-menu-live {
   margin-left: auto;
   font-size: 0.85rem;
@@ -4766,8 +4736,6 @@ html.larger-text {
   margin: 18px 0 2px;
   font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--ink-soft);
 }
 
@@ -4786,20 +4754,23 @@ html.larger-text {
   color: var(--green-deep);
 }
 
-/* The home page's big buttons: two across, an event's full width in gold */
+/* The home page's big buttons: three on one line */
 .home-tiles {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 18px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .home-tile {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-height: 104px;
-  padding: 14px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 92px;
+  padding: 12px 4px;
+  text-align: center;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--cream);
@@ -4815,48 +4786,18 @@ html.larger-text {
 
 .home-tile strong {
   font-family: var(--font-display), Georgia, serif;
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: var(--green-deep);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.home-tile > span:not(.home-tile-icon),
-.home-tile-event > span > span {
-  font-size: 0.9rem;
-  color: var(--ink-soft);
 }
 
 .home-tile-icon {
-  font-size: 1.5rem;
-  line-height: 1.2;
-}
-
-.home-tile-event {
-  grid-column: 1 / -1;
-  flex-direction: row;
-  align-items: center;
-  gap: 14px;
-  min-height: 84px;
-  border-color: var(--gold);
-  background: var(--gold-pale);
-}
-
-.home-tile-event > span:last-child {
-  display: flex;
-  flex-direction: column;
-}
-
-.home-tile-event strong {
-  color: var(--gold-deep);
+  color: var(--green-mid);
 }
 
 .public-page-title {
   margin: 12px 0 4px;
   color: #fff;
   font-size: 2rem;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
 }
 
@@ -4864,4 +4805,102 @@ html.larger-text {
   margin: 0 0 8px;
   color: #fff;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+/* Who runs a competition and what it is, as pills under its name */
+.info-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 4px;
+}
+
+.info-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.info-pill-club {
+  border-color: var(--green-mid);
+  background: var(--green-pale);
+  color: var(--green-deep);
+}
+
+a.info-pill-club:hover,
+a.info-pill-club:focus-visible {
+  background: var(--green-highlight);
+}
+
+/* The big event of the year, on its own above the other buttons: a gold
+   border, and the sponsor's logo when there is one */
+.home-event-tile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 2px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--cream);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.home-event-tile:hover,
+.home-event-tile:focus-visible {
+  background: var(--gold-pale);
+}
+
+.home-event-tile > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.home-event-tile strong {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.5rem;
+  line-height: 1.15;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+}
+
+.home-event-tile > span > span {
+  color: var(--ink-soft);
+}
+
+.home-event-tile-logo {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.info-pills-text {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.comp-status {
+  flex: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.comp-status-coming_up {
+  color: var(--gold-deep);
+}
+
+.site-menu-item .live-dot {
+  flex: none;
 }

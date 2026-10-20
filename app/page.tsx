@@ -27,8 +27,9 @@ export const dynamic = "force-dynamic";
 
 // The home page: short, like a front page. The latest - live scores when
 // something's on, otherwise the latest winner and what's next - then big
-// buttons to the main pages: competitions, the calendar, any event coming
-// up (the Blackpool Masters), champions. Everything else is in the menu (☰).
+// buttons: any event coming up (the Blackpool Masters) on its own so it
+// stands out, then competitions, the calendar and champions on one line.
+// Everything else is in the menu (☰).
 export default function HomePage() {
   const [competitions, setCompetitions] = useState<PublicCompetition[] | null>(null);
   const [live, setLive] = useState<LiveMatch[]>([]);
@@ -92,7 +93,9 @@ export default function HomePage() {
   const events = [...new Map(all.filter((c) => c.organiser.kind === "event" && c.organiser.slug).map((c) => [`${c.organiser.id}:${c.year}`, c])).values()]
     .map((c) => {
       const members = all.filter((x) => x.organiser.id === c.organiser.id && x.year === c.year);
-      return { organiser: c.organiser, year: c.year, members, dates: eventDates(members) };
+      // A sponsor's logo, when one's been added, says more than any styling
+      const logo = members.flatMap((m) => m.sponsors).find((s) => s.logo_url)?.logo_url ?? null;
+      return { organiser: c.organiser, year: c.year, members, dates: eventDates(members), logo };
     })
     .filter((e) => e.members.some((m) => ["live", "coming_up", "planned"].includes(publicStatus(m, today))))
     .sort((a, b) => (a.dates?.from ?? "9").localeCompare(b.dates?.from ?? "9"));
@@ -103,7 +106,7 @@ export default function HomePage() {
       <SiteHeader />
 
       {failed && (
-        <p className="night-header-hint">Having trouble loading this page? Check your connection and try refreshing.</p>
+        <p className="night-header-hint">Couldn&rsquo;t load &ndash; check your signal and refresh.</p>
       )}
       {competitions === null && !failed && <p className="night-header-hint">Loading&hellip;</p>}
 
@@ -119,20 +122,10 @@ export default function HomePage() {
       </div>
 
       {competitions !== null && (
-        <nav className="home-tiles" aria-label="Go to">
-          <Link href="/competitions" className="home-tile">
-            <span className="home-tile-icon" aria-hidden="true">🏅</span>
-            <strong>Competitions</strong>
-            <span>All of them, by club</span>
-          </Link>
-          <Link href="/calendar" className="home-tile">
-            <span className="home-tile-icon" aria-hidden="true">📅</span>
-            <strong>Calendar</strong>
-            <span>What&rsquo;s on when</span>
-          </Link>
+        <>
           {events.map((e) => (
-            <Link key={`${e.organiser.id}-${e.year}`} href={eventPath(e.organiser.slug!, e.year, all)} className="home-tile home-tile-event">
-              <span className="home-tile-icon" aria-hidden="true">⭐</span>
+            <Link key={`${e.organiser.id}-${e.year}`} href={eventPath(e.organiser.slug!, e.year, all)} className="home-event-tile">
+              {e.logo && <img src={e.logo} alt="" className="home-event-tile-logo" />}
               <span>
                 <strong>
                   {e.organiser.name} {e.year}
@@ -144,16 +137,55 @@ export default function HomePage() {
               </span>
             </Link>
           ))}
-          <Link href="/champions" className="home-tile">
-            <span className="home-tile-icon" aria-hidden="true">🏆</span>
-            <strong>Champions</strong>
-            <span>Winners and honours</span>
-          </Link>
-        </nav>
+          <nav className="home-tiles" aria-label="Go to">
+            <Link href="/competitions" className="home-tile">
+              <TileIcon name="list" />
+              <strong>Competitions</strong>
+            </Link>
+            <Link href="/calendar" className="home-tile">
+              <TileIcon name="calendar" />
+              <strong>Calendar</strong>
+            </Link>
+            <Link href="/champions" className="home-tile">
+              <TileIcon name="trophy" />
+              <strong>Champions</strong>
+            </Link>
+          </nav>
+        </>
       )}
 
       <PublicFooter line="Live scores for crown green competitions, free to follow." />
     </div>
+  );
+}
+
+// Simple line drawings for the three buttons, in the page's green
+function TileIcon({ name }: { name: "list" | "calendar" | "trophy" }) {
+  return (
+    <svg className="home-tile-icon" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+      <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        {name === "list" && (
+          <>
+            <circle cx="5" cy="6" r="1.2" />
+            <circle cx="5" cy="12" r="1.2" />
+            <circle cx="5" cy="18" r="1.2" />
+            <path d="M9.5 6H20M9.5 12H20M9.5 18H20" />
+          </>
+        )}
+        {name === "calendar" && (
+          <>
+            <rect x="3.5" y="5" width="17" height="15" rx="1.5" />
+            <path d="M3.5 10h17M8 3v4M16 3v4" />
+          </>
+        )}
+        {name === "trophy" && (
+          <>
+            <path d="M7 4h10v5a5 5 0 0 1-10 0V4z" />
+            <path d="M7 6H4v1.5A3.5 3.5 0 0 0 7.5 11M17 6h3v1.5a3.5 3.5 0 0 1-3.5 3.5M12 14v4M8 20h8" />
+          </>
+        )}
+      </g>
+    </svg>
   );
 }
 

@@ -24,15 +24,16 @@ function loadMenu() {
 }
 
 const LINKS = [
-  { href: "/", label: "Home", icon: "🏠" },
-  { href: "/competitions", label: "Competitions", icon: "🏅" },
-  { href: "/calendar", label: "Calendar", icon: "📅" },
-  { href: "/champions", label: "Champions", icon: "🏆" },
+  { href: "/", label: "Home" },
+  { href: "/competitions", label: "Competitions" },
+  { href: "/calendar", label: "Calendar" },
+  { href: "/clubs", label: "Clubs" },
+  { href: "/champions", label: "Champions" },
 ];
 
 // The top of every public page: the menu button (☰) and the site's name.
 // The menu has a search - every competition, club and event that matches,
-// narrowing as you type - then the main pages, events and competitions.
+// narrowing as you type - then the main pages and the events.
 export default function SiteHeader({ compact = false }: { compact?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -65,7 +66,6 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
 
   const results = menu ? searchMenu(menu.items, query) : [];
   const events = menu?.items.filter((i) => i.kind === "event") ?? [];
-  const competitions = menu?.items.filter((i) => i.kind === "competition") ?? [];
 
   return (
     <>
@@ -117,15 +117,12 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
               <>
                 {LINKS.slice(0, 1).map((l) => (
                   <Link key={l.href} href={l.href} className="site-menu-item">
-                    <span className="site-menu-icon" aria-hidden="true">{l.icon}</span>
                     {l.label}
                   </Link>
                 ))}
                 {menu && menu.live > 0 && (
                   <Link href="/#live" className="site-menu-item">
-                    <span className="site-menu-icon" aria-hidden="true">
-                      <span className="live-dot" />
-                    </span>
+                    <span className="live-dot" aria-hidden="true" />
                     Live now
                     <span className="site-menu-live">
                       {menu.live} match{menu.live === 1 ? "" : "es"}
@@ -134,7 +131,6 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
                 )}
                 {LINKS.slice(1).map((l) => (
                   <Link key={l.href} href={l.href} className="site-menu-item">
-                    <span className="site-menu-icon" aria-hidden="true">{l.icon}</span>
                     {l.label}
                   </Link>
                 ))}
@@ -145,19 +141,6 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
                     {events.map((e) => (
                       <Link key={e.href} href={e.href} className="site-menu-item site-menu-sub">
                         {e.title}
-                      </Link>
-                    ))}
-                  </>
-                )}
-                {competitions.length > 0 && (
-                  <>
-                    <p className="site-menu-heading">Clubs&rsquo; competitions</p>
-                    {competitions.map((c) => (
-                      <Link key={c.href} href={c.href} className="site-menu-item site-menu-sub">
-                        <span>
-                          {c.title}
-                          <span className="hint">{c.detail.split(" · ")[0]}</span>
-                        </span>
                       </Link>
                     ))}
                   </>

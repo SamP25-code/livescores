@@ -2,6 +2,7 @@ import Link from "next/link";
 import PlayerName from "@/components/PlayerName";
 import { longDate } from "@/lib/competitionSetup";
 import { isTrophyDay, sessionTitle, type PublicCompetition, type PublicSession } from "@/lib/publicCompetitions";
+import CompetitionPills from "@/components/home/CompetitionPills";
 
 // The top of the home page when nothing's live and nothing has a date coming
 // up: the most recently finished session, and its champion if it decided one
@@ -23,6 +24,7 @@ export default function LatestResults({ all, today }: { all: PublicCompetition[]
       <h2 className="home-next-name">
         {c.name} {c.year}
       </h2>
+      <CompetitionPills competition={c} all={all} />
       <p className="home-next-format">
         {sessionTitle(s)} &middot; {longDate(s.date!)}
       </p>
@@ -33,7 +35,7 @@ export default function LatestResults({ all, today }: { all: PublicCompetition[]
         </p>
       )}
       <Link href={`/night/${s.id}`} className="button home-next-go">
-        See the results ›
+        See the results
       </Link>
     </div>
   );

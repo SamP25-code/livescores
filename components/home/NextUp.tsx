@@ -9,6 +9,7 @@ import {
   type PublicCompetition,
   type PublicSession,
 } from "@/lib/publicCompetitions";
+import CompetitionPills from "@/components/home/CompetitionPills";
 
 // When nothing's live: the next competition (or two, if both start the same
 // week) with a countdown, when and where it starts, and whether the draw is out.
@@ -30,6 +31,7 @@ export default function NextUp({
           <div key={c.id} className="card home-next">
             <span className="home-next-label">Next up</span>
             <h2 className="home-next-name">{c.name}</h2>
+            <CompetitionPills competition={c} all={all} />
             <p className="home-next-format">{formatLine(c)}</p>
             <div className="home-next-when">
               <span className="home-next-count">
@@ -54,7 +56,7 @@ export default function NextUp({
               </span>
             </div>
             <Link href={s.draw_published ? `/night/${s.id}` : competitionPath(c, all)} className="button home-next-go">
-              {s.draw_published ? "See the draw ›" : "See the competition ›"}
+              {s.draw_published ? "See the draw" : "See the competition"}
             </Link>
           </div>
         );

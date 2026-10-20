@@ -29,7 +29,7 @@ export default function PublicPage({
       <SiteHeader />
       <h1 className="public-page-title">{title}</h1>
       {intro && <p className="public-page-intro">{intro}</p>}
-      {failed && <p className="night-header-hint">Having trouble loading this page? Check your connection and try refreshing.</p>}
+      {failed && <p className="night-header-hint">Couldn&rsquo;t load &ndash; check your signal and refresh.</p>}
       {loading && !failed && <p className="night-header-hint">Loading&hellip;</p>}
       {children}
       <PublicFooter line="Live scores for crown green competitions, free to follow." />

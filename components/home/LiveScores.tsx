@@ -69,7 +69,7 @@ export default function LiveScores({
             );
           })}
           <Link href={`/night/${shown[0].nightId}`} className="home-live-all">
-            {matches.length > MAX_SHOWN ? `See all ${matches.length} live scores ›` : "See the full draw ›"}
+            {matches.length > MAX_SHOWN ? `See all ${matches.length} live scores` : "See the full draw"}
           </Link>
         </div>
       )}

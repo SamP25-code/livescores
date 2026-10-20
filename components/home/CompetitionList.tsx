@@ -16,12 +16,12 @@ import {
   sortForList,
   type ListFilter,
   type PublicCompetition,
+  type PublicStatus,
 } from "@/lib/publicCompetitions";
 
 // Every competition in the chosen year: live first, then coming up, planned,
-// finished. Earlier years are the archive. Beside the calendar, tapping a row
-// lights up its dates and "Open" goes to the competition; on its own, a row
-// just opens it. With a search box, typing a club or event narrows the list.
+// finished. Earlier years are the archive. Tap a row to open it. With a
+// search box, typing a club or event narrows the list.
 export default function CompetitionList({
   all,
   year,
@@ -31,9 +31,9 @@ export default function CompetitionList({
   onFilter,
   colours,
   today,
-  highlightId = null,
-  onHighlight,
   searchable = false,
+  organiserId,
+  title = "Competitions",
 }: {
   all: PublicCompetition[];
   year: number;
@@ -43,12 +43,12 @@ export default function CompetitionList({
   onFilter: (f: ListFilter) => void;
   colours: Map<string, string>;
   today: string;
-  highlightId?: string | null;
-  onHighlight?: (id: string | null) => void;
   searchable?: boolean;
+  organiserId?: string;
+  title?: string;
 }) {
   const [query, setQuery] = useState("");
-  const thisYear = all.filter((c) => c.year === year);
+  const thisYear = all.filter((c) => c.year === year && (!organiserId || c.organiser.id === organiserId));
   const labels = [...new Set(thisYear.map((c) => c.label).filter((l): l is string => Boolean(l)))];
   const filters: { key: ListFilter; text: string }[] = [
     { key: "all", text: "All" },
@@ -79,7 +79,7 @@ export default function CompetitionList({
   return (
     <section className="home-section">
       <div className="home-section-head">
-        <h2>Competitions</h2>
+        <h2>{title}</h2>
         {years.length > 1 && (
           <select aria-label="Year" className="home-year" value={year} onChange={(e) => onYear(Number(e.target.value))}>
             {years.map((y) => (
@@ -117,7 +117,7 @@ export default function CompetitionList({
 
       <div className="card comp-rows">
         {shown.length === 0 && (
-          <p className="hint">{query.trim() ? `Nothing in ${year} matches “${query.trim()}”.` : "Nothing to show here."}</p>
+          <p className="hint">{query.trim() ? `Nothing in ${year} matches “${query.trim()}”.` : "Nothing here yet."}</p>
         )}
         {rows.map((row) => {
           if (row.kind === "event") {
@@ -136,17 +136,13 @@ export default function CompetitionList({
                 <span className="comp-row-text">
                   <span className="comp-row-top">
                     <strong className="comp-row-name">{row.c.organiser.name}</strong>
-                    <span className={`comp-pill comp-pill-${status}`}>
-                      {status === "live" && <span className="live-dot" />}
-                      {STATUS_LABEL[status]}
-                    </span>
+                    <StatusLabel status={status} />
                   </span>
                   <span className="comp-row-line">
                     Event · {members.length} competition{members.length === 1 ? "" : "s"}
                   </span>
                   <span className="comp-row-line">{dates ? dateRange(dates.from, dates.to) : "Dates to be confirmed"}</span>
                 </span>
-                <span className="comp-row-open">Open &rsaquo;</span>
               </Link>
             );
           }
@@ -163,10 +159,7 @@ export default function CompetitionList({
               <span className="comp-row-text">
                 <span className="comp-row-top">
                   <strong className="comp-row-name">{c.name}</strong>
-                  <span className={`comp-pill comp-pill-${status}`}>
-                    {status === "live" && <span className="live-dot" />}
-                    {STATUS_LABEL[status]}
-                  </span>
+                  <StatusLabel status={status} />
                 </span>
                 <span className="comp-row-line">
                   {status === "finished" && c.champion ? (
@@ -182,43 +175,26 @@ export default function CompetitionList({
               </span>
             </>
           );
-          if (!onHighlight) {
-            return (
-              <Link key={c.id} href={competitionPath(c, all)} className="comp-row" style={{ color: "inherit", textDecoration: "none" }}>
-                {text}
-                <span className="comp-row-open">Open &rsaquo;</span>
-              </Link>
-            );
-          }
           return (
-            <div
-              key={c.id}
-              className={`comp-row ${highlightId === c.id ? "comp-row-on" : ""}`}
-              role="button"
-              tabIndex={0}
-              aria-pressed={highlightId === c.id}
-              aria-label={`Show ${c.name}'s dates on the calendar`}
-              onClick={() => onHighlight(highlightId === c.id ? null : c.id)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onHighlight(highlightId === c.id ? null : c.id);
-                }
-              }}
-            >
+            <Link key={c.id} href={competitionPath(c, all)} className="comp-row" style={{ color: "inherit", textDecoration: "none" }}>
               {text}
-              <Link
-                href={competitionPath(c, all)}
-                className="comp-row-open"
-                onClick={(e) => e.stopPropagation()}
-                aria-label={`Open ${c.name}`}
-              >
-                Open &rsaquo;
-              </Link>
-            </div>
+            </Link>
           );
         })}
       </div>
     </section>
   );
+}
+
+// Live gets a pill - it's the one that matters - everything else is just words
+function StatusLabel({ status }: { status: PublicStatus }) {
+  if (status === "live") {
+    return (
+      <span className="comp-pill comp-pill-live">
+        <span className="live-dot" />
+        {STATUS_LABEL.live}
+      </span>
+    );
+  }
+  return <span className={`comp-status comp-status-${status}`}>{STATUS_LABEL[status]}</span>;
 }

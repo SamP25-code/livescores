@@ -79,7 +79,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
   if (failed) {
     return (
       <Shell>
-        <p className="night-header-hint">Having trouble loading this page? Check your connection and try refreshing.</p>
+        <p className="night-header-hint">Couldn&rsquo;t load &ndash; check your signal and refresh.</p>
       </Shell>
     );
   }

@@ -364,7 +364,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
 
         {loadError && (
           <p className="night-header-hint">
-            Having trouble loading this page? Check your connection and try refreshing.
+            Couldn&rsquo;t load &ndash; check your signal and refresh.
           </p>
         )}
 
