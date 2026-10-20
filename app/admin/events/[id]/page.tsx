@@ -22,6 +22,8 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
   const [year, setYear] = useState<number | null>(null);
   const [posts, setPosts] = useState<EventPost[] | null>(null);
   const [qualifiers, setQualifiers] = useState<{ id: string; name: string }[]>([]);
+  // This year's competitions in the event
+  const [comps, setComps] = useState<{ id: string; name: string }[]>([]);
   const [editing, setEditing] = useState<string | null>(null); // post id, or "new"
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -47,9 +49,12 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
       setPosts(await listPosts(id, year));
       const { data: comps } = await supabase
         .from("competitions")
-        .select("id, series:series_id!inner(organiser_id)")
+        .select("id, series:series_id!inner(organiser_id, name)")
         .eq("series.organiser_id", id)
         .eq("year", year);
+      setComps(
+        (comps ?? []).map((c) => ({ id: c.id, name: (c.series as unknown as { name: string }).name }))
+      );
       const ids = (comps ?? []).map((c) => c.id);
       const { data: q } = ids.length
         ? await supabase.from("qualifier_events").select("id, name").in("competition_id", ids).order("name")
@@ -93,6 +98,24 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
       )}
       {error && <p className="error">{error}</p>}
       {message && !error && <p className="hint">{message}</p>}
+
+      <h2>Competitions{year ? ` ${year}` : ""}</h2>
+      <div className="card comp-list">
+        {comps.length === 0 && <p className="hint">None yet.</p>}
+        {comps.map((c) => (
+          <Link key={c.id} href={`/admin/competitions/${c.id}`} className="comp-list-row">
+            <span className="comp-list-main">
+              <strong>{c.name}</strong>
+            </span>
+            <span className="comp-list-open">Open ›</span>
+          </Link>
+        ))}
+      </div>
+      <p>
+        <Link href={`/admin/competitions/new?event=${id}`} className="button">
+          + Add a competition to the {event?.name ?? "event"}
+        </Link>
+      </p>
 
       <div className="comp-list-head">
         <h2>Posts</h2>

@@ -152,6 +152,22 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
                 {c.structure_locked && <p className="hint">The format is locked - a draw has been made.</p>}
               </div>
 
+              {c.series.organiser.kind === "event" && isSuper && (
+                <div className="card event-admin-links">
+                  <span>
+                    Part of the <strong>{c.series.organiser.name}</strong>
+                  </span>
+                  <span className="person-check-actions">
+                    <Link href={`/admin/competitions/new?event=${c.series.organiser.id}`} className="button">
+                      + Add another competition to the {c.series.organiser.name}
+                    </Link>
+                    <Link href={`/admin/events/${c.series.organiser.id}`} className="link-button">
+                      Its page and posts ›
+                    </Link>
+                  </span>
+                </div>
+              )}
+
               <h2>Sessions</h2>
               <div className="card comp-list">
                 {data.sessions.length === 0 && <p className="hint">No sessions yet - save the settings to create them.</p>}

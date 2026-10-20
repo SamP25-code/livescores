@@ -10,6 +10,7 @@ import {
   type SessionKind,
 } from "@/lib/competitionSetup";
 import {
+  listCompetitions,
   createCompetition,
   createOrganiser,
   createSeries,
@@ -49,9 +50,12 @@ const numberOrNull = (v: string) => (v.trim() === "" ? null : Number(v));
 // (status, label, sponsor, venue, dates) can change.
 export default function CompetitionForm({
   existing,
+  presetOrganiserId,
   onSaved,
 }: {
   existing?: { competition: CompetitionWithSeries; sessions: Night[] };
+  // "+ Add another competition to the Blackpool Masters": that event, chosen already
+  presetOrganiserId?: string;
   onSaved: (competitionId: string) => void;
 }) {
   const c = existing?.competition;
@@ -61,9 +65,13 @@ export default function CompetitionForm({
   const [allSeries, setAllSeries] = useState<Series[]>([]);
   const [venues, setVenues] = useState<Venue[]>([]);
 
-  // Who runs it and which competition (new only)
-  const [organiserId, setOrganiserId] = useState<string>("");
-  const [newOrganiser, setNewOrganiser] = useState({ name: "", short_name: "", kind: "club" as "club" | "event" });
+  // What it is (new only): a club's competition, or part of an event - and
+  // which club or event ("new" for one not in the list yet)
+  const [kind, setKind] = useState<"club" | "event">("club");
+  const [organiserId, setOrganiserId] = useState<string>(presetOrganiserId ?? "");
+  const [newOrgName, setNewOrgName] = useState("");
+  // Each competition's venue, for defaulting to the one a club used last
+  const [pastVenues, setPastVenues] = useState<{ organiserId: string; venueId: string; year: number }[]>([]);
   const [seriesId, setSeriesId] = useState<string>("");
   const [newSeriesName, setNewSeriesName] = useState("");
   const [newSeriesSlug, setNewSeriesSlug] = useState("");
@@ -113,10 +121,24 @@ export default function CompetitionForm({
     listChoices()
       .then((choices) => {
         setOrganisers(choices.organisers);
+        const preset = choices.organisers.find((o) => o.id === presetOrganiserId);
+        if (preset) setKind(preset.kind);
         setAllSeries(choices.series);
         setVenues(choices.venues);
       })
       .catch((err) => setError(errorMessage(err)));
+    if (!existing) {
+      listCompetitions()
+        .then((all) =>
+          setPastVenues(
+            all
+              .filter((x) => x.venue_id)
+              .map((x) => ({ organiserId: x.series.organiser_id, venueId: x.venue_id!, year: x.year }))
+          )
+        )
+        .catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const structure = {
@@ -151,6 +173,18 @@ export default function CompetitionForm({
   }, [plan]);
 
   const seriesForOrganiser = allSeries.filter((s) => s.organiser_id === organiserId);
+  const organisersOfKind = organisers.filter((o) => o.kind === kind);
+  const chosenOrganiser = organisers.find((o) => o.id === organiserId) ?? null;
+
+  // Picking a club or event: where it usually plays, if the venue's not set
+  function chooseOrganiser(id: string) {
+    setOrganiserId(id);
+    setSeriesId("");
+    if (!venueId) {
+      const last = pastVenues.filter((p) => p.organiserId === id).sort((a, b) => b.year - a.year)[0];
+      if (last) setVenueId(last.venueId);
+    }
+  }
 
   function setSponsor(i: number, field: keyof SponsorInput, value: string | null) {
     setSponsors((current) => current.map((s, j) => (j === i ? { ...s, [field]: value } : s)));
@@ -221,16 +255,11 @@ export default function CompetitionForm({
       }
 
       let chosenOrganiserId = organiserId;
-      if (!organiserId && organisers.length > 0) throw new Error("Choose who runs it.");
+      const noun = kind === "club" ? "club" : "event";
+      if (!organiserId && organisersOfKind.length > 0) throw new Error(`Choose the ${noun}.`);
       if (organiserId === "new" || !organiserId) {
-        if (!newOrganiser.name.trim() || !newOrganiser.short_name.trim()) {
-          throw new Error("Enter who runs it - the full name and the short name.");
-        }
-        const o = await createOrganiser({
-          name: newOrganiser.name.trim(),
-          short_name: newOrganiser.short_name.trim(),
-          kind: newOrganiser.kind,
-        });
+        if (!newOrgName.trim()) throw new Error(`Enter the ${noun}'s name.`);
+        const o = await createOrganiser({ name: newOrgName.trim(), short_name: newOrgName.trim(), kind });
         chosenOrganiserId = o.id;
       }
       let chosenSeriesId = seriesId;
@@ -255,75 +284,127 @@ export default function CompetitionForm({
     }
   }
 
+  // Where it's played: next to the club or event when setting up, with the
+  // sponsors when changing
+  const venueField = (
+    <>
+        <div className="field">
+          <label htmlFor="cf-venue">{existing ? "Venue" : "Where is it played?"}</label>
+          <select
+            id="cf-venue"
+            value={venueId}
+            onChange={(e) => setVenueId(e.target.value)}
+          >
+            <option value="">Not set yet</option>
+            {venues.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
+                {v.postcode ? ` (${v.postcode})` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="hint">
+          {venueId && venues.find((v) => v.id === venueId) && (
+            <>
+              <a href={directionsUrl(venues.find((v) => v.id === venueId)!)} target="_blank" rel="noopener noreferrer">
+                Check the directions
+              </a>{" "}
+              &middot;{" "}
+            </>
+          )}
+          Not in the list, or details to correct? <Link href="/admin/venues">Venues</Link>
+        </p>
+    </>
+  );
+
   return (
     <form onSubmit={handleSubmit} className="comp-form">
       {!existing && (
         <section className="card">
-          <h2>Competition</h2>
+          <h2>What is it?</h2>
+          <fieldset className="comp-form-choice">
+            <legend className="visually-hidden">What is it?</legend>
+            <label>
+              <input
+                type="radio"
+                name="cf-kind"
+                checked={kind === "club"}
+                onChange={() => {
+                  setKind("club");
+                  setOrganiserId("");
+                  setSeriesId("");
+                }}
+              />
+              A club competition
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="cf-kind"
+                checked={kind === "event"}
+                onChange={() => {
+                  setKind("event");
+                  setOrganiserId("");
+                  setSeriesId("");
+                }}
+              />
+              Part of an event (e.g. the Blackpool Masters)
+            </label>
+          </fieldset>
+
           <div className="field">
-            <label htmlFor="cf-organiser">Run by</label>
+            <label htmlFor="cf-organiser">{kind === "club" ? "Which club?" : "Which event?"}</label>
             <select
               id="cf-organiser"
-              value={organiserId || (organisers.length ? "" : "new")}
-              onChange={(e) => {
-                setOrganiserId(e.target.value);
-                setSeriesId("");
-              }}
+              value={organiserId || (organisersOfKind.length ? "" : "new")}
+              onChange={(e) => chooseOrganiser(e.target.value)}
             >
               <option value="" disabled>
-                Choose a club or event
+                {kind === "club" ? "Choose a club" : "Choose an event"}
               </option>
-              {organisers.map((o) => (
+              {organisersOfKind.map((o) => (
                 <option key={o.id} value={o.id}>
-                  {o.short_name} ({o.kind === "club" ? "club" : "event"})
+                  {o.name}
                 </option>
               ))}
-              <option value="new">+ A new club or event</option>
+              <option value="new">{kind === "club" ? "+ A new club" : "+ A new event"}</option>
             </select>
           </div>
-          {(organiserId === "new" || organisers.length === 0) && (
+          {(organiserId === "new" || organisersOfKind.length === 0) && (
             <div className="comp-form-sub">
               <div className="field">
-                <label htmlFor="cf-org-name">Full name</label>
+                <label htmlFor="cf-org-name">{kind === "club" ? "The club's name" : "The event's name"}</label>
                 <input
                   id="cf-org-name"
-                  placeholder="Penwortham Sports & Social Club"
-                  value={newOrganiser.name}
-                  onChange={(e) => setNewOrganiser({ ...newOrganiser, name: e.target.value })}
+                  placeholder={kind === "club" ? "Penwortham" : "Blackpool Masters"}
+                  value={newOrgName}
+                  onChange={(e) => setNewOrgName(e.target.value)}
                 />
-              </div>
-              <div className="field">
-                <label htmlFor="cf-org-short">Short name</label>
-                <input
-                  id="cf-org-short"
-                  placeholder="Penwortham"
-                  value={newOrganiser.short_name}
-                  onChange={(e) => setNewOrganiser({ ...newOrganiser, short_name: e.target.value })}
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="cf-org-kind">Type</label>
-                <select
-                  id="cf-org-kind"
-                  value={newOrganiser.kind}
-                  onChange={(e) => setNewOrganiser({ ...newOrganiser, kind: e.target.value as "club" | "event" })}
-                >
-                  <option value="club">Club</option>
-                  <option value="event">Standalone event (e.g. Blackpool Masters)</option>
-                </select>
+                <p className="hint">
+                  {kind === "club"
+                    ? `Shown as "Run by ${newOrgName.trim() || "Penwortham"}".`
+                    : `Its own page will be at /${slugify(newOrgName) || "blackpool-masters"}, with all its competitions.`}
+                </p>
               </div>
             </div>
           )}
 
+          {venueField}
+
           <div className="field">
-            <label htmlFor="cf-series">Competition</label>
+            <label htmlFor="cf-series">The competition</label>
             <select id="cf-series" value={seriesId || "new"} onChange={(e) => setSeriesId(e.target.value)}>
               {seriesForOrganiser.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name} - a new year
+                  {s.name} - a new year of it
                 </option>
               ))}
-              <option value="new">+ A new competition</option>
+              <option value="new">
+                {chosenOrganiser?.kind === "event" || kind === "event"
+                  ? `+ A new competition in ${chosenOrganiser?.name ?? "this event"}`
+                  : "+ A new competition"}
+              </option>
             </select>
           </div>
           {(seriesId === "new" || !seriesId) && (
@@ -539,34 +620,8 @@ export default function CompetitionForm({
       </section>
 
       <section className="card">
-        <h2>Venue and sponsor</h2>
-        <div className="field">
-          <label htmlFor="cf-venue">Venue</label>
-          <select
-            id="cf-venue"
-            value={venueId}
-            onChange={(e) => setVenueId(e.target.value)}
-          >
-            <option value="">Not set yet</option>
-            {venues.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.name}
-                {v.postcode ? ` (${v.postcode})` : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-        <p className="hint">
-          {venueId && venues.find((v) => v.id === venueId) && (
-            <>
-              <a href={directionsUrl(venues.find((v) => v.id === venueId)!)} target="_blank" rel="noopener noreferrer">
-                Check the directions
-              </a>{" "}
-              &middot;{" "}
-            </>
-          )}
-          Not in the list, or details to correct? <Link href="/admin/venues">Venues</Link>
-        </p>
+        <h2>{existing ? "Venue and sponsors" : "Sponsors"}</h2>
+        {existing && venueField}
         <div className="comp-form-sponsors">
           <span className="comp-form-sponsors-title">Sponsors (optional)</span>
           {sponsors.map((sponsor, i) => (

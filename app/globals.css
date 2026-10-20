@@ -4525,3 +4525,10 @@ html.larger-text {
   width: 100%;
   min-height: 44px;
 }
+
+/* A competition that's part of an event: adding another to it */
+.event-admin-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
