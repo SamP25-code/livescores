@@ -12,7 +12,7 @@ import {
   competitionPath,
   dateRange,
   daysUntil,
-  whatItIs,
+  rowState,
   isTrophyDay,
   publicStatus,
   shortDate,
@@ -23,7 +23,8 @@ import {
 import { loadPublicQualifying } from "@/lib/publicQualifying";
 import { SITE_NAME } from "@/lib/site";
 import SiteHeader from "@/components/SiteHeader";
-import StatusLabel from "@/components/home/StatusLabel";
+import CompetitionRow from "@/components/home/CompetitionRow";
+import RowLine from "@/components/home/RowLine";
 
 type Tab = "overview" | "competitions" | "qualifying" | "news";
 const TABS: Record<Tab, string> = { overview: "Overview", competitions: "Competitions", qualifying: "Qualifying", news: "News" };
@@ -95,8 +96,6 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
           {[
             firstDate ? `${dateRange(firstDate, dates[dates.length - 1])} ${event.year}` : "Dates to be confirmed",
             `${comps.length} competition${comps.length === 1 ? "" : "s"}`,
-            !live && days !== null && days > 0 ? `${days} day${days === 1 ? "" : "s"} to go` : null,
-            !live && days === 0 ? "Today" : null,
           ]
             .filter(Boolean)
             .join(" · ")}
@@ -116,25 +115,37 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
 
       {tab === "overview" && (
         <>
-          {/* Its days, like a competition's sessions: one row each */}
-          <div className="card comp-schedule">
-            {comps.map((c) => {
+          {!live && days !== null && days >= 0 && (
+            <div className="card event-countdown">
+              <span className="event-countdown-count">
+                {days === 0 ? (
+                  <strong>Today</strong>
+                ) : (
+                  <>
+                    <strong>{days}</strong>
+                    <span>{days === 1 ? "day" : "days"}</span>
+                  </>
+                )}
+              </span>
+              <span className="event-countdown-details">
+                <strong>{longDate(firstDate!)}</strong>
+                <span>{comps.map((c) => c.name).join(" · ")}</span>
+              </span>
+            </div>
+          )}
+
+          <div className="event-days">
+            {comps.map((c, i) => {
               const day = c.sessions.find((s) => isTrophyDay(s.kind) && s.date) ?? c.sessions.find((s) => s.date);
               const status = publicStatus(c, today);
               return (
-                <Link key={c.id} href={competitionPath(c, all)} className={`comp-schedule-row ${status === "live" ? "comp-schedule-live" : ""}`}>
-                  <span className="comp-schedule-main">
-                    <span className="comp-schedule-line">
-                      <strong>{day?.date ? shortDate(day.date) : "Date TBC"}</strong> &middot; {c.name}
-                    </span>
+                <Link key={c.id} href={competitionPath(c, all)} className={`event-day ${day?.date === today ? "event-day-today" : ""}`}>
+                  <span className="event-day-label">{day?.date ? shortDate(day.date).split(" ").slice(0, 2).join(" ") : "TBC"}</span>
+                  <span className="cal-trophy event-day-ring" style={{ background: PALETTE[i % PALETTE.length] }}>
+                    {day?.date ? Number(day.date.slice(8)) : "?"}
                   </span>
-                  {status === "live" ? (
-                    <StatusLabel status="live" />
-                  ) : (
-                    <span className="comp-schedule-open" aria-hidden="true">
-                      &rsaquo;
-                    </span>
-                  )}
+                  <span className="event-day-name">{c.name}</span>
+                  {status === "live" && <span className="cal-live">&bull; LIVE</span>}
                 </Link>
               );
             })}
@@ -178,29 +189,17 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
       )}
 
       {tab === "competitions" && (
-        <div className="card comp-rows">
+        <div className="card home-rows">
           {comps.map((c) => {
-            const status = publicStatus(c, today);
-            const day = c.sessions.find((s) => s.date);
+            const state = rowState(c, today);
             return (
-              <Link key={c.id} href={competitionPath(c, all)} className="comp-row" style={{ textDecoration: "none", color: "inherit" }}>
-                <span className="comp-bar" style={{ background: PALETTE[comps.indexOf(c) % PALETTE.length] }} />
-                <span className="comp-row-text">
-                  <span className="comp-row-top">
-                    <strong className="comp-row-name">{c.name}</strong>
-                    <StatusLabel status={status} />
-                  </span>
-                  <span className="comp-row-line">
-                    {c.champion ? (
-                      <>
-                        Champion <strong>{c.champion.name}</strong>
-                      </>
-                    ) : (
-                      `${whatItIs(c)} · ${day?.date ? longDate(day.date) : "Date to be confirmed"}`
-                    )}
-                  </span>
-                </span>
-              </Link>
+              <CompetitionRow
+                key={c.id}
+                date={state.date}
+                title={c.name}
+                href={competitionPath(c, all)}
+                line={<RowLine competition={c} state={state} />}
+              />
             );
           })}
         </div>

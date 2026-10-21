@@ -193,6 +193,39 @@ export function nextSession(c: Pick<PublicCompetition, "sessions">, today: strin
   );
 }
 
+// "Qualifying session 1 of 4", so it's clear there are more to come
+export function sessionLabel(c: Pick<PublicCompetition, "sessions">, s: Pick<PublicSession, "kind" | "session_number">): string {
+  const qualifying = c.sessions.filter((x) => x.kind === "qualifier").length;
+  return s.kind === "qualifier" && qualifying > 1 ? `${sessionTitle(s)} of ${qualifying}` : sessionTitle(s);
+}
+
+// A competition in a list, the same everywhere: the date to show and what
+// to say about it - on now, the next session and its start, who won, or
+// dates still to come
+export type RowState =
+  | { kind: "live"; date: string; session: PublicSession }
+  | { kind: "next"; date: string; session: PublicSession }
+  | { kind: "won"; date: string | null; champion: Champion }
+  | { kind: "played"; date: string; session: PublicSession }
+  | { kind: "tbc"; date: null };
+export function rowState(c: PublicCompetition, today: string): RowState {
+  const live = c.sessions.find((s) => s.status === "live");
+  if (live) return { kind: "live", date: live.date ?? today, session: live };
+  if (c.champion) {
+    const trophy = c.sessions.find((s) => isTrophyDay(s.kind) && s.date);
+    return { kind: "won", date: c.champion.date ?? trophy?.date ?? null, champion: c.champion };
+  }
+  const next = nextSession(c, today);
+  if (next) return { kind: "next", date: next.date!, session: next };
+  const played = c.sessions
+    .filter((s) => s.date && s.status === "complete")
+    .sort((a, b) => b.date!.localeCompare(a.date!))[0];
+  if (played) return { kind: "played", date: played.date!, session: played };
+  const dated = c.sessions.filter((s) => s.date).sort((a, b) => a.date!.localeCompare(b.date!))[0];
+  if (dated) return { kind: "next", date: dated.date!, session: dated };
+  return { kind: "tbc", date: null };
+}
+
 function lastDate(c: Pick<PublicCompetition, "sessions">): string {
   return c.sessions.reduce((latest, s) => (s.date && s.date > latest ? s.date : latest), "");
 }

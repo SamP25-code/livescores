@@ -9,6 +9,8 @@ const {
   filterList,
   daysUntil,
   comingUp,
+  rowState,
+  sessionLabel,
   latestResults,
   monthGrid,
   coloursFor,
@@ -151,6 +153,24 @@ describe("the home page lists", () => {
     const spring = { ...march, sessions: [session({ date: "2027-03-13", kind: "single_day", status: "complete" })] };
     const picks = latestResults([done, spring, tbc], "2027-06-10");
     expect(picks.map((p) => `${p.competition.id} ${p.session.date}`)).toEqual(["done 2027-06-08", "march 2027-03-13"]);
+  });
+});
+
+describe("a competition in a list", () => {
+  test("the next session, numbered when there are several", () => {
+    const state = rowState(floodlit, "2027-06-08");
+    expect(state.kind).toBe("next");
+    expect(state.date).toBe("2027-06-08");
+    expect(sessionLabel(floodlit, state.session)).toBe("Qualifying session 2 of 4");
+    expect(sessionLabel(march, march.sessions[0])).toBe("One day");
+  });
+
+  test("on now, won, or dates to come", () => {
+    const live = { ...march, sessions: [session({ date: "2027-03-13", kind: "single_day", status: "live" })] };
+    expect(rowState(live, "2027-03-13").kind).toBe("live");
+    const won = { ...march, champion: { name: "A & B", runnerUp: null, date: "2027-03-13" } };
+    expect(rowState(won, "2027-04-01")).toMatchObject({ kind: "won", date: "2027-03-13" });
+    expect(rowState(tbc, "2027-04-01")).toEqual({ kind: "tbc", date: null });
   });
 });
 

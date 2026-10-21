@@ -1,22 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { matchesSearch } from "@/lib/people";
 import {
   competitionPath,
   dateRange,
   eventDates,
   eventPath,
-  datesSummary,
   filterList,
-  whatItIs,
+  rowState,
   publicStatus,
   sortForList,
   type ListFilter,
   type PublicCompetition,
 } from "@/lib/publicCompetitions";
-import StatusLabel from "@/components/home/StatusLabel";
+import CompetitionRow from "@/components/home/CompetitionRow";
+import RowLine from "@/components/home/RowLine";
+import { organiserPill } from "@/components/home/HomeLists";
 
 // Every competition in the chosen year: live first, then coming up, planned,
 // finished. Earlier years are the archive. Tap a row to open it. With a
@@ -28,7 +28,6 @@ export default function CompetitionList({
   onYear,
   filter,
   onFilter,
-  colours,
   today,
   searchable = false,
   organiserId,
@@ -40,7 +39,6 @@ export default function CompetitionList({
   onYear: (year: number) => void;
   filter: ListFilter;
   onFilter: (f: ListFilter) => void;
-  colours: Map<string, string>;
   today: string;
   searchable?: boolean;
   organiserId?: string;
@@ -73,7 +71,6 @@ export default function CompetitionList({
     seenEvents.add(c.organiser.id);
     return [{ kind: "event" as const, c, members: thisYear.filter((x) => x.organiser.id === c.organiser.id) }];
   });
-  const rank: Record<string, number> = { live: 0, coming_up: 1, planned: 2, finished: 3 };
 
   return (
     <section className="home-section">
@@ -117,66 +114,47 @@ export default function CompetitionList({
       {shown.length === 0 && (
         <p className="quiet-line">{query.trim() ? `Nothing in ${year} matches “${query.trim()}”` : "Nothing here yet"}</p>
       )}
-      <div className="card comp-rows" hidden={shown.length === 0}>
+      <div className="card home-rows" hidden={shown.length === 0}>
         {rows.map((row) => {
           if (row.kind === "event") {
             const members = row.members;
-            const status = members.map((m) => publicStatus(m, today)).sort((a, b) => rank[a] - rank[b])[0];
             const dates = eventDates(members);
-            const colour = colours.get(members.find((m) => colours.has(m.id))?.id ?? "");
+            const live = members.some((m) => publicStatus(m, today) === "live");
             return (
-              <Link
+              <CompetitionRow
                 key={`event-${row.c.organiser.id}`}
+                date={dates?.from ?? null}
+                title={row.c.organiser.name}
                 href={eventPath(row.c.organiser.slug!, year, all)}
-                className="comp-row"
-                style={{ color: "inherit", textDecoration: "none" }}
-              >
-                <span className={`comp-bar ${dates ? "" : "comp-bar-dashed"}`} style={colour ? { background: colour } : undefined} />
-                <span className="comp-row-text">
-                  <span className="comp-row-top">
-                    <strong className="comp-row-name">{row.c.organiser.name}</strong>
-                    <StatusLabel status={status} />
-                  </span>
-                  <span className="comp-row-line">
-                    {members.length} competition{members.length === 1 ? "" : "s"} &middot;{" "}
-                    {dates ? dateRange(dates.from, dates.to) : "Dates to be confirmed"}
-                  </span>
-                </span>
-              </Link>
+                line={
+                  <>
+                    {live && (
+                      <>
+                        <span className="comp-pill comp-pill-live">
+                          <span className="live-dot" />
+                          Live
+                        </span>{" "}
+                      </>
+                    )}
+                    Event &middot; {members.length} competition{members.length === 1 ? "" : "s"}
+                    {dates ? ` · ${dateRange(dates.from, dates.to)}` : ""}
+                  </>
+                }
+              />
             );
           }
           const c = row.c;
-          const status = publicStatus(c, today);
-          const colour = colours.get(c.id);
-          const dated = c.sessions.some((s) => s.date);
-          const text = (
-            <>
-              <span
-                className={`comp-bar ${dated ? "" : "comp-bar-dashed"}`}
-                style={colour ? { background: colour } : undefined}
-              />
-              <span className="comp-row-text">
-                <span className="comp-row-top">
-                  <strong className="comp-row-name">{c.name}</strong>
-                  <StatusLabel status={status} />
-                </span>
-                <span className="comp-row-line">
-                  {c.organiser.kind === "event" ? c.organiser.name : c.organiser.short_name} &middot;{" "}
-                  {status === "finished" && c.champion ? (
-                    <>
-                      Champion <strong>{c.champion.name}</strong>
-                    </>
-                  ) : (
-                    `${whatItIs(c)} · ${datesSummary(c.sessions)}`
-                  )}
-                </span>
-              </span>
-            </>
-          );
+          const state = rowState(c, today);
           return (
-            <Link key={c.id} href={competitionPath(c, all)} className="comp-row" style={{ color: "inherit", textDecoration: "none" }}>
-              {text}
-            </Link>
+            <CompetitionRow
+              key={c.id}
+              date={state.date}
+              title={c.name}
+              href={competitionPath(c, all)}
+              // A club's own page doesn't need its own name on every row
+              pill={organiserId ? null : organiserPill(c, all)}
+              line={<RowLine competition={c} state={state} />}
+            />
           );
         })}
       </div>

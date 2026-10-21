@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { usePublicCompetitions } from "@/lib/usePublicCompetitions";
-import { coloursFor, todayIso, type ListFilter } from "@/lib/publicCompetitions";
+import { todayIso, type ListFilter } from "@/lib/publicCompetitions";
 import PublicPage from "@/components/PublicPage";
 import CompetitionList from "@/components/home/CompetitionList";
 
@@ -17,7 +17,6 @@ export default function CompetitionsPage() {
   const years = useMemo(() => [...new Set(all.map((c) => c.year))].sort((a, b) => b - a), [all]);
   const thisYear = Number(today.slice(0, 4));
   const year = listYear ?? (years.includes(thisYear) ? thisYear : years[0] ?? thisYear);
-  const colours = useMemo(() => coloursFor(all, []), [all]);
 
   return (
     <PublicPage title="Competitions" loading={competitions === null} failed={failed}>
@@ -29,7 +28,6 @@ export default function CompetitionsPage() {
           onYear={setListYear}
           filter={filter}
           onFilter={setFilter}
-          colours={colours}
           today={today}
           searchable
         />

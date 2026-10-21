@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { usePublicCompetitions } from "@/lib/usePublicCompetitions";
-import { coloursFor, todayIso, type ListFilter } from "@/lib/publicCompetitions";
+import { todayIso, type ListFilter } from "@/lib/publicCompetitions";
 import PublicPage from "@/components/PublicPage";
 import CompetitionList from "@/components/home/CompetitionList";
 import VenueCard from "@/components/VenueCard";
@@ -25,7 +25,6 @@ export default function ClubPage() {
   );
   const thisYear = Number(today.slice(0, 4));
   const year = listYear ?? (years.includes(thisYear) ? thisYear : years[0] ?? thisYear);
-  const colours = useMemo(() => coloursFor(all, []), [all]);
   const venueId = club ? (clubs(all).find((x) => x.id === club.id)?.venueId ?? null) : null;
   const venue = useVenues([venueId]).get(venueId ?? "");
 
@@ -41,7 +40,6 @@ export default function ClubPage() {
           onYear={setListYear}
           filter={filter}
           onFilter={setFilter}
-          colours={colours}
           today={today}
           organiserId={club.id}
         />

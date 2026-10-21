@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import CompetitionRow from "@/components/home/CompetitionRow";
+import RowLine from "@/components/home/RowLine";
 import {
   MONTH_NAMES,
-  datesSummary,
+  rowState,
   marksByDay,
   monthGrid,
   sessionTitle,
@@ -137,24 +139,22 @@ export default function HomeCalendar({
       )}
 
       {inView.length > 0 && (
-        <div className="cal-rows">
-          {inView.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className={`cal-row ${highlightId === c.id ? "cal-row-on" : ""}`}
-              aria-pressed={highlightId === c.id}
-              onClick={() => onHighlight(highlightId === c.id ? null : c.id)}
-            >
-              <span className="comp-bar" style={{ background: colours.get(c.id) }} />
-              <span className="cal-row-text">
-                <strong>{c.name}</strong>
-                <span>
-                  {c.organiser.kind === "event" ? c.organiser.name : c.organiser.short_name} &middot; {datesSummary(c.sessions)}
-                </span>
-              </span>
-            </button>
-          ))}
+        <div className="home-rows cal-rows">
+          {inView.map((c) => {
+            const state = rowState(c, today);
+            return (
+              <CompetitionRow
+                key={c.id}
+                date={state.date}
+                title={c.name}
+                onSelect={() => onHighlight(highlightId === c.id ? null : c.id)}
+                selected={highlightId === c.id}
+                colour={colours.get(c.id)}
+                pill={{ label: c.organiser.kind === "event" ? c.organiser.name : c.organiser.short_name, href: null }}
+                line={<RowLine competition={c} state={state} />}
+              />
+            );
+          })}
         </div>
       )}
     </div>

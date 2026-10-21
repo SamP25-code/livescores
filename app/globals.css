@@ -4227,10 +4227,6 @@ html.larger-text {
   flex: 1 0 auto;
 }
 
-.event-countdown {
-  margin-bottom: 12px;
-}
-
 .event-days {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
@@ -5090,4 +5086,71 @@ a.info-pill-club:focus-visible {
 
 .public-draw .draw-sheet .name-cell {
   gap: 10px;
+}
+
+/* A list row as a button (the calendar): lights up the competition's dates */
+.home-row-button {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-row-on {
+  background: var(--green-pale);
+}
+
+.home-date-tbc {
+  justify-content: center;
+  min-height: 52px;
+}
+
+.home-date-tbc strong {
+  font-size: 0.85rem;
+}
+
+/* The event's countdown: a small box, not a banner */
+.event-countdown {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+}
+
+.event-countdown-count {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  min-height: 54px;
+  padding: 4px;
+  border-radius: var(--radius);
+  background: var(--green-deep);
+  color: #fff;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.event-countdown-count strong {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.event-countdown-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.event-countdown-details span {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
 }
