@@ -5188,3 +5188,38 @@ a.info-pill-club:focus-visible {
 .admin-remove {
   margin-top: var(--section-gap);
 }
+
+/* Admin venues: one card each */
+.venue-admin-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.venue-admin-card .comp-list-main {
+  min-width: 0;
+}
+
+.venue-admin-club {
+  align-self: flex-start;
+  margin-top: 4px;
+  min-height: 24px;
+  font-size: 0.8rem;
+}
+
+.venue-admin-editing {
+  display: block;
+  border: 2px solid var(--green-mid);
+}
+
+.venue-admin-editing-title {
+  margin: 0 0 8px;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+.venue-admin-editing .venue-editor {
+  margin: 0;
+}

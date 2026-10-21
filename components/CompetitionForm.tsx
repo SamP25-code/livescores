@@ -192,10 +192,16 @@ export default function CompetitionForm({
     : kind === "county";
   const NOUN = { club: "club", event: "event", county: "county" } as const;
 
-  // Picking a club or event: where it usually plays, if the venue's not set
+  // Picking a club: it's played on that club's green. An event: where it
+  // played last time. Either can be changed below.
   function chooseOrganiser(id: string) {
     setOrganiserId(id);
     setSeriesId("");
+    const green = organisers.find((o) => o.id === id)?.venue_id;
+    if (green) {
+      setVenueId(green);
+      return;
+    }
     if (!venueId) {
       const last = pastVenues.filter((p) => p.organiserId === id).sort((a, b) => b.year - a.year)[0];
       if (last) setVenueId(last.venueId);
@@ -280,6 +286,8 @@ export default function CompetitionForm({
         if (!newOrgName.trim()) throw new Error(`Enter the ${noun}'s name.`);
         const o = await createOrganiser({ name: newOrgName.trim(), short_name: newOrgName.trim(), kind });
         chosenOrganiserId = o.id;
+        // A new club: played on its own green, unless another was chosen
+        if (o.venue_id && !settings.venue_id && !isCounty) settings.venue_id = o.venue_id;
       }
       let chosenSeriesId = seriesId;
       if (seriesId === "new" || !seriesId) {
@@ -308,7 +316,7 @@ export default function CompetitionForm({
   const venueField = (
     <>
         <div className="field">
-          <label htmlFor="cf-venue">{existing ? "Venue" : "Where is it played?"}</label>
+          <label htmlFor="cf-venue">Where is it played?</label>
           <select
             id="cf-venue"
             value={venueId}
@@ -332,7 +340,7 @@ export default function CompetitionForm({
               &middot;{" "}
             </>
           )}
-          Not in the list, or details to correct? <Link href="/admin/venues">Venues</Link>
+          Not in the list, or the address to correct? <Link href="/admin/clubs">Clubs</Link>
         </p>
     </>
   );
@@ -694,7 +702,7 @@ export default function CompetitionForm({
       </section>
 
       <section className="card">
-        <h2>{existing && !isCounty ? "Venue and sponsors" : "Sponsors"}</h2>
+        <h2>{existing && !isCounty ? "Where and sponsors" : "Sponsors"}</h2>
         {existing && !isCounty && venueField}
         <div className="comp-form-sponsors">
           <span className="comp-form-sponsors-title">Sponsors (optional)</span>

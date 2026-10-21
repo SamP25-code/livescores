@@ -65,8 +65,20 @@ export async function listChoices(): Promise<{ organisers: Organiser[]; series: 
 // (/blackpool-masters), from its short name.
 export async function createOrganiser(o: Pick<Organiser, "name" | "short_name" | "kind">): Promise<Organiser> {
   const slug = slugify(o.short_name);
-  const { data, error } = await supabase.from("organisers").insert({ ...o, slug: slug || null }).select().single();
+  // A club comes with its green - the address and map link, filled in on Clubs
+  let venue_id: string | null = null;
+  if (o.kind === "club") {
+    const { data: venue, error: venueError } = await supabase.from("venues").insert({ name: o.name }).select().single();
+    if (venueError) throw venueError;
+    venue_id = venue.id;
+  }
+  const { data, error } = await supabase
+    .from("organisers")
+    .insert({ ...o, slug: slug || null, ...(venue_id ? { venue_id } : {}) })
+    .select()
+    .single();
   if (error) {
+    if (venue_id) await supabase.from("venues").delete().eq("id", venue_id);
     if (error.code === "23505") throw new Error(`The address /${slug} is already taken - choose a different short name.`);
     throw error;
   }
@@ -246,29 +258,43 @@ export async function venueUsage(): Promise<Map<string, number>> {
   return used;
 }
 
-// Every club, with the venue it's linked to (Venues: "also a club")
-export async function listClubs(): Promise<Organiser[]> {
-  const { data, error } = await supabase.from("organisers").select("*").eq("kind", "club").order("name");
+// Every club with its green (Clubs, in admin)
+export type ClubWithGreen = Organiser & { venue: Venue | null };
+export async function listClubsWithGreens(): Promise<ClubWithGreen[]> {
+  const { data, error } = await supabase.from("organisers").select("*, venue:venue_id(*)").eq("kind", "club").order("name");
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as ClubWithGreen[];
 }
 
-// Super: a venue is also a club - an existing club, or a new one made from
-// the venue - or (null) no longer. Unticking only unlinks: a club that runs
-// competitions stays a club.
-export async function setVenueClub(
-  venue: Pick<Venue, "id" | "name">,
-  club: { organiserId: string } | { shortName: string } | null
+// Super: a club and its green, new or changed together
+export async function saveClub(
+  club: ClubWithGreen | null,
+  details: { name: string; short_name: string } & VenueInput
 ): Promise<void> {
-  const { error: clearError } = await supabase.from("organisers").update({ venue_id: null }).eq("venue_id", venue.id);
-  if (clearError) throw clearError;
-  if (!club) return;
-  const organiserId =
-    "organiserId" in club
-      ? club.organiserId
-      : (await createOrganiser({ name: venue.name, short_name: club.shortName.trim() || venue.name, kind: "club" })).id;
-  const { error } = await supabase.from("organisers").update({ venue_id: venue.id }).eq("id", organiserId);
+  const { name, short_name, ...green } = details;
+  if (!club) {
+    const created = await createOrganiser({ name, short_name, kind: "club" });
+    if (created.venue_id) await updateVenue(created.venue_id, { ...green, name });
+    return;
+  }
+  const { error } = await supabase.from("organisers").update({ name, short_name }).eq("id", club.id);
   if (error) throw error;
+  if (club.venue_id) {
+    await updateVenue(club.venue_id, { ...green, name });
+  } else {
+    const venue = await createVenue({ ...green, name });
+    const { error: linkError } = await supabase.from("organisers").update({ venue_id: venue.id }).eq("id", club.id);
+    if (linkError) throw linkError;
+  }
+}
+
+// Super: removes a club nothing is played at and that runs nothing
+export async function deleteClub(club: ClubWithGreen): Promise<void> {
+  if (club.venue_id && ((await venueUsage()).get(club.venue_id) ?? 0) > 0) {
+    throw new Error("A competition or session is played there - choose another club for it first.");
+  }
+  await deleteOrganiser(club.id);
+  if (club.venue_id) await supabase.from("venues").delete().eq("id", club.venue_id);
 }
 
 // Super: removes a venue nothing uses any more

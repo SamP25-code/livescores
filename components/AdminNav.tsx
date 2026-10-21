@@ -10,7 +10,7 @@ import { clearViewAs, viewingAs } from "@/lib/viewAs";
 
 // The admin menu: down the left on a computer, a row of tabs across the
 // top on a phone. Competitions and Users are there for Super and for admins
-// (their own competitions); People (the shared list of players) and Venues
+// (their own competitions); People (the shared list of players) and Clubs
 // for Super.
 export default function AdminNav() {
   const pathname = usePathname();
@@ -34,7 +34,7 @@ export default function AdminNav() {
       ? [
           { href: "/admin/events", label: "Events", active: pathname.startsWith("/admin/events") },
           { href: "/admin/people", label: "People", active: pathname === "/admin/people" },
-          { href: "/admin/venues", label: "Venues", active: pathname === "/admin/venues" },
+          { href: "/admin/clubs", label: "Clubs", active: pathname === "/admin/clubs" },
         ]
       : []),
     ...(admin ? [{ href: "/admin/users", label: "Users", active: pathname === "/admin/users" }] : []),

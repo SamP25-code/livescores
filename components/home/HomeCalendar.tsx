@@ -108,6 +108,9 @@ export default function HomeCalendar({
         {weeks.flat().map((day) => {
           const dayMarks = (marks.get(day.iso) ?? []).filter((m) => colours.has(m.competitionId));
           const trophy = dayMarks.find((m) => m.trophy);
+          // Two or more trophy days on one date: the ring is split between
+          // their colours, so none of them disappears
+          const trophyColours = [...new Set(dayMarks.filter((m) => m.trophy).map((m) => colours.get(m.competitionId)))];
           const dots = dayMarks.filter((m) => !m.trophy).slice(0, 3);
           const live = dayMarks.some((m) => m.live);
           const what = dayMarks
@@ -127,7 +130,14 @@ export default function HomeCalendar({
               {trophy ? (
                 <span
                   className="cal-trophy"
-                  style={{ background: colours.get(trophy.competitionId) }}
+                  style={{
+                    background:
+                      trophyColours.length > 1
+                        ? `linear-gradient(90deg, ${trophyColours
+                            .map((col, i) => `${col} ${(i * 100) / trophyColours.length}% ${((i + 1) * 100) / trophyColours.length}%`)
+                            .join(", ")})`
+                        : colours.get(trophy.competitionId),
+                  }}
                 >
                   {day.day}
                 </span>
@@ -154,7 +164,7 @@ export default function HomeCalendar({
           <span className="cal-dot cal-key-dot" /> Qualifying session
         </span>
         <span>
-          <span className="cal-key-ring" /> Finals Day / one day
+          <span className="cal-key-ring" /> Finals Day / one day (split when there&rsquo;s more than one)
         </span>
       </div>
 
