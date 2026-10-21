@@ -99,6 +99,11 @@ export default function CompetitionForm({
   const [teamSize, setTeamSize] = useState<1 | 2>(c?.team_size ?? 1);
   const [targetScore, setTargetScore] = useState<21 | 31>(c?.target_score ?? 21);
   const [scoringStyle, setScoringStyle] = useState<CompetitionInput["scoring_style"]>(c?.scoring_style ?? "live");
+  // Qualifying sessions are scored their own way (often results only, with
+  // Finals Day live)
+  const [qualifyingScoring, setQualifyingScoring] = useState<CompetitionInput["qualifying_scoring"]>(
+    c?.qualifying_scoring ?? "results"
+  );
   const [entryMethod, setEntryMethod] = useState<CompetitionInput["entry_method"]>(c?.entry_method ?? "open");
   const [drawMethod, setDrawMethod] = useState<CompetitionInput["draw_method"]>(c?.draw_method ?? "in_advance");
   const [label, setLabel] = useState(c?.label ?? "");
@@ -273,6 +278,7 @@ export default function CompetitionForm({
           : {
               ...structure,
               scoring_style: scoringStyle,
+              qualifying_scoring: qualifyingScoring,
               entry_method: entryMethod,
               draw_method: drawMethod,
             }),
@@ -643,8 +649,22 @@ export default function CompetitionForm({
               <option value={31}>31 up</option>
             </select>
           </div>
+          {format === "qualifying_and_finals" && (
+            <div className="field">
+              <label htmlFor="cf-scoring-qualifying">Scoring - qualifying sessions</label>
+              <select
+                id="cf-scoring-qualifying"
+                disabled={locked}
+                value={qualifyingScoring}
+                onChange={(e) => setQualifyingScoring(e.target.value as typeof qualifyingScoring)}
+              >
+                <option value="results">Results only</option>
+                <option value="live">Live, point by point</option>
+              </select>
+            </div>
+          )}
           <div className="field">
-            <label htmlFor="cf-scoring">Scoring</label>
+            <label htmlFor="cf-scoring">{format === "qualifying_and_finals" ? "Scoring - Finals Day" : "Scoring"}</label>
             <select id="cf-scoring" disabled={locked} value={scoringStyle} onChange={(e) => setScoringStyle(e.target.value as typeof scoringStyle)}>
               <option value="live">Live, point by point</option>
               <option value="results">Results only</option>

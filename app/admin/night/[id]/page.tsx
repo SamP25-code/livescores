@@ -85,7 +85,7 @@ import { SITE_NAME } from "@/lib/site";
 
 type CompetitionInfo = Pick<
   Competition,
-  "id" | "year" | "team_size" | "target_score" | "scoring_style" | "venue_id" | "format" | "draw_size"
+  "id" | "year" | "team_size" | "target_score" | "scoring_style" | "qualifying_scoring" | "venue_id" | "format" | "draw_size"
 > & {
   series: { name: string };
 };
@@ -106,7 +106,7 @@ async function loadCompetitionContext(competitionId: string, nightId: string): P
   const [{ data: competition, error }, entries, { data: timeSlots, error: slotsError }, clubs, { data: venues }] = await Promise.all([
     supabase
       .from("competitions")
-      .select("id, year, team_size, target_score, scoring_style, venue_id, format, draw_size, series:series_id(name)")
+      .select("id, year, team_size, target_score, scoring_style, qualifying_scoring, venue_id, format, draw_size, series:series_id(name)")
       .eq("id", competitionId)
       .single(),
     listEntries(competitionId),
@@ -348,10 +348,13 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   // Start times are only for one-day competitions (staggered first round);
   // qualifying sessions and Finals Day just start at the session's time
   const oneDay = night?.kind === "single_day";
-  // A qualifying session records results only; Finals Day is scored live; a
-  // single day or a final follows the competition's setting.
+  // Each stage scored its own way: qualifying sessions by the competition's
+  // qualifying setting, Finals Day / a single day / a final by its main one.
+  // (A night from before competitions: qualifying results only, finals live.)
   const resultsOnly =
-    night?.kind === "qualifier" || (!isFinals && context?.competition.scoring_style === "results");
+    night?.kind === "qualifier"
+      ? (context?.competition.qualifying_scoring ?? "results") === "results"
+      : context?.competition.scoring_style === "results";
 
   const inThisSession = useMemo(
     () => new Set(players.map((p) => p.entry_id).filter((id): id is string => Boolean(id))),
@@ -1014,6 +1017,8 @@ function MatchEditor({
   onReplace: (side: "a" | "b", personId: string, partnerId: string | null) => Promise<void>;
 }) {
   const [showHistory, setShowHistory] = useState(false);
+  // Live scoring: typing the score in instead of tapping each point
+  const [typing, setTyping] = useState(false);
 
   if (!match.player_a_id || !match.player_b_id) {
     const isBye = match.status === "complete" && Boolean(match.player_a_id) !== Boolean(match.player_b_id);
@@ -1087,6 +1092,28 @@ function MatchEditor({
           pending={pending}
           onSave={onSaveResult}
         />
+      ) : typing ? (
+        // Live, but typed straight in (10-10 to 17-17 in one go): kept and
+        // sent like a tap, so it's safe with poor signal too
+        <>
+          <ResultEntry
+            nameA={nameA}
+            nameB={nameB}
+            scoreA={match.score_a}
+            scoreB={match.score_b}
+            targetScore={match.target_score}
+            status={match.status}
+            pending={pending}
+            saveLabel="Save score"
+            onSave={async (a, b) => {
+              await onSaveResult(a, b);
+              setTyping(false);
+            }}
+          />
+          <button type="button" className="link-button" onClick={() => setTyping(false)}>
+            Back to the buttons
+          </button>
+        </>
       ) : (
         <div className={`match ${complete ? "complete" : ""}`}>
           <div className="players">
@@ -1120,6 +1147,11 @@ function MatchEditor({
             {!complete && (
               <button onClick={onComplete} disabled={!canComplete}>
                 Mark complete
+              </button>
+            )}
+            {!complete && (
+              <button type="button" className="link-button" disabled={pending} onClick={() => setTyping(true)}>
+                Type the score
               </button>
             )}
             {complete && (
@@ -1359,6 +1391,7 @@ function ResultEntry({
   targetScore,
   status,
   pending,
+  saveLabel,
   onSave,
 }: {
   nameA: string;
@@ -1368,6 +1401,8 @@ function ResultEntry({
   targetScore: number;
   status: MatchRow["status"];
   pending: boolean;
+  // "Save score" when typed in during live scoring
+  saveLabel?: string;
   onSave: (scoreA: number, scoreB: number) => Promise<void>;
 }) {
   const [a, setA] = useState(String(scoreA));
@@ -1431,7 +1466,7 @@ function ResultEntry({
           <span className={`status-pill ${status}`}>{status === "upcoming" ? "result pending" : status}</span>
         )}
         <button disabled={!canSave || pending} onClick={() => onSave(numA, numB)}>
-          {complete ? "Update result" : "Save result"}
+          {saveLabel ?? (complete ? "Update result" : "Save result")}
         </button>
       </div>
     </div>

@@ -5393,7 +5393,7 @@ a.info-pill-club:focus-visible {
 }
 
 .player-match-lost .player-match-score strong {
-  color: var(--ink-soft);
+  color: var(--maroon);
 }
 
 .player-match-live .player-match-score strong {
@@ -5417,4 +5417,29 @@ a.info-pill-club:focus-visible {
 .player-result span {
   font-size: 0.9rem;
   color: var(--ink-soft);
+}
+
+/* The SuperAdmin overview: what needs doing, worst first */
+.overview-item {
+  border-left: 4px solid transparent;
+  padding-left: 10px;
+}
+
+.overview-item-now {
+  border-left-color: var(--maroon);
+}
+
+.overview-item-soon {
+  border-left-color: var(--gold);
+}
+
+.overview-when {
+  flex: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.overview-item-now .overview-when {
+  color: var(--maroon);
 }

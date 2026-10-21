@@ -584,7 +584,12 @@ more:
   and any qualifying place it fed. If the next round has already started with the wrong player,
   the admin is warned and decides (it may need the "replace" rule from Draws).
 
-## Scoring by stage, and typing a score (raised 2026-10-21 - later)
+## Player pages - ideas for later (raised 2026-10-21)
+
+- **Singles and doubles counted separately** on a player's page: "Singles: 8 played, 6 won ·
+  Doubles: 4 played, 3 won", instead of one tally for both.
+
+## Scoring by stage, and typing a score (raised 2026-10-21 - built)
 
 - Scoring is set once for the whole competition (live, or results only).
   Some will want results only on the qualifying sessions, then live scoring
@@ -706,15 +711,17 @@ calendar and competition pages with year-less addresses; sponsor logos; qualifyi
 qualifying competitions; the event page; County competitions; clubs and venues as one list; the
 home page and menu redesign.
 
+Done since (October 2026): **player pages and Find a player**, **past winners** on honours
+boards (doubles years name both partners), **scoring by stage and typing a score in**, the
+**SuperAdmin overview**.
+
 Still to do, in order:
-1. **Player pages and Find a player**; honours boards filled with past winners
-2. The **SuperAdmin overview**; **"Share results" as text**
-3. **Scoring by stage, and typing a score in** (see above)
-4. **Backgrounds** - a general one, and uploaded per competition
-5. Help guide for club admins; privacy removal process
-6. Go live: merge, live database, copy the real competitions across
-7. New domain when the name is chosen; pilot with other clubs, then open up
-8. After the pilot: shareable results images, sponsor reports, follow a player
+1. **"Share results" as text**
+2. **Backgrounds** - a general one, and uploaded per competition
+3. Help guide for club admins; privacy removal process
+4. Go live: merge, live database, copy the real competitions across
+5. New domain when the name is chosen; pilot with other clubs, then open up
+6. After the pilot: shareable results images, sponsor reports, follow a player
 
 Throughout: the "Easy to read for every age" rules apply to every screen.
 

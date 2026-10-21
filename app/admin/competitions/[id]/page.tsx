@@ -11,6 +11,7 @@ import CompetitionForm from "@/components/CompetitionForm";
 import EntriesManager from "@/components/EntriesManager";
 import UserManager from "@/components/UserManager";
 import QualifyingManager from "@/components/QualifyingManager";
+import PastWinners from "@/components/PastWinners";
 import { sessionTimes } from "@/lib/publicCompetitions";
 import type { Night } from "@/lib/types";
 import { SITE_NAME } from "@/lib/site";
@@ -29,13 +30,14 @@ function sessionTitle(night: Night): string {
   return "The day";
 }
 
-type Tab = "overview" | "entries" | "qualifying" | "people" | "settings";
+type Tab = "overview" | "entries" | "qualifying" | "people" | "past" | "settings";
 
 const TAB_LABEL: Record<Tab, string> = {
   overview: "Overview",
   entries: "Entries",
   qualifying: "Qualifying",
   people: "Admins & scorers",
+  past: "Past winners",
   settings: "Settings",
 };
 
@@ -43,7 +45,7 @@ const TAB_LABEL: Record<Tab, string> = {
 function tabFromHash(): Tab {
   if (typeof window === "undefined") return "overview";
   const hash = window.location.hash.replace("#", "");
-  return (["overview", "entries", "qualifying", "people", "settings"] as Tab[]).includes(hash as Tab) ? (hash as Tab) : "overview";
+  return (["overview", "entries", "qualifying", "people", "past", "settings"] as Tab[]).includes(hash as Tab) ? (hash as Tab) : "overview";
 }
 
 // One competition, in tabs: Overview (settings at a glance and its sessions,
@@ -122,7 +124,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
                 "entries",
                 ...(c.entry_method === "qualification" ? ["qualifying"] : []),
                 "people",
-                ...(isSuper ? ["settings"] : []),
+                ...(isSuper ? ["past", "settings"] : []),
               ] as Tab[]
             ).map((t) => (
               <button
@@ -202,6 +204,10 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
               </p>
               <UserManager competitionId={c.id} />
             </>
+          )}
+
+          {tab === "past" && isSuper && (
+            <PastWinners seriesId={c.series.id} seriesName={c.series.name} doubles={c.team_size === 2} />
           )}
 
           {tab === "settings" && isSuper && (

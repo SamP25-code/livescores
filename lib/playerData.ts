@@ -39,8 +39,12 @@ export async function loadPlayer(id: string): Promise<PlayerPage | { mergedInto:
     loadPublicCompetitions(),
     supabase
       .from("honours_history")
-      .select("year, winner_person_id, runner_up_person_id, series:series_id(name, slug)")
-      .or(`winner_person_id.eq.${id},runner_up_person_id.eq.${id}`),
+      .select(
+        "year, winner_person_id, winner_partner_id, runner_up_person_id, runner_up_partner_id, series:series_id(name, slug)"
+      )
+      .or(
+        `winner_person_id.eq.${id},winner_partner_id.eq.${id},runner_up_person_id.eq.${id},runner_up_partner_id.eq.${id}`
+      ),
   ]);
   if (entryError) throw entryError;
   const entries = (entryRows ?? []) as RecordEntry[];
@@ -89,7 +93,7 @@ export async function loadPlayer(id: string): Promise<PlayerPage | { mergedInto:
   const honours: RecordHonour[] = (honourRows ?? []).flatMap((h) => {
     const series = h.series as unknown as { name: string; slug: string } | null;
     if (!series) return [];
-    return [{ year: h.year, seriesName: series.name, seriesSlug: series.slug, place: h.winner_person_id === id ? "Winner" : "Runner-up" } as RecordHonour];
+    return [{ year: h.year, seriesName: series.name, seriesSlug: series.slug, place: h.winner_person_id === id || h.winner_partner_id === id ? "Winner" : "Runner-up" } as RecordHonour];
   });
 
   const record = buildPlayerRecord({ personId: id, entries, places, matches, names, peopleOf, competitions: all, honours, today: todayIso() });

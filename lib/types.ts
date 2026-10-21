@@ -75,7 +75,10 @@ export type Competition = {
   entry_method: "open" | "qualification" | "on_the_night";
   label: string | null;
   target_score: 21 | 31;
+  // Finals Day, a one-day competition or a final: scored live or results only
   scoring_style: "live" | "results";
+  // Qualifying sessions, chosen on their own (migration 2027_16)
+  qualifying_scoring: "live" | "results";
   draw_size: number | null;
   qualifying_nights: number | null;
   entries_per_night: number | null;

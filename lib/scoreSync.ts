@@ -119,7 +119,9 @@ async function sendOp(op: ScoreOp): Promise<Outcome> {
     alreadyThere = true;
   }
 
-  if (op.kind === "tap" && !alreadyThere) {
+  // Into the match's history: every tap, and a score typed in while it's in
+  // play (a finished result being corrected is logged as a correction)
+  if (!alreadyThere && (op.kind === "tap" || op.prev.status !== "complete")) {
     await supabase.from("match_events").insert({
       match_id: op.matchId,
       night_id: op.nightId,

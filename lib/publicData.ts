@@ -208,19 +208,22 @@ export async function loadHonours(seriesSlug: string, fromSite: PublicCompetitio
     const { data: history } = await supabase
       .from("honours_history")
       .select(
-        "year, winner_text, runner_up_text, winner_person_id, runner_up_person_id, winner:winner_person_id(full_name), runner:runner_up_person_id(full_name)"
+        "year, winner_text, runner_up_text, winner_person_id, winner_partner_id, runner_up_person_id, runner_up_partner_id, winner:winner_person_id(full_name), winnerPartner:winner_partner_id(full_name), runner:runner_up_person_id(full_name), runnerPartner:runner_up_partner_id(full_name)"
       )
       .eq("series_id", series.id);
     for (const h of history ?? []) {
-      const winner = (h.winner as unknown as { full_name: string } | null)?.full_name ?? h.winner_text;
-      const runner = (h.runner as unknown as { full_name: string } | null)?.full_name ?? h.runner_up_text;
+      // A doubles year: "A & B"
+      const nameOf = (x: unknown) => (x as { full_name: string } | null)?.full_name ?? null;
+      const pair = (a: unknown, b: unknown) => [nameOf(a), nameOf(b)].filter(Boolean).join(" & ") || null;
+      const winner = pair(h.winner, h.winnerPartner) ?? h.winner_text;
+      const runner = pair(h.runner, h.runnerPartner) ?? h.runner_up_text;
       if (winner) {
         rows.set(h.year, {
           year: h.year,
           winner,
           runnerUp: runner ?? null,
-          winnerIds: h.winner_person_id ? [h.winner_person_id] : [],
-          runnerUpIds: h.runner_up_person_id ? [h.runner_up_person_id] : [],
+          winnerIds: [h.winner_person_id, h.winner_partner_id].filter((x): x is string => Boolean(x)),
+          runnerUpIds: [h.runner_up_person_id, h.runner_up_partner_id].filter((x): x is string => Boolean(x)),
         });
       }
     }
