@@ -25,7 +25,7 @@ export default function ClubPage() {
   const colours = useMemo(() => coloursFor(all, []), [all]);
 
   return (
-    <PublicPage title={club?.name ?? "Club"} loading={competitions === null} failed={failed}>
+    <PublicPage title={club?.name ?? "Club"} loading={competitions === null} failed={failed} back="/clubs">
       {competitions !== null && !club && <p className="night-header-hint">No club at this address.</p>}
       {club && (
         <CompetitionList

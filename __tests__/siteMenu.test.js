@@ -1,15 +1,15 @@
-const { clubs, menuItems, searchMenu } = require("../lib/siteMenu.ts");
+const { clubs, menuEvents, menuItems, searchMenu } = require("../lib/siteMenu.ts");
 
 const club = { id: "pen", name: "Penwortham SSC", short_name: "Penwortham", kind: "club", slug: "penwortham" };
 const event = { id: "bm", name: "Blackpool Masters", short_name: "Blackpool Masters", kind: "event", slug: "blackpool-masters" };
-const c = (id, name, slug, year, organiser) => ({ id, name, slug, year, organiser, sessions: [] });
+const c = (id, name, slug, year, organiser, sessions = []) => ({ id, name, slug, year, organiser, sessions });
 
 const all = [
   c("o26", "October Singles", "october-singles", 2026, club),
   c("o27", "October Singles", "october-singles", 2027, club),
   c("jr", "Jack Rees Doubles", "jack-rees-doubles", 2027, club),
-  c("inv", "Masters Invitation 32", "masters-invitation-32", 2027, event),
-  c("l32", "Ladies 32", "ladies-32", 2027, event),
+  c("inv", "Masters Invitation 32", "masters-invitation-32", 2027, event, [{ date: "2027-09-18" }]),
+  c("l32", "Ladies 32", "ladies-32", 2027, event, [{ date: "2027-09-19" }]),
 ];
 
 describe("side menu search", () => {
@@ -36,5 +36,19 @@ describe("side menu search", () => {
 
   test("the Clubs page: each club once, A to Z, competitions counted once across years", () => {
     expect(clubs(all)).toEqual([{ id: "pen", name: "Penwortham SSC", short_name: "Penwortham", href: "/clubs/penwortham", count: 2 }]);
+  });
+
+  test("the menu's events: dates, and their competitions in date order", () => {
+    expect(menuEvents(all)).toEqual([
+      {
+        title: "Blackpool Masters",
+        dates: "Sat 18 – Sun 19 Sep",
+        href: "/blackpool-masters",
+        competitions: [
+          { title: "Masters Invitation 32", href: "/masters-invitation-32" },
+          { title: "Ladies 32", href: "/ladies-32" },
+        ],
+      },
+    ]);
   });
 });

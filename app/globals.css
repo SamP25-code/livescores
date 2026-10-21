@@ -142,7 +142,12 @@ a {
    is set) - this just keeps the actual content, like the Home link,
    clear of the notch/status bar rather than sitting under it. */
 .page-photo {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
   padding-top: calc(20px + env(safe-area-inset-top));
+  /* Room for the footer, which sits at the very bottom */
+  padding-bottom: calc(110px + env(safe-area-inset-bottom));
 }
 
 /* A short, stacked, centred header - title, a thin divider, a small
@@ -2851,44 +2856,6 @@ label {
 }
 
 /* Where it's played, with directions */
-.venue-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 0;
-  padding: 10px 14px;
-}
-
-.venue-card-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.venue-card-address {
-  font-size: 0.9rem;
-  color: var(--ink-soft);
-}
-
-
-.venue-card strong {
-  font-size: 1.05rem;
-}
-
-.venue-card .hint {
-  margin: 0;
-}
-
-.venue-card-directions {
-  flex: none;
-  padding: 8px 12px;
-  border: 1px solid var(--green-mid);
-  border-radius: var(--radius);
-  color: var(--green-deep);
-  font-weight: 700;
-}
-
 /* Admin: a session's date (postponing) and venue */
 .session-settings-postponed {
   border-color: var(--gold);
@@ -3067,10 +3034,6 @@ label {
 /* Next up */
 /* Links that look like buttons */
 a.home-next-go,
-a.venue-card-directions {
-  text-decoration: none;
-}
-
 .home-next-when {
   display: flex;
   align-items: center;
@@ -3770,8 +3733,12 @@ html.larger-text {
 
 /* Public footer: Privacy · Larger text · Log in */
 .public-footer {
-  margin-top: 32px;
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(8px + env(safe-area-inset-bottom));
   text-align: center;
+  font-size: 0.8rem;
   color: #fff;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
 }
@@ -3791,7 +3758,7 @@ html.larger-text {
 .public-footer-links button {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 36px;
   padding: 0 12px;
   border: none;
   background: transparent;
@@ -4969,4 +4936,92 @@ a.info-pill-club:focus-visible {
 .home-row-champion {
   font-weight: 700;
   color: var(--gold-deep);
+}
+
+/* The venue's row: a small map marker where a session row has its arrow */
+.venue-row-map {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--green-mid);
+}
+
+/* Back, beside the menu button */
+.site-back-button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 48px;
+  padding: 0 12px;
+  border: 1px solid rgba(239, 235, 221, 0.6);
+  border-radius: var(--radius);
+  background: rgba(31, 61, 43, 0.75);
+  color: var(--cream);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.site-back-button span {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.site-menu:focus {
+  outline: none;
+}
+
+/* The menu's events, in gold, each with its competitions under it */
+.site-menu-event {
+  margin: 0 0 10px;
+  border: 1px solid var(--gold);
+  border-left: 4px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--gold-pale);
+}
+
+.site-menu-event-name {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px 6px;
+  color: var(--gold-deep);
+  text-decoration: none;
+}
+
+.site-menu-event-name strong {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.15rem;
+  text-transform: uppercase;
+}
+
+.site-menu-event-name span {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.site-menu-event-comp {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border-top: 1px solid rgba(201, 151, 44, 0.35);
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.site-menu-event-name:hover,
+.site-menu-event-comp:hover {
+  background: rgba(201, 151, 44, 0.15);
+}
+
+.night-header-simple-comp {
+  margin: 0 0 2px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink-soft);
 }

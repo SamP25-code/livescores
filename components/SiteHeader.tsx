@@ -2,18 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { loadLiveMatches, loadPublicCompetitions } from "@/lib/publicData";
 import type { PublicCompetition } from "@/lib/publicCompetitions";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
-import { menuItems, searchMenu, type MenuItem } from "@/lib/siteMenu";
+import { menuEvents, menuItems, searchMenu, type MenuEvent, type MenuItem } from "@/lib/siteMenu";
 
 // Loaded the first time the menu opens, then kept for the visit
-let cached: Promise<{ items: MenuItem[]; live: number }> | null = null;
+type Menu = { items: MenuItem[]; events: MenuEvent[]; live: number };
+let cached: Promise<Menu> | null = null;
 function loadMenu() {
   if (!cached) {
     cached = Promise.all([loadPublicCompetitions(), loadLiveMatches()]).then(([all, live]: [PublicCompetition[], unknown[]]) => ({
       items: menuItems(all),
+      events: menuEvents(all),
       live: live.length,
     }));
     cached.catch(() => {
@@ -31,27 +33,38 @@ const LINKS = [
   { href: "/champions", label: "Champions" },
 ];
 
-// The top of every public page: the menu button (☰) and the site's name.
-// The menu has a search - every competition, club and event that matches,
-// narrowing as you type - then the main pages and the events.
-export default function SiteHeader({ compact = false }: { compact?: boolean }) {
+// Whether this visit has already been on another of the site's pages, so
+// Back can go back to it rather than off the site
+let visited: string | null = null;
+
+// The top of every public page: the menu button (☰), Back (except on the
+// home page), and the site's name. The menu has a search - every
+// competition, club and event that matches, narrowing as you type - then
+// the events in gold with their competitions, then the main pages.
+export default function SiteHeader({ compact = false, back = "/" }: { compact?: boolean; back?: string }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [cameFromSite, setCameFromSite] = useState(false);
+  useEffect(() => {
+    setCameFromSite(visited !== null && visited !== pathname);
+    visited = pathname;
+  }, [pathname]);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [menu, setMenu] = useState<{ items: MenuItem[]; live: number } | null>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
+  const [menu, setMenu] = useState<Menu | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     loadMenu()
       .then(setMenu)
-      .catch(() => setMenu({ items: [], live: 0 }));
+      .catch(() => setMenu({ items: [], events: [], live: 0 }));
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
-    setTimeout(() => searchRef.current?.focus(), 50);
+    menuRef.current?.focus();
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
@@ -65,7 +78,6 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
   }, [pathname]);
 
   const results = menu ? searchMenu(menu.items, query) : [];
-  const events = menu?.items.filter((i) => i.kind === "event") ?? [];
 
   return (
     <>
@@ -75,6 +87,15 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
           <span />
           <span />
         </button>
+        {pathname !== "/" && (
+          <button
+            type="button"
+            className="site-back-button"
+            onClick={() => (cameFromSite ? router.back() : router.push(back))}
+          >
+            <span aria-hidden="true">&lsaquo;</span> Back
+          </button>
+        )}
         <Link href="/" className="site-brand">
           <span className="site-brand-name">{SITE_NAME}</span>
           {!compact && <span className="site-brand-tagline">{SITE_TAGLINE}</span>}
@@ -82,7 +103,7 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
       </header>
 
       {open && (
-        <div className="site-menu" role="dialog" aria-modal="true" aria-label="Menu">
+        <div className="site-menu" role="dialog" aria-modal="true" aria-label="Menu" ref={menuRef} tabIndex={-1}>
           <nav className="site-menu-panel">
             <div className="site-menu-top">
               <span className="site-menu-title">{SITE_NAME}</span>
@@ -91,7 +112,6 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
               </button>
             </div>
             <input
-              ref={searchRef}
               type="search"
               className="site-menu-search"
               placeholder="Find a competition, club or event"
@@ -115,6 +135,20 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
               </div>
             ) : (
               <>
+                {menu?.events.map((e) => (
+                  <div key={e.href} className="site-menu-event">
+                    <Link href={e.href} className="site-menu-event-name">
+                      <strong>{e.title}</strong>
+                      {e.dates && <span>{e.dates}</span>}
+                    </Link>
+                    {e.competitions.map((c) => (
+                      <Link key={c.href} href={c.href} className="site-menu-event-comp">
+                        {c.title}
+                      </Link>
+                    ))}
+                  </div>
+                ))}
+
                 {LINKS.slice(0, 1).map((l) => (
                   <Link key={l.href} href={l.href} className="site-menu-item">
                     {l.label}
@@ -134,17 +168,6 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
                     {l.label}
                   </Link>
                 ))}
-
-                {events.length > 0 && (
-                  <>
-                    <p className="site-menu-heading">Events</p>
-                    {events.map((e) => (
-                      <Link key={e.href} href={e.href} className="site-menu-item site-menu-sub">
-                        {e.title}
-                      </Link>
-                    ))}
-                  </>
-                )}
               </>
             )}
 

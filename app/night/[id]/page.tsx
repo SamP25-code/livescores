@@ -1,7 +1,6 @@
 "use client";
 
 import { use, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, computeNightStatus, isWalkover, roundLabel } from "@/lib/bracket";
 import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
@@ -297,15 +296,10 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
   return (
     <div className="page page-photo">
       <div className="public-background" aria-hidden="true" />
-      <SiteHeader compact />
-      {competition ? (
-        <Link
-          href={competition.latest ? `/${competition.slug}` : `/${competition.slug}-${competition.year}`}
-          className="page-back-link"
-        >
-          <span aria-hidden="true">&lsaquo;</span> {competition.name} {competition.year}
-        </Link>
-      ) : null}
+      <SiteHeader
+        compact
+        back={competition ? (competition.latest ? `/${competition.slug}` : `/${competition.slug}-${competition.year}`) : "/"}
+      />
       {/* The competition's own sponsors; a night from before the 2027 move
           keeps the October Singles sponsor it always had */}
       {competition ? (
@@ -321,6 +315,9 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
           // A competition's session: one line - which session, when, and how
           // many are watching. The back link above already names the competition.
           <div className={`night-header-simple ${night.kind === "finals" ? "night-header-simple-finals" : ""}`}>
+            <p className="night-header-simple-comp">
+              {competition.name} {competition.year}
+            </p>
             <h1>
               <strong>{sessionTitle(night as Parameters<typeof sessionTitle>[0])}</strong>{" "}
               &middot;{" "}

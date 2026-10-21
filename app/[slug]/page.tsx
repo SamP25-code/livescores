@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { settingsSummary } from "@/lib/competitionSetup";
 import { loadHonours, loadPublicCompetitions, type HonoursRow } from "@/lib/publicData";
 import {
+  eventPath,
   competitionPath,
   publicStatus,
   resolveCompetition,
@@ -108,7 +109,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
   const runBy = c.organiser.kind === "event" ? c.organiser.name : c.organiser.short_name;
 
   return (
-    <Shell>
+    <Shell back={c.organiser.kind === "event" && c.organiser.slug ? eventPath(c.organiser.slug, c.year, all) : "/competitions"}>
       <header className="comp-page-head">
         <h1 className="comp-page-title">
           {c.name} {c.year}
@@ -194,11 +195,11 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
   );
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({ children, back = "/competitions" }: { children: React.ReactNode; back?: string }) {
   return (
     <div className="page page-photo comp-page">
       <div className="public-background" aria-hidden="true" />
-      <SiteHeader compact />
+      <SiteHeader compact back={back} />
       {children}
       <PublicFooter />
     </div>

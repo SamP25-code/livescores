@@ -12,12 +12,14 @@ export default function PublicPage({
   intro,
   loading,
   failed,
+  back,
   children,
 }: {
   title: string;
   intro?: string;
   loading: boolean;
   failed: boolean;
+  back?: string;
   children: ReactNode;
 }) {
   useEffect(() => {
@@ -26,7 +28,7 @@ export default function PublicPage({
   return (
     <div className="page page-photo home">
       <div className="public-background" aria-hidden="true" />
-      <SiteHeader />
+      <SiteHeader compact back={back} />
       <h1 className="public-page-title">{title}</h1>
       {intro && <p className="public-page-intro">{intro}</p>}
       {failed && <p className="night-header-hint">Couldn&rsquo;t load &ndash; check your signal and refresh.</p>}

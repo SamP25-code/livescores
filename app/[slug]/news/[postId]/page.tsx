@@ -59,10 +59,7 @@ export default function PostPage({ params }: { params: Promise<{ slug: string; p
   return (
     <div className="page page-photo">
       <div className="public-background" aria-hidden="true" />
-      <SiteHeader compact />
-      <Link href={back} className="page-back-link">
-        <span aria-hidden="true">&lsaquo;</span> News
-      </Link>
+      <SiteHeader compact back={back} />
       {post === undefined && <p className="night-header-hint">Loading&hellip;</p>}
       {post === null && <p className="night-header-hint">This post isn&rsquo;t available.</p>}
       {post && (
