@@ -40,7 +40,7 @@ let visited: string | null = null;
 // The top of every public page: the menu button (☰), Back (except on the
 // home page), and the site's name. The menu has a search - every
 // competition, club and event that matches, narrowing as you type - then
-// the events in gold with their competitions, then the main pages.
+// the main pages, then the events in gold with their competitions.
 export default function SiteHeader({ compact = false, back = "/" }: { compact?: boolean; back?: string }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -135,20 +135,6 @@ export default function SiteHeader({ compact = false, back = "/" }: { compact?: 
               </div>
             ) : (
               <>
-                {menu?.events.map((e) => (
-                  <div key={e.href} className="site-menu-event">
-                    <Link href={e.href} className="site-menu-event-name">
-                      <strong>{e.title}</strong>
-                      {e.dates && <span>{e.dates}</span>}
-                    </Link>
-                    {e.competitions.map((c) => (
-                      <Link key={c.href} href={c.href} className="site-menu-event-comp">
-                        {c.title}
-                      </Link>
-                    ))}
-                  </div>
-                ))}
-
                 {LINKS.slice(0, 1).map((l) => (
                   <Link key={l.href} href={l.href} className="site-menu-item">
                     {l.label}
@@ -167,6 +153,21 @@ export default function SiteHeader({ compact = false, back = "/" }: { compact?: 
                   <Link key={l.href} href={l.href} className="site-menu-item">
                     {l.label}
                   </Link>
+                ))}
+
+                {menu && menu.events.length > 0 && <p className="site-menu-heading">Events</p>}
+                {menu?.events.map((e) => (
+                  <div key={e.href} className="site-menu-event">
+                    <Link href={e.href} className="site-menu-event-name">
+                      <strong>{e.title}</strong>
+                      {e.dates && <span>{e.dates}</span>}
+                    </Link>
+                    {e.competitions.map((c) => (
+                      <Link key={c.href} href={c.href} className="site-menu-event-comp">
+                        {c.title}
+                      </Link>
+                    ))}
+                  </div>
                 ))}
               </>
             )}

@@ -57,6 +57,12 @@ function Row({ pick, all, line }: { pick: Pick; all: PublicCompetition[]; line: 
   );
 }
 
+// "Qualifying session 1 of 4", so it's clear there are more to come
+function sessionLabel({ competition: c, session: s }: Pick): string {
+  const qualifying = c.sessions.filter((x) => x.kind === "qualifier").length;
+  return s.kind === "qualifier" && qualifying > 1 ? `${sessionTitle(s)} of ${qualifying}` : sessionTitle(s);
+}
+
 export function ComingUp({ picks, all }: { picks: Pick[]; all: PublicCompetition[] }) {
   if (picks.length === 0) return null;
   return (
@@ -70,7 +76,7 @@ export function ComingUp({ picks, all }: { picks: Pick[]; all: PublicCompetition
             key={p.competition.id}
             pick={p}
             all={all}
-            line={[sessionTitle(p.session), sessionTimes(p.session)?.replace(/^.*Start /, "")].filter(Boolean).join(" · ")}
+            line={[sessionLabel(p), sessionTimes(p.session)?.replace(/^.*Start /, "")].filter(Boolean).join(" · ")}
           />
         ))}
       </div>
