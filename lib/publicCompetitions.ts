@@ -226,23 +226,30 @@ export function daysUntil(today: string, iso: string): number {
   return dayNumber(iso) - dayNumber(today);
 }
 
-// Monday-start week number, for "in the same week"
-function weekOf(iso: string): number {
-  const n = dayNumber(iso);
-  const { dow } = parts(iso);
-  return n - ((dow + 6) % 7);
-}
-
-// "Next up" when nothing's live: the nearest competition still to play, and
-// a second if it starts in the same week
-export function nextUp<C extends PublicCompetition>(list: C[], today: string): { competition: C; session: PublicSession }[] {
-  const upcoming = list
+// The home page's "Coming up": each competition's next session still to
+// play, soonest first
+export function comingUp<C extends PublicCompetition>(list: C[], today: string, limit = 4): { competition: C; session: PublicSession }[] {
+  return list
     .map((c) => ({ competition: c, session: nextSession(c, today) }))
     .filter((x): x is { competition: C; session: PublicSession } => x.session !== null)
-    .sort((a, b) => a.session.date!.localeCompare(b.session.date!));
-  if (upcoming.length === 0) return [];
-  const week = weekOf(upcoming[0].session.date!);
-  return upcoming.filter((x) => weekOf(x.session.date!) === week).slice(0, 2);
+    .sort((a, b) => a.session.date!.localeCompare(b.session.date!) || a.competition.name.localeCompare(b.competition.name))
+    .slice(0, limit);
+}
+
+// The home page's "Latest results": each competition's most recently
+// finished session, newest first
+export function latestResults<C extends PublicCompetition>(list: C[], today: string, limit = 3): { competition: C; session: PublicSession }[] {
+  return list
+    .map((c) => ({
+      competition: c,
+      session:
+        c.sessions
+          .filter((s) => s.status === "complete" && s.date && s.date <= today)
+          .sort((a, b) => b.date!.localeCompare(a.date!))[0] ?? null,
+    }))
+    .filter((x): x is { competition: C; session: PublicSession } => x.session !== null)
+    .sort((a, b) => b.session.date!.localeCompare(a.session.date!) || a.competition.name.localeCompare(b.competition.name))
+    .slice(0, limit);
 }
 
 // ---------------------------------------------------------------------------

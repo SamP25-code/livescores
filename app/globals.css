@@ -3065,31 +3065,10 @@ label {
 }
 
 /* Next up */
-.home-next {
-  margin-bottom: var(--gap);
-}
-
-.home-next-label {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--gold-deep);
-}
-
-.page-photo .card .home-next-name {
-  margin: 2px 0 0;
-  font-size: 1.9rem;
-  text-transform: none;
-}
-
 /* Links that look like buttons */
 a.home-next-go,
 a.venue-card-directions {
   text-decoration: none;
-}
-
-.home-next-format {
-  margin: 0 0 14px;
-  color: var(--ink-soft);
 }
 
 .home-next-when {
@@ -3132,12 +3111,6 @@ a.venue-card-directions {
   flex-direction: column;
   gap: 4px;
   font-size: 1.05rem;
-}
-
-.home-next-go {
-  display: block;
-  text-align: center;
-  font-size: 1.1rem;
 }
 
 /* Calendar */
@@ -4096,29 +4069,6 @@ html.larger-text {
   flex: none;
 }
 
-.latest-champion {
-  display: flex;
-  flex-direction: column;
-  margin: 0 0 14px;
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  background: var(--gold-pale);
-  border: 1px solid var(--gold);
-}
-
-.latest-champion > span:first-child {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--gold-deep);
-}
-
-.latest-champion-name {
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--green-deep);
-}
-
 /* A competition's page: who's entered */
 .whos-entered-head {
   display: flex;
@@ -4759,9 +4709,9 @@ html.larger-text {
 /* The home page's big buttons: three on one line */
 .home-tiles {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  margin-top: 12px;
+  margin-bottom: var(--gap);
 }
 
 .home-tile {
@@ -4769,9 +4719,9 @@ html.larger-text {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  min-height: 92px;
-  padding: 12px 4px;
+  gap: 2px;
+  min-height: 64px;
+  padding: 8px 2px;
   text-align: center;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -4787,8 +4737,8 @@ html.larger-text {
 }
 
 .home-tile strong {
-  font-family: var(--font-display), Georgia, serif;
-  font-size: 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: var(--green-deep);
 }
 
@@ -4810,13 +4760,6 @@ html.larger-text {
 }
 
 /* Who runs a competition and what it is, as pills under its name */
-.info-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 6px 0 4px;
-}
-
 .info-pill {
   display: inline-flex;
   align-items: center;
@@ -4847,12 +4790,13 @@ a.info-pill-club:focus-visible {
 .home-event-tile {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-top: 18px;
-  padding: 14px 16px;
-  border: 2px solid var(--gold);
+  gap: 12px;
+  margin-bottom: var(--gap);
+  padding: 10px 14px;
+  border: 1px solid var(--gold);
+  border-left: 4px solid var(--gold);
   border-radius: var(--radius);
-  background: var(--cream);
+  background: var(--gold-pale);
   color: var(--ink);
   text-decoration: none;
 }
@@ -4870,9 +4814,8 @@ a.info-pill-club:focus-visible {
 
 .home-event-tile strong {
   font-family: var(--font-display), Georgia, serif;
-  font-size: 1.5rem;
-  line-height: 1.15;
-  text-transform: uppercase;
+  font-size: 1.15rem;
+  line-height: 1.2;
   color: var(--gold-deep);
 }
 
@@ -4882,14 +4825,9 @@ a.info-pill-club:focus-visible {
 
 .home-event-tile-logo {
   flex: none;
-  width: 56px;
-  height: 56px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
-}
-
-.info-pills-text {
-  font-size: 0.9rem;
-  color: var(--ink-soft);
 }
 
 .comp-status {
@@ -4948,5 +4886,87 @@ a.info-pill-club:focus-visible {
 }
 
 .night-header-simple-finals h1 strong {
+  color: var(--gold-deep);
+}
+
+/* The home page's short lists: a small date, the name, the club and a line */
+.home-rows {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.home-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.home-row:last-child {
+  border-bottom: none;
+}
+
+.home-date {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 44px;
+  padding: 3px 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
+.home-date strong {
+  font-size: 1.15rem;
+  color: var(--green-deep);
+}
+
+.home-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* The name's link covers the whole row; the club pill sits above it */
+.home-row-name {
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.home-row-name::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.home-row-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.home-row-pill {
+  position: relative;
+  z-index: 1;
+  min-height: 24px;
+  padding: 0 8px;
+  font-size: 0.8rem;
+}
+
+.home-row-champion {
+  font-weight: 700;
   color: var(--gold-deep);
 }

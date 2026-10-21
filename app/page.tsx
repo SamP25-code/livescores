@@ -8,7 +8,8 @@ import {
   dateRange,
   eventDates,
   eventPath,
-  nextUp,
+  comingUp,
+  latestResults,
   publicStatus,
   todayIso,
   type PublicCompetition,
@@ -18,18 +19,16 @@ import NightNav from "@/components/NightNav";
 import Brand from "@/components/Brand";
 import LiveNowBanner from "@/components/LiveNowBanner";
 import LiveScores from "@/components/home/LiveScores";
-import NextUp from "@/components/home/NextUp";
 import SiteHeader from "@/components/SiteHeader";
 import PublicFooter from "@/components/PublicFooter";
-import LatestResults from "@/components/home/LatestResults";
+import { ComingUp, LatestResults } from "@/components/home/HomeLists";
 
 export const dynamic = "force-dynamic";
 
-// The home page: short, like a front page. The latest - live scores when
-// something's on, otherwise the latest winner and what's next - then big
-// buttons: any event coming up (the Blackpool Masters) on its own so it
-// stands out, then competitions, the calendar and champions on one line.
-// Everything else is in the menu (☰).
+// The home page, like a front page: live scores when something's on, the
+// ways into the site (four buttons, then any event coming up), and two short
+// lists to scan - what's coming up and the latest results. Everything else
+// is in the menu (☰).
 export default function HomePage() {
   const [competitions, setCompetitions] = useState<PublicCompetition[] | null>(null);
   const [live, setLive] = useState<LiveMatch[]>([]);
@@ -87,7 +86,8 @@ export default function HomePage() {
   // A database not yet moved to the 2027 structure: the home page as it was
   if (competitions !== null && competitions.length === 0 && !failed) return <OldHome />;
 
-  const picks = live.length === 0 ? nextUp(all, today) : [];
+  const upcoming = comingUp(all, today);
+  const results = latestResults(all, today);
 
   // Events still to come (or on now) get a button of their own
   const events = [...new Map(all.filter((c) => c.organiser.kind === "event" && c.organiser.slug).map((c) => [`${c.organiser.id}:${c.year}`, c])).values()]
@@ -110,19 +110,33 @@ export default function HomePage() {
       )}
       {competitions === null && !failed && <p className="night-header-hint">Loading&hellip;</p>}
 
-      <div id="live">
-        {live.length > 0 ? (
+      {live.length > 0 && (
+        <div id="live">
           <LiveScores matches={live} competitions={all} />
-        ) : (
-          <>
-            <LatestResults all={all} today={today} />
-            <NextUp picks={picks} all={all} today={today} />
-          </>
-        )}
-      </div>
+        </div>
+      )}
 
       {competitions !== null && (
         <>
+          <nav className="home-tiles" aria-label="Go to">
+            <Link href="/competitions" className="home-tile">
+              <TileIcon name="list" />
+              <strong>Competitions</strong>
+            </Link>
+            <Link href="/calendar" className="home-tile">
+              <TileIcon name="calendar" />
+              <strong>Calendar</strong>
+            </Link>
+            <Link href="/clubs" className="home-tile">
+              <TileIcon name="pin" />
+              <strong>Clubs</strong>
+            </Link>
+            <Link href="/champions" className="home-tile">
+              <TileIcon name="trophy" />
+              <strong>Champions</strong>
+            </Link>
+          </nav>
+
           {events.map((e) => (
             <Link key={`${e.organiser.id}-${e.year}`} href={eventPath(e.organiser.slug!, e.year, all)} className="home-event-tile">
               {e.logo && <img src={e.logo} alt="" className="home-event-tile-logo" />}
@@ -137,20 +151,9 @@ export default function HomePage() {
               </span>
             </Link>
           ))}
-          <nav className="home-tiles" aria-label="Go to">
-            <Link href="/competitions" className="home-tile">
-              <TileIcon name="list" />
-              <strong>Competitions</strong>
-            </Link>
-            <Link href="/calendar" className="home-tile">
-              <TileIcon name="calendar" />
-              <strong>Calendar</strong>
-            </Link>
-            <Link href="/champions" className="home-tile">
-              <TileIcon name="trophy" />
-              <strong>Champions</strong>
-            </Link>
-          </nav>
+
+          <ComingUp picks={upcoming} all={all} />
+          <LatestResults picks={results} all={all} />
         </>
       )}
 
@@ -160,7 +163,7 @@ export default function HomePage() {
 }
 
 // Simple line drawings for the three buttons, in the page's green
-function TileIcon({ name }: { name: "list" | "calendar" | "trophy" }) {
+function TileIcon({ name }: { name: "list" | "calendar" | "pin" | "trophy" }) {
   return (
     <svg className="home-tile-icon" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
       <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -176,6 +179,12 @@ function TileIcon({ name }: { name: "list" | "calendar" | "trophy" }) {
           <>
             <rect x="3.5" y="5" width="17" height="15" rx="1.5" />
             <path d="M3.5 10h17M8 3v4M16 3v4" />
+          </>
+        )}
+        {name === "pin" && (
+          <>
+            <path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z" />
+            <circle cx="12" cy="10" r="2.3" />
           </>
         )}
         {name === "trophy" && (

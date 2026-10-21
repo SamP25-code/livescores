@@ -8,7 +8,8 @@ const {
   sortForList,
   filterList,
   daysUntil,
-  nextUp,
+  comingUp,
+  latestResults,
   monthGrid,
   coloursFor,
   marksByDay,
@@ -130,16 +131,26 @@ describe("status and order", () => {
   });
 });
 
-describe("next up", () => {
-  test("the nearest, with a countdown", () => {
-    const picks = nextUp([floodlit, march, tbc], "2027-03-09");
-    expect(picks.map((p) => p.competition.id)).toEqual(["march"]);
+describe("the home page lists", () => {
+  test("coming up: each competition's next session, soonest first", () => {
+    const picks = comingUp([floodlit, march, tbc], "2027-03-09");
+    expect(picks.map((p) => `${p.competition.id} ${p.session.date}`)).toEqual(["march 2027-03-13", "floodlit 2027-06-07"]);
     expect(daysUntil("2027-03-09", picks[0].session.date)).toBe(4);
+    expect(comingUp([floodlit, march], "2027-03-09", 1)).toHaveLength(1);
   });
 
-  test("two starting in the same week are both shown", () => {
-    const sameWeek = comp({ id: "other", sessions: [session({ date: "2027-06-11", kind: "single_day" })] });
-    expect(nextUp([floodlit, sameWeek, march], "2027-06-01").map((p) => p.competition.id)).toEqual(["floodlit", "other"]);
+  test("latest results: each competition's last finished session, newest first", () => {
+    const done = comp({
+      id: "done",
+      sessions: [
+        session({ date: "2027-06-07", status: "complete" }),
+        session({ date: "2027-06-08", status: "complete", session_number: 2 }),
+        session({ date: "2027-06-12", kind: "finals" }),
+      ],
+    });
+    const spring = { ...march, sessions: [session({ date: "2027-03-13", kind: "single_day", status: "complete" })] };
+    const picks = latestResults([done, spring, tbc], "2027-06-10");
+    expect(picks.map((p) => `${p.competition.id} ${p.session.date}`)).toEqual(["done 2027-06-08", "march 2027-03-13"]);
   });
 });
 
