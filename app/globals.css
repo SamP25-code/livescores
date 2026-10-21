@@ -5339,7 +5339,8 @@ a.info-pill-club:focus-visible {
   border-top: 1px solid var(--line);
 }
 
-.player-match a {
+.player-match {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -5348,16 +5349,26 @@ a.info-pill-club:focus-visible {
   border-bottom: 1px dashed var(--line);
   color: var(--ink);
   font-size: 0.92rem;
+}
+
+.player-match:last-child {
+  border-bottom: none;
+}
+
+/* The round's link covers the row; the opponent's name sits above it */
+.player-match-round {
+  color: var(--ink-soft);
   text-decoration: none;
 }
 
-.player-match:last-child a {
-  border-bottom: none;
+.player-match-round::after {
+  content: "";
+  position: absolute;
+  inset: 0;
 }
 
 .player-match-round {
   min-width: 96px;
-  color: var(--ink-soft);
 }
 
 .player-match-who {

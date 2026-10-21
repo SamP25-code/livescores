@@ -75,10 +75,16 @@ export async function loadPlayer(id: string): Promise<PlayerPage | { mergedInto:
   ];
   const [{ data: partners }, { data: opponents }] = await Promise.all([
     partnerIds.length ? supabase.from("people").select("id, full_name").in("id", partnerIds) : Promise.resolve({ data: [] }),
-    opponentIds.length ? supabase.from("players").select("id, name").in("id", opponentIds) : Promise.resolve({ data: [] }),
+    opponentIds.length
+      ? supabase.from("players").select("id, name, entry:entry_id(person_id, partner_id)").in("id", opponentIds)
+      : Promise.resolve({ data: [] }),
   ]);
   for (const p of (partners ?? []) as { id: string; full_name: string }[]) names.set(p.id, p.full_name);
-  for (const p of (opponents ?? []) as { id: string; name: string }[]) names.set(p.id, p.name);
+  const peopleOf = new Map<string, string[]>();
+  for (const p of (opponents ?? []) as unknown as { id: string; name: string; entry: { person_id: string; partner_id: string | null } | null }[]) {
+    names.set(p.id, p.name);
+    if (p.entry) peopleOf.set(p.id, [p.entry.person_id, p.entry.partner_id].filter((x): x is string => Boolean(x)));
+  }
 
   const honours: RecordHonour[] = (honourRows ?? []).flatMap((h) => {
     const series = h.series as unknown as { name: string; slug: string } | null;
@@ -86,7 +92,7 @@ export async function loadPlayer(id: string): Promise<PlayerPage | { mergedInto:
     return [{ year: h.year, seriesName: series.name, seriesSlug: series.slug, place: h.winner_person_id === id ? "Winner" : "Runner-up" } as RecordHonour];
   });
 
-  const record = buildPlayerRecord({ personId: id, entries, places, matches, names, competitions: all, honours, today: todayIso() });
+  const record = buildPlayerRecord({ personId: id, entries, places, matches, names, peopleOf, competitions: all, honours, today: todayIso() });
   return {
     person: { id: person.id, full_name: person.full_name, note: person.note, club: (person.club as unknown as PlayerPerson["club"]) ?? null },
     record,

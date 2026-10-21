@@ -9,6 +9,7 @@ import PublicPage from "@/components/PublicPage";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import RowLine from "@/components/home/RowLine";
 import { organiserPill } from "@/components/home/HomeLists";
+import PlayerLinks from "@/components/PlayerLinks";
 
 const RESULT: Record<string, string> = { won: "Won", lost: "Lost", walkover: "Walkover", live: "Live", upcoming: "To play" };
 
@@ -105,18 +106,19 @@ export default function PlayerPage() {
                 {c.matches.length > 0 && (
                   <ul className="player-matches">
                     {c.matches.map((m) => (
+                      // The row opens the session; the opponent's name opens their page
                       <li key={m.id} className={`player-match player-match-${m.result}`}>
-                        <Link href={`/night/${m.session.id}`}>
-                          <span className="player-match-round">
-                            {m.session.kind === "qualifier" ? `${sessionLabel(c.competition, m.session)} · ` : ""}
-                            {m.round}
-                          </span>
-                          <span className="player-match-who">v {m.opponent}</span>
-                          <span className="player-match-score">
-                            {m.result === "upcoming" || m.result === "walkover" ? "" : `${m.mine}–${m.theirs} `}
-                            <strong>{RESULT[m.result]}</strong>
-                          </span>
+                        <Link href={`/night/${m.session.id}`} className="player-match-round">
+                          {m.session.kind === "qualifier" ? `${sessionLabel(c.competition, m.session)} · ` : ""}
+                          {m.round}
                         </Link>
+                        <span className="player-match-who">
+                          v <PlayerLinks name={m.opponent} ids={m.opponentIds} className="" />
+                        </span>
+                        <span className="player-match-score">
+                          {m.result === "upcoming" || m.result === "walkover" ? "" : `${m.mine}–${m.theirs} `}
+                          <strong>{RESULT[m.result]}</strong>
+                        </span>
                       </li>
                     ))}
                   </ul>

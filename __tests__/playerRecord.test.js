@@ -66,8 +66,11 @@ describe("a player's page", () => {
   ]);
 
   test("their matches, latest round first, with their partner and the title", () => {
-    const r = buildPlayerRecord({ personId: "wayne", entries, places, matches, names, competitions: [spring], honours: [], today: "2027-04-01" });
+    const peopleOf = new Map([["p3", ["e", "f"]]]);
+    const r = buildPlayerRecord({ personId: "wayne", entries, places, matches, names, peopleOf, competitions: [spring], honours: [], today: "2027-04-01" });
     expect(r.competitions).toHaveLength(1);
+    // The opponents' people, for links to their own pages
+    expect(r.competitions[0].matches[0].opponentIds).toEqual(["e", "f"]);
     const c = r.competitions[0];
     expect(c.partner).toBe("Lee Hanson");
     expect(c.finish).toBe("Winner");

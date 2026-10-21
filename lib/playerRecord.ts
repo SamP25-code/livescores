@@ -28,6 +28,8 @@ export type PlayerMatch = {
   round: string;
   roundNumber: number;
   opponent: string;
+  // The people behind the opponent's name (a pair: both), for their pages
+  opponentIds: string[];
   mine: number;
   theirs: number;
   // "won" / "lost" once played; "walkover" when they won because the other
@@ -58,6 +60,7 @@ export function buildPlayerRecord({
   places,
   matches,
   names,
+  peopleOf = new Map(),
   competitions,
   honours,
   today,
@@ -69,6 +72,8 @@ export function buildPlayerRecord({
   // Names for every person and place that comes up: person ids (for
   // partners) and place ids (for opponents, "A & B" for a pair)
   names: Map<string, string>;
+  // Each opponent's place in the draw -> the people in it
+  peopleOf?: Map<string, string[]>;
   competitions: PublicCompetition[];
   honours: RecordHonour[];
   today: string;
@@ -116,6 +121,7 @@ export function buildPlayerRecord({
         round: roundLabel(session.kind, m.round, inRound),
         roundNumber: m.round,
         opponent: otherId ? (names.get(otherId) ?? "TBC") : "TBC",
+        opponentIds: otherId ? (peopleOf.get(otherId) ?? []) : [],
         mine: mineScore,
         theirs: theirScore,
         result,
