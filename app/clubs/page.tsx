@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { usePublicCompetitions } from "@/lib/usePublicCompetitions";
+import { useClubOrganisers, usePublicCompetitions } from "@/lib/usePublicCompetitions";
 import { useVenues } from "@/lib/useVenues";
 import { directionsUrl } from "@/lib/venues";
 import { clubs } from "@/lib/siteMenu";
@@ -12,7 +12,8 @@ import PublicPage from "@/components/PublicPage";
 // competitions; "Map" opens Google Maps for directions to its green.
 export default function ClubsPage() {
   const { competitions, failed } = usePublicCompetitions();
-  const list = useMemo(() => clubs(competitions ?? []), [competitions]);
+  const organisers = useClubOrganisers();
+  const list = useMemo(() => clubs(competitions ?? [], organisers), [competitions, organisers]);
   const venues = useVenues(list.map((c) => c.venueId));
 
   return (
@@ -29,7 +30,7 @@ export default function ClubsPage() {
                     {club.name}
                   </Link>
                   <span className="comp-row-line">
-                    {club.count} competition{club.count === 1 ? "" : "s"}
+                    {club.count > 0 ? `${club.count} competition${club.count === 1 ? "" : "s"}` : "No competitions yet"}
                     {venue?.postcode ? ` · ${venue.postcode}` : ""}
                   </span>
                 </span>

@@ -246,6 +246,31 @@ export async function venueUsage(): Promise<Map<string, number>> {
   return used;
 }
 
+// Every club, with the venue it's linked to (Venues: "also a club")
+export async function listClubs(): Promise<Organiser[]> {
+  const { data, error } = await supabase.from("organisers").select("*").eq("kind", "club").order("name");
+  if (error) throw error;
+  return data ?? [];
+}
+
+// Super: a venue is also a club - an existing club, or a new one made from
+// the venue - or (null) no longer. Unticking only unlinks: a club that runs
+// competitions stays a club.
+export async function setVenueClub(
+  venue: Pick<Venue, "id" | "name">,
+  club: { organiserId: string } | { shortName: string } | null
+): Promise<void> {
+  const { error: clearError } = await supabase.from("organisers").update({ venue_id: null }).eq("venue_id", venue.id);
+  if (clearError) throw clearError;
+  if (!club) return;
+  const organiserId =
+    "organiserId" in club
+      ? club.organiserId
+      : (await createOrganiser({ name: venue.name, short_name: club.shortName.trim() || venue.name, kind: "club" })).id;
+  const { error } = await supabase.from("organisers").update({ venue_id: venue.id }).eq("id", organiserId);
+  if (error) throw error;
+}
+
 // Super: removes a venue nothing uses any more
 export async function deleteVenue(id: string): Promise<void> {
   const used = (await venueUsage()).get(id) ?? 0;
@@ -258,6 +283,36 @@ export async function deleteVenue(id: string): Promise<void> {
 export async function moveSeries(seriesId: string, organiserId: string): Promise<void> {
   const { error } = await supabase.from("series").update({ organiser_id: organiserId }).eq("id", seriesId);
   if (error) throw error;
+}
+
+// Super: removes a competition set up by mistake - only while nothing's
+// happened in it (no entries, no scores). Its sessions go with it, and the
+// competition's name too if no other year of it is left.
+export async function deleteCompetition(competition: { id: string; series_id: string }): Promise<void> {
+  const [{ count: entries }, { data: nights }] = await Promise.all([
+    supabase.from("entries").select("id", { count: "exact", head: true }).eq("competition_id", competition.id),
+    supabase.from("nights").select("id").eq("competition_id", competition.id),
+  ]);
+  if ((entries ?? 0) > 0) throw new Error("It has entries - remove them first, so nothing's lost by mistake.");
+  const nightIds = (nights ?? []).map((n) => n.id);
+  if (nightIds.length) {
+    const { count: played } = await supabase
+      .from("matches")
+      .select("id", { count: "exact", head: true })
+      .in("night_id", nightIds)
+      .neq("status", "upcoming");
+    if ((played ?? 0) > 0) throw new Error("It has scores - it can't be removed.");
+  }
+  const { error } = await supabase.from("competitions").delete().eq("id", competition.id);
+  if (error) {
+    if (error.code === "23503") throw new Error("Another competition uses it as a qualifying place - take that out first.");
+    throw error;
+  }
+  const { count: years } = await supabase
+    .from("competitions")
+    .select("id", { count: "exact", head: true })
+    .eq("series_id", competition.series_id);
+  if ((years ?? 0) === 0) await supabase.from("series").delete().eq("id", competition.series_id);
 }
 
 // Super: removes a club or event with no competitions left (its posts go too)

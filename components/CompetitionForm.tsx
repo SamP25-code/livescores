@@ -29,6 +29,7 @@ import Link from "next/link";
 import { directionsUrl } from "@/lib/venues";
 import { addMinutes } from "@/lib/timeSlots";
 import type { Night, Organiser, Series, Venue } from "@/lib/types";
+import { useIsSuper } from "@/lib/auth";
 
 const DEFAULT_START: Record<SessionKind, string> = {
   qualifier: "19:00",
@@ -64,6 +65,7 @@ export default function CompetitionForm({
 }) {
   const c = existing?.competition;
   const locked = Boolean(c?.structure_locked);
+  const isSuper = useIsSuper();
 
   const [organisers, setOrganisers] = useState<Organiser[]>([]);
   const [allSeries, setAllSeries] = useState<Series[]>([]);
@@ -491,12 +493,12 @@ export default function CompetitionForm({
 
       <section className="card">
         <h2>Format</h2>
-        {existing && (
+        {existing && isSuper && (
           <div className="field">
             <label htmlFor="cf-part-of">Part of</label>
             <select id="cf-part-of" value={partOf} onChange={(e) => setPartOf(e.target.value)}>
-              {(["event", "club"] as const).map((k) => (
-                <optgroup key={k} label={k === "event" ? "Events" : "Clubs"}>
+              {(["event", "county", "club"] as const).map((k) => (
+                <optgroup key={k} label={{ event: "Events", county: "County", club: "Clubs" }[k]}>
                   {organisers
                     .filter((o) => o.kind === k)
                     .map((o) => (
@@ -507,7 +509,7 @@ export default function CompetitionForm({
                 </optgroup>
               ))}
             </select>
-            <p className="hint">Moves this competition (every year of it) to a different club or event.</p>
+            <p className="hint">Moves this competition (every year of it) to a different club, county or event.</p>
           </div>
         )}
         {locked && (

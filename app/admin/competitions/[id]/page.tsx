@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { pageRoleFor, useAccess } from "@/lib/access";
-import { getCompetition, type CompetitionWithSeries } from "@/lib/competitionsApi";
+import { deleteCompetition, getCompetition, type CompetitionWithSeries } from "@/lib/competitionsApi";
 import { longDate, settingsSummary } from "@/lib/competitionSetup";
 import { postponedLabel } from "@/lib/venues";
 import { errorMessage } from "@/lib/errors";
@@ -56,6 +56,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
   const canRun = access ? pageRoleFor(access, id) === "owner" : null;
   const [data, setData] = useState<{ competition: CompetitionWithSeries; sessions: Night[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<Tab>("overview");
@@ -207,9 +208,34 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
             <>
               {saved && !editing && <p className="hint">Changes saved.</p>}
               {!editing ? (
-                <button type="button" className="secondary" onClick={() => setEditing(true)}>
-                  Change settings or dates
-                </button>
+                <>
+                  <button type="button" className="secondary" onClick={() => setEditing(true)}>
+                    Change settings or dates
+                  </button>
+                  {/* Set up by mistake: take it away again, while nothing's happened in it */}
+                  <div className="card admin-remove">
+                    <p className="hint" style={{ marginTop: 0 }}>
+                      Set up by mistake? It can be removed while it has no entries or scores.
+                    </p>
+                    {removeError && <p className="error">{removeError}</p>}
+                    <button
+                      type="button"
+                      className="danger"
+                      onClick={async () => {
+                        if (!confirm(`Remove ${c.series.name} ${c.year}? This can't be undone.`)) return;
+                        setRemoveError(null);
+                        try {
+                          await deleteCompetition(c);
+                          window.location.href = "/admin/competitions";
+                        } catch (err) {
+                          setRemoveError(errorMessage(err));
+                        }
+                      }}
+                    >
+                      Remove this competition
+                    </button>
+                  </div>
+                </>
               ) : (
                 <>
                   <CompetitionForm

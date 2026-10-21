@@ -9,8 +9,8 @@ import { shortDate, todayIso } from "@/lib/publicCompetitions";
 import { SITE_NAME } from "@/lib/site";
 import { supabase } from "@/lib/supabaseClient";
 import PostForm from "@/components/PostForm";
-import { deleteOrganiser } from "@/lib/competitionsApi";
-import type { Organiser } from "@/lib/types";
+import { deleteOrganiser, listChoices, moveSeries } from "@/lib/competitionsApi";
+import type { Organiser, Series } from "@/lib/types";
 
 // An event's page, behind the scenes (Super): its web address, and its posts
 // for the year - news, qualifier updates and adverts. Its competitions are
@@ -26,6 +26,9 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
   // This year's competitions in the event
   const [comps, setComps] = useState<{ id: string; name: string }[]>([]);
   const [editing, setEditing] = useState<string | null>(null); // post id, or "new"
+  // Competitions already set up elsewhere, to bring into this event
+  const [others, setOthers] = useState<{ series: Series; organiser: string }[]>([]);
+  const [bringIn, setBringIn] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -37,6 +40,14 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
         supabase.from("competitions").select("id, year, series:series_id!inner(organiser_id)").eq("series.organiser_id", id),
       ]);
       setEvent(org as Organiser | null);
+      const choices = await listChoices();
+      const names = new Map(choices.organisers.map((o) => [o.id, o.name]));
+      setOthers(
+        choices.series
+          .filter((s) => s.organiser_id !== id)
+          .map((s) => ({ series: s, organiser: names.get(s.organiser_id) ?? "" }))
+          .sort((a, b) => a.organiser.localeCompare(b.organiser) || a.series.name.localeCompare(b.series.name))
+      );
       const ys = [...new Set((comps ?? []).map((c) => c.year as number))].sort((a, b) => b - a);
       setYears(ys);
       const thisYear = Number(todayIso().slice(0, 4));
@@ -140,6 +151,40 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
         </Link>
       </p>
 
+      {others.length > 0 && (
+        <div className="card">
+          <div className="field">
+            <label htmlFor="event-bring-in">Or bring in a competition that&rsquo;s already set up</label>
+            <select id="event-bring-in" value={bringIn} onChange={(e) => setBringIn(e.target.value)}>
+              <option value="">Choose a competition</option>
+              {others.map((o) => (
+                <option key={o.series.id} value={o.series.id}>
+                  {o.series.name} ({o.organiser})
+                </option>
+              ))}
+            </select>
+          </div>
+          <p className="hint">Every year of it moves into the {event?.name ?? "event"}, with its entries and results.</p>
+          <button
+            type="button"
+            disabled={!bringIn}
+            onClick={async () => {
+              const chosen = others.find((o) => o.series.id === bringIn);
+              if (!chosen || !event) return;
+              if (!confirm(`Move ${chosen.series.name} (every year of it) from ${chosen.organiser} into the ${event.name}?`)) return;
+              try {
+                await moveSeries(chosen.series.id, event.id);
+                window.location.reload();
+              } catch (err) {
+                setError(errorMessage(err));
+              }
+            }}
+          >
+            Move it into the {event?.name ?? "event"}
+          </button>
+        </div>
+      )}
+
       <div className="comp-list-head">
         <h2>Posts</h2>
         {years.length > 1 && year !== null && (
@@ -211,7 +256,7 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
                   type="button"
                   className="link-button comp-form-remove"
                   onClick={async () => {
-                    if (!confirm(`Delete "${p.title}"?`)) return;
+                    if (!confirm(`Remove "${p.title}"?`)) return;
                     try {
                       await deletePost(p.id);
                       setMessage("Deleted.");
@@ -221,7 +266,7 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
                     }
                   }}
                 >
-                  Delete
+                  Remove
                 </button>
               </span>
             </div>

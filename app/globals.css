@@ -5138,10 +5138,23 @@ a.info-pill-club:focus-visible {
   color: var(--ink-soft);
 }
 
-/* The calendar's month and year, each a drop-down to jump straight there */
-.cal-title {
-  display: flex;
-  gap: 6px;
+/* The calendar's month and year, each with its arrows and a drop-down */
+.cal-head-group {
+  display: inline-flex;
+  align-items: center;
+}
+
+.cal-head-group .cal-step {
+  min-width: 34px;
+}
+
+/* No drop-down arrow of its own - the arrows either side do the stepping,
+   and tapping the name still opens the list */
+.cal-head-group .cal-pick {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 2px 6px;
+  text-align: center;
 }
 
 .cal-pick {
@@ -5170,4 +5183,8 @@ a.info-pill-club:focus-visible {
 
 .comp-form-session-venue select {
   width: 100%;
+}
+
+.admin-remove {
+  margin-top: var(--section-gap);
 }

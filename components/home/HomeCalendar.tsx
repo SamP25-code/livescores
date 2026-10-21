@@ -64,12 +64,13 @@ export default function HomeCalendar({
 
   return (
     <div className="card cal">
+      {/* The month and the year, each with its own arrows either side and a
+          drop-down to jump straight there */}
       <div className="cal-head">
-        <button type="button" className="cal-step" aria-label="Previous month" onClick={() => step(-1)}>
-          &lsaquo;
-        </button>
-        {/* Jump straight to a month and year, or step with the arrows */}
-        <h3 className="cal-title">
+        <span className="cal-head-group">
+          <button type="button" className="cal-step" aria-label="Previous month" onClick={() => step(-1)}>
+            &lsaquo;
+          </button>
           <select aria-label="Month" className="cal-pick" value={month} onChange={(e) => go(year, Number(e.target.value))}>
             {MONTH_NAMES.map((name, i) => (
               <option key={name} value={i}>
@@ -77,6 +78,14 @@ export default function HomeCalendar({
               </option>
             ))}
           </select>
+          <button type="button" className="cal-step" aria-label="Next month" onClick={() => step(1)}>
+            &rsaquo;
+          </button>
+        </span>
+        <span className="cal-head-group">
+          <button type="button" className="cal-step" aria-label="Previous year" onClick={() => go(year - 1, month)}>
+            &lsaquo;
+          </button>
           <select aria-label="Year" className="cal-pick" value={year} onChange={(e) => go(Number(e.target.value), month)}>
             {years.map((y) => (
               <option key={y} value={y}>
@@ -84,10 +93,10 @@ export default function HomeCalendar({
               </option>
             ))}
           </select>
-        </h3>
-        <button type="button" className="cal-step" aria-label="Next month" onClick={() => step(1)}>
-          &rsaquo;
-        </button>
+          <button type="button" className="cal-step" aria-label="Next year" onClick={() => go(year + 1, month)}>
+            &rsaquo;
+          </button>
+        </span>
       </div>
 
       <div className="cal-grid" role="grid" aria-label={`${MONTH_NAMES[month]} ${year}`}>

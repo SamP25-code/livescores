@@ -667,7 +667,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
               <div className="round-heading">
                 <h2>Through to Finals Day</h2>
               </div>
-              <p className="hint">Pick the number each player drew for finals day.</p>
+              <p className="hint">Pick the number each player drew for Finals Day.</p>
               <FinalsNumberPicker
                 slots={finalsSlots}
                 pool={qualifiers}

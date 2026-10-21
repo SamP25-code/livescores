@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { computeNightStatus, roundLabel } from "@/lib/bracket";
 import { distinguishedNames } from "@/lib/people";
 import type { Champion, PublicCompetition, PublicSession, PublicSessionKind } from "@/lib/publicCompetitions";
+import type { ClubOrganiser } from "@/lib/siteMenu";
 
 type MatchLite = {
   id: string;
@@ -241,4 +242,12 @@ export async function loadEnteredNames(competitionId: string): Promise<EnteredNa
       sessionId: r.session_id,
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+// Every club, for the Clubs page and the menu's search - including a venue
+// ticked "also a club" that doesn't run a competition yet
+export async function loadClubOrganisers(): Promise<ClubOrganiser[]> {
+  const { data, error } = await supabase.from("organisers").select("id, name, short_name, slug, venue_id").eq("kind", "club");
+  if (error) throw error;
+  return (data ?? []) as ClubOrganiser[];
 }

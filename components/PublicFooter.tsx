@@ -38,7 +38,7 @@ export default function PublicFooter({ line }: { line?: string }) {
         <button type="button" aria-pressed={larger} onClick={toggle}>
           {larger ? "Normal text" : "Larger text"}
         </button>
-        <Link href="/admin">Log in</Link>
+        <Link href="/admin">Sign in</Link>
       </nav>
     </footer>
   );

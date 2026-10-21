@@ -32,6 +32,7 @@ export default function CompetitionList({
   searchable = false,
   organiserId,
   organiserKind,
+  belongs,
   title = "Competitions",
 }: {
   all: PublicCompetition[];
@@ -45,13 +46,16 @@ export default function CompetitionList({
   organiserId?: string;
   // Only one kind's competitions (the County page)
   organiserKind?: "club" | "event" | "county";
+  // Which to show, when it's more than one organiser's (a club's page: the
+  // competitions it runs and those played on its green)
+  belongs?: (c: PublicCompetition) => boolean;
   title?: string;
 }) {
   const [query, setQuery] = useState("");
   const thisYear = all.filter(
     (c) =>
       c.year === year &&
-      (!organiserId || c.organiser.id === organiserId) &&
+      (belongs ? belongs(c) : !organiserId || c.organiser.id === organiserId) &&
       (!organiserKind || c.organiser.kind === organiserKind)
   );
   const labels = [...new Set(thisYear.map((c) => c.label).filter((l): l is string => Boolean(l)))];
@@ -160,7 +164,8 @@ export default function CompetitionList({
               title={c.name}
               href={competitionPath(c, all)}
               // A club's own page doesn't need its own name on every row
-              pill={organiserId || organiserKind ? null : organiserPill(c, all)}
+              // A club's own competitions don't need its name on every row
+              pill={c.organiser.id === organiserId || organiserKind ? null : organiserPill(c, all)}
               line={<RowLine competition={c} state={state} />}
             />
           );

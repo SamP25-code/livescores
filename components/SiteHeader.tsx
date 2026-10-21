@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { loadLiveMatches, loadPublicCompetitions } from "@/lib/publicData";
+import { loadClubOrganisers, loadLiveMatches, loadPublicCompetitions } from "@/lib/publicData";
 import type { PublicCompetition } from "@/lib/publicCompetitions";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { menuEvents, menuItems, searchMenu, type MenuEvent, type MenuItem } from "@/lib/siteMenu";
@@ -13,8 +13,8 @@ type Menu = { items: MenuItem[]; events: MenuEvent[]; live: number };
 let cached: Promise<Menu> | null = null;
 function loadMenu() {
   if (!cached) {
-    cached = Promise.all([loadPublicCompetitions(), loadLiveMatches()]).then(([all, live]: [PublicCompetition[], unknown[]]) => ({
-      items: menuItems(all),
+    cached = Promise.all([loadPublicCompetitions(), loadLiveMatches(), loadClubOrganisers().catch(() => [])]).then(([all, live, organisers]) => ({
+      items: menuItems(all as PublicCompetition[], organisers),
       events: menuEvents(all),
       live: live.length,
     }));
@@ -174,7 +174,7 @@ export default function SiteHeader({ compact = false, back = "/" }: { compact?: 
             )}
 
             <p className="site-menu-foot">
-              <Link href="/privacy">Privacy</Link> · <Link href="/admin">Log in</Link>
+              <Link href="/privacy">Privacy</Link> · <Link href="/admin">Sign in</Link>
             </p>
           </nav>
           <button type="button" className="site-menu-shade" aria-label="Close the menu" onClick={() => setOpen(false)} />

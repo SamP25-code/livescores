@@ -30,6 +30,8 @@ export type Organiser = {
   background_image: string | null;
   // Part 11: an event's web address (/blackpool-masters)
   slug?: string | null;
+  // A club's home green, when its venue is ticked "also a club"
+  venue_id?: string | null;
   created_at: string;
 };
 

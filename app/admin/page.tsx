@@ -154,7 +154,7 @@ export default function AdminDashboard() {
               <label htmlFor="night-kind">Type</label>
               <select id="night-kind" value={kind} onChange={(e) => setKind(e.target.value as "qualifier" | "finals")}>
                 <option value="qualifier">Qualifying night</option>
-                <option value="finals">Finals day</option>
+                <option value="finals">Finals Day</option>
               </select>
             </div>
             {error && <p className="error">{error}</p>}

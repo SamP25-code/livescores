@@ -12,7 +12,7 @@ export type MenuItem = {
 };
 
 // One entry per competition (its latest year), one per event and one per club
-export function menuItems(all: PublicCompetition[]): MenuItem[] {
+export function menuItems(all: PublicCompetition[], organisers: ClubOrganiser[] = []): MenuItem[] {
   const items: MenuItem[] = [];
   const latestBySlug = new Map<string, PublicCompetition>();
   for (const c of all) {
@@ -39,7 +39,7 @@ export function menuItems(all: PublicCompetition[]): MenuItem[] {
       href: eventPath(list[0].organiser.slug!, year, all),
     });
   }
-  for (const club of clubs(all)) {
+  for (const club of clubs(all, organisers)) {
     items.push({
       kind: "club",
       title: club.name,
@@ -75,35 +75,45 @@ export function menuEvents(all: PublicCompetition[]): MenuEvent[] {
     .map(({ from: _from, ...e }) => e);
 }
 
-// Every club with a competition on the site, A to Z, with how many
-// competitions it runs (each counted once, however many years) and the
-// venue its competitions are played at most - for its directions
+// A club as loaded for the Clubs page: every club, including a venue
+// ticked "also a club" that doesn't run a competition of its own yet
+export type ClubOrganiser = { id: string; name: string; short_name: string; slug: string | null; venue_id: string | null };
+
+// Whether a competition shows on a club's page: one it runs, or one played
+// on its green (the Masters at Marton Institute)
+export function playedByOrAt(club: { id: string; venueId: string | null }, c: PublicCompetition): boolean {
+  if (c.organiser.id === club.id) return true;
+  if (!club.venueId) return false;
+  return c.venue_id === club.venueId || c.sessions.some((s) => s.venue_id === club.venueId);
+}
+
+// Every club, A to Z, with how many competitions it runs or hosts (each
+// counted once, however many years) and its green - its own venue, or the
+// one its competitions are played at most - for its directions
 export type ClubSummary = { id: string; name: string; short_name: string; href: string; count: number; venueId: string | null };
-export function clubs(all: PublicCompetition[]): ClubSummary[] {
-  const found = new Map<string, { id: string; name: string; short_name: string; href: string; slugs: Set<string>; venues: Map<string, number> }>();
+export function clubs(all: PublicCompetition[], organisers: ClubOrganiser[] = []): ClubSummary[] {
+  const found = new Map<string, { id: string; name: string; short_name: string; href: string; venueId: string | null }>();
+  for (const o of organisers) {
+    const href = clubPath(o);
+    if (href) found.set(o.id, { id: o.id, name: o.name, short_name: o.short_name, href, venueId: o.venue_id });
+  }
   for (const c of all) {
     const href = c.organiser.kind === "club" ? clubPath(c.organiser) : null;
-    if (!href) continue;
-    if (!found.has(c.organiser.id)) {
-      found.set(c.organiser.id, {
-        id: c.organiser.id,
-        name: c.organiser.name,
-        short_name: c.organiser.short_name,
-        href,
-        slugs: new Set(),
-        venues: new Map(),
-      });
-    }
-    const club = found.get(c.organiser.id)!;
-    club.slugs.add(c.slug);
-    if (c.venue_id) club.venues.set(c.venue_id, (club.venues.get(c.venue_id) ?? 0) + 1);
+    if (!href || found.has(c.organiser.id)) continue;
+    found.set(c.organiser.id, { id: c.organiser.id, name: c.organiser.name, short_name: c.organiser.short_name, href, venueId: null });
   }
   return [...found.values()]
-    .map(({ slugs, venues, ...club }) => ({
-      ...club,
-      count: slugs.size,
-      venueId: [...venues.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null,
-    }))
+    .map((club) => {
+      // No green of its own: where its competitions are played most
+      let venueId = club.venueId;
+      if (!venueId) {
+        const used = new Map<string, number>();
+        for (const c of all) if (c.organiser.id === club.id && c.venue_id) used.set(c.venue_id, (used.get(c.venue_id) ?? 0) + 1);
+        venueId = [...used.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+      }
+      const slugs = new Set(all.filter((c) => playedByOrAt({ id: club.id, venueId: club.venueId }, c)).map((c) => c.slug));
+      return { ...club, count: slugs.size, venueId };
+    })
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 

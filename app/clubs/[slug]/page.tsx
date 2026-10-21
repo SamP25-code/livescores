@@ -2,15 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { usePublicCompetitions } from "@/lib/usePublicCompetitions";
+import { useClubOrganisers, usePublicCompetitions } from "@/lib/usePublicCompetitions";
 import { todayIso, type ListFilter } from "@/lib/publicCompetitions";
 import PublicPage from "@/components/PublicPage";
 import CompetitionList from "@/components/home/CompetitionList";
 import VenueCard from "@/components/VenueCard";
 import { useVenues } from "@/lib/useVenues";
-import { clubs } from "@/lib/siteMenu";
+import { clubs, playedByOrAt } from "@/lib/siteMenu";
 
-// One club's page: all its competitions, a year at a time
+// One club's page: the competitions it runs and those played on its green,
+// a year at a time
 export default function ClubPage() {
   const { slug } = useParams<{ slug: string }>();
   const { competitions, failed } = usePublicCompetitions();
@@ -18,21 +19,22 @@ export default function ClubPage() {
   const [listYear, setListYear] = useState<number | null>(null);
   const [filter, setFilter] = useState<ListFilter>("all");
   const all = useMemo(() => competitions ?? [], [competitions]);
-  const club = all.find((c) => c.organiser.kind === "club" && c.organiser.slug === slug)?.organiser;
-  const years = useMemo(
-    () => [...new Set(all.filter((c) => c.organiser.id === club?.id).map((c) => c.year))].sort((a, b) => b - a),
-    [all, club]
-  );
+  const organisers = useClubOrganisers();
+  const summary = useMemo(() => clubs(all, organisers).find((x) => x.href === `/clubs/${slug}`), [all, organisers, slug]);
+  const club = summary ? { id: summary.id, venueId: organisers.find((o) => o.id === summary.id)?.venue_id ?? null } : null;
+  const belongs = (c: (typeof all)[number]) => (club ? playedByOrAt(club, c) : false);
+  const years = [...new Set(all.filter(belongs).map((c) => c.year))].sort((a, b) => b - a);
   const thisYear = Number(today.slice(0, 4));
   const year = listYear ?? (years.includes(thisYear) ? thisYear : years[0] ?? thisYear);
-  const venueId = club ? (clubs(all).find((x) => x.id === club.id)?.venueId ?? null) : null;
+  const venueId = summary?.venueId ?? null;
   const venue = useVenues([venueId]).get(venueId ?? "");
 
   return (
-    <PublicPage title={club?.name ?? "Club"} loading={competitions === null} failed={failed} back="/clubs">
-      {competitions !== null && !club && <p className="night-header-hint">No club at this address.</p>}
+    <PublicPage title={summary?.name ?? "Club"} loading={competitions === null} failed={failed} back="/clubs">
+      {competitions !== null && organisers.length > 0 && !summary && <p className="night-header-hint">No club at this address.</p>}
       {venue && <VenueCard venue={venue} />}
-      {club && (
+      {club && years.length === 0 && <p className="quiet-line">No competitions yet</p>}
+      {club && years.length > 0 && (
         <CompetitionList
           all={all}
           year={year}
@@ -42,6 +44,7 @@ export default function ClubPage() {
           onFilter={setFilter}
           today={today}
           organiserId={club.id}
+          belongs={belongs}
         />
       )}
     </PublicPage>

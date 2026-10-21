@@ -2,14 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { useIsSuper } from "@/lib/auth";
-import { createVenue, deleteVenue, listVenues, updateVenue, venueUsage, type VenueInput } from "@/lib/competitionsApi";
+import {
+  createVenue,
+  deleteVenue,
+  listClubs,
+  listVenues,
+  setVenueClub,
+  updateVenue,
+  venueUsage,
+  type VenueInput,
+} from "@/lib/competitionsApi";
 import { errorMessage } from "@/lib/errors";
 import { SITE_NAME } from "@/lib/site";
 import { checkMapUrl, directionsUrl } from "@/lib/venues";
-import type { Venue } from "@/lib/types";
+import type { Organiser, Venue } from "@/lib/types";
 
 type Form = { name: string; address: string; postcode: string; notes: string; map_url: string };
 const EMPTY: Form = { name: "", address: "", postcode: "", notes: "", map_url: "" };
+
+// "Also a club": which club ("new" for one made from the venue) and, for a
+// new one, the short name its pills show
+type ClubChoice = { on: boolean; clubId: string; shortName: string };
+const NO_CLUB: ClubChoice = { on: false, clubId: "new", shortName: "" };
 
 const FIELDS: [keyof Form, string, string][] = [
   ["name", "Venue name", "Penwortham Sports & Social Club"],
@@ -41,15 +55,18 @@ export default function VenuesPage() {
   const [used, setUsed] = useState<Map<string, number>>(new Map());
   const [editing, setEditing] = useState<string | null>(null); // venue id, or "new"
   const [form, setForm] = useState<Form>(EMPTY);
+  const [clubList, setClubList] = useState<Organiser[]>([]);
+  const [clubChoice, setClubChoice] = useState<ClubChoice>(NO_CLUB);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   async function load() {
     try {
-      const [list, usage] = await Promise.all([listVenues(), venueUsage()]);
+      const [list, usage, clubRows] = await Promise.all([listVenues(), venueUsage(), listClubs()]);
       setVenues(list);
       setUsed(usage);
+      setClubList(clubRows);
     } catch (err) {
       setError(errorMessage(err));
     }
@@ -67,6 +84,8 @@ export default function VenuesPage() {
     setError(null);
     setMessage(null);
     setEditing(v ? v.id : "new");
+    const linked = v ? clubList.find((o) => o.venue_id === v.id) : undefined;
+    setClubChoice(linked ? { on: true, clubId: linked.id, shortName: linked.short_name } : NO_CLUB);
     setForm(
       v
         ? { name: v.name, address: v.address ?? "", postcode: v.postcode ?? "", notes: v.notes ?? "", map_url: v.map_url ?? "" }
@@ -92,8 +111,16 @@ export default function VenuesPage() {
   function save() {
     run(async () => {
       const input = toInput(form);
-      if (editing === "new") await createVenue(input);
-      else if (editing) await updateVenue(editing, input);
+      const saved = editing === "new" ? await createVenue(input) : editing ? await updateVenue(editing, input) : null;
+      if (!saved) return;
+      const linked = clubList.find((o) => o.venue_id === saved.id);
+      if (!clubChoice.on) {
+        if (linked) await setVenueClub(saved, null);
+      } else if (clubChoice.clubId === "new") {
+        await setVenueClub(saved, { shortName: clubChoice.shortName || saved.name });
+      } else if (linked?.id !== clubChoice.clubId) {
+        await setVenueClub(saved, { organiserId: clubChoice.clubId });
+      }
     }, `${form.name.trim()} saved.`);
   }
 
@@ -120,6 +147,54 @@ export default function VenuesPage() {
           />
         </div>
       ))}
+      <label className="comp-form-check">
+        <input
+          type="checkbox"
+          checked={clubChoice.on}
+          onChange={(e) => {
+            const on = e.target.checked;
+            // A club with the same name is most likely this venue's club
+            const match = clubList.find(
+              (o) => !o.venue_id && o.name.trim().toLowerCase() === form.name.trim().toLowerCase()
+            );
+            setClubChoice({ on, clubId: match?.id ?? "new", shortName: match?.short_name ?? form.name.trim() });
+          }}
+        />
+        This venue is also a club
+      </label>
+      {clubChoice.on && (
+        <div className="comp-form-sub">
+          <div className="field">
+            <label htmlFor="venue-club">Which club?</label>
+            <select
+              id="venue-club"
+              value={clubChoice.clubId}
+              onChange={(e) => setClubChoice({ ...clubChoice, clubId: e.target.value })}
+            >
+              {clubList
+                .filter((o) => !o.venue_id || o.venue_id === editing)
+                .map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.name}
+                  </option>
+                ))}
+              <option value="new">+ A new club: {form.name.trim() || "this venue"}</option>
+            </select>
+          </div>
+          {clubChoice.clubId === "new" && (
+            <div className="field">
+              <label htmlFor="venue-club-short">Short name (shown on its competitions)</label>
+              <input
+                id="venue-club-short"
+                placeholder="Marton"
+                value={clubChoice.shortName}
+                onChange={(e) => setClubChoice({ ...clubChoice, shortName: e.target.value })}
+              />
+            </div>
+          )}
+          <p className="hint">It shows on the Clubs page, with the competitions played here.</p>
+        </div>
+      )}
       <p className="hint">
         The maps link is for the exact spot if searching the address doesn&rsquo;t find it: in Google Maps, find the
         green, tap Share, copy the link and paste it here.
@@ -170,6 +245,7 @@ export default function VenuesPage() {
                 <span className="hint">
                   {[v.address, v.postcode].filter(Boolean).join(" ") || "No address yet"}
                   {(used.get(v.id) ?? 0) > 0 ? ` · used by ${used.get(v.id)}` : " · not used yet"}
+                  {clubList.some((o) => o.venue_id === v.id) ? ` · Club: ${clubList.find((o) => o.venue_id === v.id)!.short_name}` : ""}
                 </span>
               </span>
               <span className="entries-actions">

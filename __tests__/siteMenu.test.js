@@ -38,6 +38,15 @@ describe("side menu search", () => {
     expect(clubs(all)).toEqual([{ id: "pen", name: "Penwortham SSC", short_name: "Penwortham", href: "/clubs/penwortham", count: 2, venueId: null }]);
   });
 
+  test("a venue that's also a club: listed with the competitions played on its green", () => {
+    const marton = { id: "mi", name: "Marton Institute", short_name: "Marton", slug: "marton-institute", venue_id: "v-marton" };
+    const atMarton = all.map((x) => (x.organiser.kind === "event" ? { ...x, venue_id: "v-marton" } : x));
+    expect(clubs(atMarton, [marton]).map((x) => `${x.name} ${x.count} ${x.venueId}`)).toEqual([
+      "Marton Institute 2 v-marton",
+      "Penwortham SSC 2 null",
+    ]);
+  });
+
   test("the menu's events: name and dates", () => {
     expect(menuEvents(all)).toEqual([{ title: "Blackpool Masters", dates: "Sat 18 – Sun 19 Sep", href: "/blackpool-masters" }]);
   });

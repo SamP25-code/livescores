@@ -222,7 +222,7 @@ function OldHome() {
       <NightNav variant="home" />
 
       <nav className="page-footer-nav">
-        <Link href="/admin">Log in</Link>
+        <Link href="/admin">Sign in</Link>
       </nav>
     </div>
   );
