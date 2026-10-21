@@ -8,6 +8,8 @@ import { championPerson, loadQualifying } from "@/lib/qualifyingApi";
 export type PublicPlace = {
   number: number;
   source: string; // "Fylde Classic · Kirkham · Sat 5 Jun" (without "Winner ·")
+  name: string; // "Fylde Classic"
+  location: string | null; // "Kirkham"
   wasSource: string | null; // a wildcard that was once a qualifying place
   wildcard: boolean;
   who: string | null;
@@ -36,6 +38,8 @@ export async function loadPublicQualifying(competitionId: string): Promise<Publi
     out.push({
       number: p.place_number,
       source: p.source === "wildcard" ? "Wildcard" : p.source_label.replace(/^Winner · /, ""),
+      name: event?.name ?? p.source_label.replace(/^Winner · /, "").split(" · ")[0],
+      location: event?.location ?? null,
       wasSource: p.source === "wildcard" ? (p.original_source_label?.replace(/^Winner · /, "") ?? null) : null,
       wildcard: p.source === "wildcard",
       who,

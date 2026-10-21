@@ -13,11 +13,12 @@ export default function NewCompetitionPage() {
   // ?event=<id>: adding another competition to that event
   const [presetEvent, setPresetEvent] = useState<string | null | undefined>(undefined);
   // ?kind=event: a new event, starting on "Part of an event"
-  const [presetKind, setPresetKind] = useState<"club" | "event" | undefined>(undefined);
+  const [presetKind, setPresetKind] = useState<"club" | "event" | "county" | undefined>(undefined);
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
     setPresetEvent(q.get("event"));
     if (q.get("kind") === "event") setPresetKind("event");
+    if (q.get("kind") === "county") setPresetKind("county");
   }, []);
 
   useEffect(() => {

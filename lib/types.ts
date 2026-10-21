@@ -24,7 +24,9 @@ export type Organiser = {
   id: string;
   name: string;
   short_name: string;
-  kind: "club" | "event";
+  // A club, an event (the Blackpool Masters), or a county (NL&F County),
+  // whose competitions move between clubs
+  kind: "club" | "event" | "county";
   background_image: string | null;
   // Part 11: an event's web address (/blackpool-masters)
   slug?: string | null;

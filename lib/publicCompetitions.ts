@@ -22,6 +22,9 @@ export type PublicSession = {
   liveCount: number;
   // How many matches it has - none until its draw is made
   matchCount?: number;
+  // Where this session is played, when it isn't the competition's venue
+  // (a county competition moves between clubs)
+  venue_id?: string | null;
 };
 
 export type Champion = { name: string; runnerUp: string | null; date: string | null };
@@ -40,7 +43,7 @@ export type PublicCompetition = {
   qualifiers_per_night: number | null;
   target_score: 21 | 31;
   venue_id: string | null;
-  organiser: { id: string; name: string; short_name: string; kind: "club" | "event"; slug: string | null };
+  organiser: { id: string; name: string; short_name: string; kind: "club" | "event" | "county"; slug: string | null };
   entry_method: "open" | "qualification" | "on_the_night";
   sponsors: { name: string; url: string | null; logo_url: string | null }[];
   sessions: PublicSession[];
@@ -55,6 +58,7 @@ export function clubPath(organiser: Pick<PublicCompetition["organiser"], "slug">
 
 // Where a competition's club or event pill goes: the club's page, or the event's
 export function organiserPath(c: PublicCompetition, all: PublicCompetition[]): string | null {
+  if (c.organiser.kind === "county") return "/county";
   if (!c.organiser.slug) return null;
   return c.organiser.kind === "event" ? eventPath(c.organiser.slug, c.year, all) : clubPath(c.organiser);
 }

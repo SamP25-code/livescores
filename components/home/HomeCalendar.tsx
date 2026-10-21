@@ -3,8 +3,10 @@
 import { useState } from "react";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import RowLine from "@/components/home/RowLine";
+import { organiserPill } from "@/components/home/HomeLists";
 import {
   MONTH_NAMES,
+  competitionPath,
   rowState,
   marksByDay,
   monthGrid,
@@ -15,8 +17,7 @@ import {
 // The month calendar: a dot under a qualifying session's date, the
 // competition's colour in a gold ring for a trophy day (Finals Day or a
 // single day), today ringed, "LIVE" under tonight. Below it, one row per
-// competition in view - tap one to light up its dates; tap a date to see
-// what's on. Days either side of the month are shown faded but still marked.
+// competition in view - tap one to open it; tap a date to see what's on. Days either side of the month are shown faded but still marked.
 export default function HomeCalendar({
   competitions,
   colours,
@@ -24,8 +25,7 @@ export default function HomeCalendar({
   month,
   onMonth,
   today,
-  highlightId,
-  onHighlight,
+  all,
 }: {
   competitions: PublicCompetition[];
   colours: Map<string, string>;
@@ -33,8 +33,8 @@ export default function HomeCalendar({
   month: number;
   onMonth: (year: number, month: number) => void;
   today: string;
-  highlightId: string | null;
-  onHighlight: (id: string | null) => void;
+  // Every competition, for each row's link
+  all: PublicCompetition[];
 }) {
   const [picked, setPicked] = useState<string | null>(null);
   const weeks = monthGrid(year, month);
@@ -44,9 +44,17 @@ export default function HomeCalendar({
 
   function step(by: number) {
     const d = new Date(Date.UTC(year, month + by, 1));
-    setPicked(null);
-    onMonth(d.getUTCFullYear(), d.getUTCMonth());
+    go(d.getUTCFullYear(), d.getUTCMonth());
   }
+
+  function go(y: number, m: number) {
+    setPicked(null);
+    onMonth(y, m);
+  }
+
+  // The years to jump between: every year with a competition, and this one
+  const thisYear = Number(today.slice(0, 4));
+  const years = [...new Set([thisYear, year, ...competitions.map((c) => c.year)])].sort((a, b) => a - b);
 
   const pickedList = picked
     ? competitions.flatMap((c) =>
@@ -60,8 +68,22 @@ export default function HomeCalendar({
         <button type="button" className="cal-step" aria-label="Previous month" onClick={() => step(-1)}>
           &lsaquo;
         </button>
+        {/* Jump straight to a month and year, or step with the arrows */}
         <h3 className="cal-title">
-          {MONTH_NAMES[month]} {year}
+          <select aria-label="Month" className="cal-pick" value={month} onChange={(e) => go(year, Number(e.target.value))}>
+            {MONTH_NAMES.map((name, i) => (
+              <option key={name} value={i}>
+                {name}
+              </option>
+            ))}
+          </select>
+          <select aria-label="Year" className="cal-pick" value={year} onChange={(e) => go(Number(e.target.value), month)}>
+            {years.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
         </h3>
         <button type="button" className="cal-step" aria-label="Next month" onClick={() => step(1)}>
           &rsaquo;
@@ -79,7 +101,6 @@ export default function HomeCalendar({
           const trophy = dayMarks.find((m) => m.trophy);
           const dots = dayMarks.filter((m) => !m.trophy).slice(0, 3);
           const live = dayMarks.some((m) => m.live);
-          const faded = (id: string) => highlightId !== null && id !== highlightId;
           const what = dayMarks
             .map((m) => byId.get(m.competitionId)?.name)
             .filter(Boolean)
@@ -96,7 +117,7 @@ export default function HomeCalendar({
             >
               {trophy ? (
                 <span
-                  className={`cal-trophy ${faded(trophy.competitionId) ? "cal-faded" : ""}`}
+                  className="cal-trophy"
                   style={{ background: colours.get(trophy.competitionId) }}
                 >
                   {day.day}
@@ -108,7 +129,7 @@ export default function HomeCalendar({
                 {dots.map((m, i) => (
                   <span
                     key={i}
-                    className={`cal-dot ${faded(m.competitionId) ? "cal-faded" : ""}`}
+                    className="cal-dot"
                     style={{ background: colours.get(m.competitionId) }}
                   />
                 ))}
@@ -147,10 +168,9 @@ export default function HomeCalendar({
                 key={c.id}
                 date={state.date}
                 title={c.name}
-                onSelect={() => onHighlight(highlightId === c.id ? null : c.id)}
-                selected={highlightId === c.id}
+                href={competitionPath(c, all)}
                 colour={colours.get(c.id)}
-                pill={{ label: c.organiser.kind === "event" ? c.organiser.name : c.organiser.short_name, href: null }}
+                pill={organiserPill(c, all)}
                 line={<RowLine competition={c} state={state} />}
               />
             );

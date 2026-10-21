@@ -584,6 +584,16 @@ more:
   and any qualifying place it fed. If the next round has already started with the wrong player,
   the admin is warned and decides (it may need the "replace" rule from Draws).
 
+## Scoring by stage, and typing a score (raised 2026-10-21 - later)
+
+- Scoring is set once for the whole competition (live, or results only).
+  Some will want results only on the qualifying sessions, then live scoring
+  on Finals Day: let the scoring style be chosen for qualifying and for
+  Finals Day separately.
+- Live scoring keeps the +1, +2 and - buttons (as for the October Singles
+  2026), and also lets the scorer type the score straight in - from 10-10 to
+  17-17 in one go, rather than pressing through each point.
+
 ## Ideas to decide on (2026-10-16)
 
 - **QR posters?** An automatic printable poster per competition (name, dates, venue, QR code to

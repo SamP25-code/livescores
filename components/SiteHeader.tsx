@@ -155,6 +155,12 @@ export default function SiteHeader({ compact = false, back = "/" }: { compact?: 
                   </Link>
                 ))}
 
+                {/* County competitions, then events - both in gold to stand out */}
+                <Link href="/county" className="site-menu-event site-menu-event-name site-menu-county">
+                  <strong>County</strong>
+                  <span>County competitions</span>
+                </Link>
+
                 {menu && menu.events.length > 0 && <p className="site-menu-heading">Events</p>}
                 {menu?.events.map((e) => (
                   <div key={e.href} className="site-menu-event">

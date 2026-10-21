@@ -19,7 +19,14 @@ function sortSponsors<T extends { sponsors?: CompetitionSponsor[] }>(c: T): T {
   return { ...c, sponsors: [...(c.sponsors ?? [])].sort((a, b) => a.position - b.position) };
 }
 
-export type SessionDetails = { date: string | null; start_time: string | null; practice_time: string | null };
+export type SessionDetails = {
+  date: string | null;
+  start_time: string | null;
+  practice_time: string | null;
+  // A county competition's sessions each have their own venue; left out
+  // (undefined), a session's venue isn't touched
+  venue_id?: string | null;
+};
 
 // Everything set up so far, newest year first.
 export async function listCompetitions(): Promise<CompetitionWithSeries[]> {
@@ -171,6 +178,7 @@ async function syncSessions(
       start_time,
       practice_time,
       name: sessionName(kind as SessionKind, session_number, date),
+      ...(details[i] && "venue_id" in details[i] ? { venue_id: details[i].venue_id || null } : {}),
     };
     const existing = byKey.get(key);
     if (existing) {

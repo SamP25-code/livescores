@@ -39,7 +39,9 @@ export const dynamic = "force-dynamic";
 export default function CompetitionPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const [all, setAll] = useState<PublicCompetition[] | null>(null);
-  const [venue, setVenue] = useState<Venue | null>(null);
+  // The competition's venue first, then any session played somewhere else
+  // (a county competition's sessions move between clubs)
+  const [venues, setVenues] = useState<Venue[]>([]);
   const [honours, setHonours] = useState<HonoursRow[]>([]);
   const [failed, setFailed] = useState(false);
   const today = todayIso();
@@ -53,14 +55,15 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
         setAll(comps);
         const c = resolveCompetition(comps, slug);
         if (!c) return;
-        const [venueRow, rows] = await Promise.all([
-          c.venue_id
-            ? supabase.from("venues").select("*").eq("id", c.venue_id).single().then((r) => r.data as Venue | null)
-            : Promise.resolve(null),
+        const ids = [...new Set([c.venue_id, ...c.sessions.map((s) => s.venue_id)].filter((v): v is string => Boolean(v)))];
+        const [venueRows, rows] = await Promise.all([
+          ids.length
+            ? supabase.from("venues").select("*").in("id", ids).then((r) => (r.data ?? []) as Venue[])
+            : Promise.resolve([] as Venue[]),
           loadHonours(c.slug, comps),
         ]);
         if (cancelled) return;
-        setVenue(venueRow);
+        setVenues(ids.map((id) => venueRows.find((v) => v.id === id)).filter((v): v is Venue => Boolean(v)));
         setHonours(rows);
       } catch {
         if (!cancelled) setFailed(true);
@@ -109,7 +112,15 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
   const runBy = c.organiser.kind === "event" ? c.organiser.name : c.organiser.short_name;
 
   return (
-    <Shell back={c.organiser.kind === "event" && c.organiser.slug ? eventPath(c.organiser.slug, c.year, all) : "/competitions"}>
+    <Shell
+      back={
+        c.organiser.kind === "event" && c.organiser.slug
+          ? eventPath(c.organiser.slug, c.year, all)
+          : c.organiser.kind === "county"
+            ? "/county"
+            : "/competitions"
+      }
+    >
       <header className="comp-page-head">
         <h1 className="comp-page-title">
           {c.name} {c.year}
@@ -141,7 +152,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
       ) : (
         <div className="card comp-schedule">
           {c.sessions.map((s) => (
-            <ScheduleRow key={s.id} session={s} competition={c} today={today} />
+            <ScheduleRow key={s.id} session={s} competition={c} today={today} venues={venues} />
           ))}
         </div>
       )}
@@ -150,7 +161,9 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
 
       <WhosEntered competition={c} />
 
-      {venue && <VenueCard venue={venue} />}
+      {venues.map((v) => (
+        <VenueCard key={v.id} venue={v} />
+      ))}
 
       {honours.length > 0 && (
         <section className="home-section">
@@ -208,7 +221,17 @@ function Shell({ children, back = "/competitions" }: { children: React.ReactNode
 
 // One session: ticked when finished (with how many went through), Live
 // tonight, start time for one still to come, Finals Day in gold
-function ScheduleRow({ session: s, competition: c, today }: { session: PublicSession; competition: PublicCompetition; today: string }) {
+function ScheduleRow({
+  session: s,
+  competition: c,
+  today,
+  venues,
+}: {
+  session: PublicSession;
+  competition: PublicCompetition;
+  today: string;
+  venues: Venue[];
+}) {
   const finals = s.kind === "finals";
   const postponed = postponedLabel(s);
   const was = originalDateLabel(s);
@@ -220,12 +243,16 @@ function ScheduleRow({ session: s, competition: c, today }: { session: PublicSes
   else if (s.status === "live") details.push(s.date === today ? "tonight" : "in play");
   else if (s.status === "upcoming" && sessionTimes(s)) details.push(sessionTimes(s)!);
   if (finals && s.status === "upcoming" && c.draw_size) details.push(`${c.draw_size} qualifiers`);
+  // Played somewhere other than the competition's venue: say where
+  const elsewhere = s.venue_id && s.venue_id !== c.venue_id ? venues.find((v) => v.id === s.venue_id) : undefined;
+  if (elsewhere) details.push(elsewhere.name);
 
-  return (
-    <Link
-      href={`/night/${s.id}`}
-      className={`comp-schedule-row ${finals ? "comp-schedule-finals" : ""} ${s.status === "live" ? "comp-schedule-live" : ""}`}
-    >
+  // A one-day competition (or a final) has nothing more to show before its
+  // draw is out - the row only opens once there is
+  const opens = s.draw_published || s.status !== "upcoming" || s.kind === "qualifier" || s.kind === "finals";
+  const className = `comp-schedule-row ${finals ? "comp-schedule-finals" : ""} ${s.status === "live" ? "comp-schedule-live" : ""}`;
+  const inner = (
+    <>
       <span className="comp-schedule-main">
         <span className="comp-schedule-line">
           <strong>
@@ -242,10 +269,19 @@ function ScheduleRow({ session: s, competition: c, today }: { session: PublicSes
           Live
         </span>
       ) : (
-        <span className="comp-schedule-open" aria-hidden="true">
-          &rsaquo;
-        </span>
+        opens && (
+          <span className="comp-schedule-open" aria-hidden="true">
+            &rsaquo;
+          </span>
+        )
       )}
+    </>
+  );
+  return opens ? (
+    <Link href={`/night/${s.id}`} className={className}>
+      {inner}
     </Link>
+  ) : (
+    <div className={className}>{inner}</div>
   );
 }

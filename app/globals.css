@@ -3283,23 +3283,6 @@ a.home-next-go,
   color: var(--ink-soft);
 }
 
-.home-showing {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 8px;
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  background: rgba(20, 40, 28, 0.85);
-  color: #fff;
-}
-
-.home-showing .link-button {
-  color: #fff;
-  font-weight: 700;
-}
-
 /* Competition list */
 .home-filters {
   display: flex;
@@ -5153,4 +5136,38 @@ a.info-pill-club:focus-visible {
 .event-countdown-details span {
   font-size: 0.9rem;
   color: var(--ink-soft);
+}
+
+/* The calendar's month and year, each a drop-down to jump straight there */
+.cal-title {
+  display: flex;
+  gap: 6px;
+}
+
+.cal-pick {
+  width: auto;
+  padding: 2px 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--green-deep);
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cal-pick:hover,
+.cal-pick:focus-visible {
+  border-color: var(--line);
+  background: #fff;
+}
+
+/* The menu's County link: gold like the events, just the one line */
+.site-menu-county {
+  margin-top: 18px;
+}
+
+.comp-form-session-venue select {
+  width: 100%;
 }

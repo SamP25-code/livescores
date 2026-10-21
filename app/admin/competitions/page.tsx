@@ -12,6 +12,8 @@ const STATUS_LABEL = { planned: "Planned", active: "Active", archived: "Archived
 
 // The competitions set up so far, by year: every one for Super, the ones
 // they run for an admin. Only Super sets up new ones.
+const KIND_ORDER = { club: 0, county: 1, event: 2 } as const;
+
 export default function CompetitionsPage() {
   const access = useAccess();
   const isSuper = Boolean(access?.isSuper);
@@ -67,11 +69,11 @@ export default function CompetitionsPage() {
         </div>
       )}
       {years.map((year) => {
-        // Grouped by who runs them: clubs A to Z, then events (the Blackpool
-        // Masters' competitions together)
+        // Grouped by who runs them: clubs A to Z, then the county, then
+        // events (the Blackpool Masters' competitions together)
         const thisYear = competitions!.filter((c) => c.year === year);
         const groups = [...new Map(thisYear.map((c) => [c.series.organiser.id, c.series.organiser])).values()].sort(
-          (a, b) => (a.kind === b.kind ? a.name.localeCompare(b.name) : a.kind === "club" ? -1 : 1)
+          (a, b) => (a.kind === b.kind ? a.name.localeCompare(b.name) : KIND_ORDER[a.kind] - KIND_ORDER[b.kind])
         );
         return (
           <section key={year}>
