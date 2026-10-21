@@ -13,6 +13,7 @@ import {
   listCompetitions,
   moveSeries,
   renameSeries,
+  updateVenue,
   createCompetition,
   createOrganiser,
   createSeries,
@@ -77,6 +78,9 @@ export default function CompetitionForm({
   const [kind, setKind] = useState<"club" | "event" | "county">(presetKind ?? "club");
   const [organiserId, setOrganiserId] = useState<string>(presetOrganiserId ?? "");
   const [newOrgName, setNewOrgName] = useState("");
+  // A new club's green, so its directions work straight away
+  const [newOrgAddress, setNewOrgAddress] = useState("");
+  const [newOrgPostcode, setNewOrgPostcode] = useState("");
   // Changing: which club or event it's part of (moves every year of it)
   const [partOf, setPartOf] = useState<string>(c?.series.organiser_id ?? "");
   // Changing: its name (every year of it)
@@ -289,6 +293,15 @@ export default function CompetitionForm({
       if (organiserId === "new" || !organiserId) {
         if (!newOrgName.trim()) throw new Error(`Enter the ${noun}'s name.`);
         const o = await createOrganiser({ name: newOrgName.trim(), short_name: newOrgName.trim(), kind });
+        if (o.venue_id && (newOrgAddress.trim() || newOrgPostcode.trim())) {
+          await updateVenue(o.venue_id, {
+            name: newOrgName.trim(),
+            address: newOrgAddress.trim() || null,
+            postcode: newOrgPostcode.trim() || null,
+            notes: null,
+            map_url: null,
+          });
+        }
         chosenOrganiserId = o.id;
         // A new club: played on its own green, unless another was chosen
         if (o.venue_id && !settings.venue_id && !isCounty) settings.venue_id = o.venue_id;
@@ -433,6 +446,28 @@ export default function CompetitionForm({
                       : "Its competitions are listed under County in the menu."}
                 </p>
               </div>
+              {kind === "club" && (
+                <div className="comp-form-grid">
+                  <div className="field">
+                    <label htmlFor="cf-org-address">Address</label>
+                    <input
+                      id="cf-org-address"
+                      placeholder="Hill Road, Penwortham"
+                      value={newOrgAddress}
+                      onChange={(e) => setNewOrgAddress(e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="cf-org-postcode">Postcode</label>
+                    <input
+                      id="cf-org-postcode"
+                      placeholder="PR1 9XH"
+                      value={newOrgPostcode}
+                      onChange={(e) => setNewOrgPostcode(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

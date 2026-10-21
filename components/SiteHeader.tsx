@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { loadClubOrganisers, loadLiveMatches, loadPublicCompetitions } from "@/lib/publicData";
 import type { PublicCompetition } from "@/lib/publicCompetitions";
-import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
+import { SHOW_PRIVACY, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { menuEvents, menuItems, searchMenu, type MenuEvent, type MenuItem } from "@/lib/siteMenu";
 
 // Loaded the first time the menu opens, then kept for the visit
@@ -30,6 +30,7 @@ const LINKS = [
   { href: "/competitions", label: "Competitions" },
   { href: "/calendar", label: "Calendar" },
   { href: "/clubs", label: "Clubs" },
+  { href: "/players", label: "Find a player" },
   { href: "/champions", label: "Champions" },
 ];
 
@@ -174,7 +175,12 @@ export default function SiteHeader({ compact = false, back = "/" }: { compact?: 
             )}
 
             <p className="site-menu-foot">
-              <Link href="/privacy">Privacy</Link> · <Link href="/admin">Sign in</Link>
+              {SHOW_PRIVACY && (
+                <>
+                  <Link href="/privacy">Privacy</Link> ·{" "}
+                </>
+              )}
+              <Link href="/admin">Sign in</Link>
             </p>
           </nav>
           <button type="button" className="site-menu-shade" aria-label="Close the menu" onClick={() => setOpen(false)} />

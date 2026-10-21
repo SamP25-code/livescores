@@ -660,14 +660,17 @@ January and February for additions and changes, the dry run, and plenty of slack
 
 | When | What |
 |---|---|
-| **October 2026 (done)** | Next.js 15, test database, competitions + settings, people + doubles entries, draws (random / physical) + start times, changing people, roles + assignments, scoring with poor signal, correcting results, postponements + venues, new home page / calendar / competition pages, sponsor logos, practice times - each on its own branch, tested on the preview |
-| **Late October - early November** | Finish version 1 (privacy notice, easy-to-read pass, "Get in touch"), then **go live**: review and merge the branches, run the database parts on live, **copy the real competitions across from the test database** (see below), assign existing logins |
-| **November - mid December** | Everything else: **qualifying places and qualifying competitions** (Blackpool Masters), the **multi-competition event page** (Blackpool weekend), **player pages and Find a player**, the **SuperAdmin overview**, **Share results as text**, **backgrounds** (general + per competition), the **help guide** for admins, the privacy removal process, "Larger text" |
-| **Before Christmas** | All of it built and on the live site |
+| **October 2026 (done)** | Next.js 15, test database, competitions + settings, people + doubles entries, draws (random / physical) + start times, changing people, roles + assignments, scoring with poor signal, correcting results, postponements, new home page / calendar / competition pages, sponsor logos, practice times, Larger text and the readability pass, choose-your-own password, Super "View as" |
+| **Late October (done)** | **Qualifying places and qualifying competitions** (Blackpool Masters), the **multi-competition event page** with posts and adverts, **County competitions** (a venue per session), **clubs and venues as one list** (each club with its green), the home page and side menu redesign (search, Clubs, County, Events), one row style for every competition list, Back on every page, moving / renaming / removing competitions, bringing a competition into an event |
+| **November - mid December** | **Player pages and Find a player** (next), the **SuperAdmin overview**, **Share results as text**, **backgrounds** (general + per competition), **scoring by stage and typing a score in**, the **help guide** for admins, the privacy removal process |
+| **Before Christmas** | All of it built, then **go live**: review and merge the branches, run the database parts on live, **copy the real competitions across from the test database** (see below), assign existing logins |
 | **January - early February** | Additions and changes from Sam and the organisers |
 | **About 14 February** | Feature freeze - bug fixes only from here |
 | **About 20-27 February** | **Full dry run** with real Penwortham organisers and scorers, on the test database |
 | **Sat 13 March 2027** | First competition |
+
+Parked until Sam decides: the **privacy notice** (written, kept off the site for now -
+`SHOW_PRIVACY` in lib/site.ts), **"Get in touch"** (needs an address), and the **new domain**.
 
 The new domain is switched over whenever Sam has picked the name (the year-less addresses already
 work).
@@ -679,7 +682,7 @@ organisers, series, settings, sessions (dates, practice and start times), venues
 logos, people and entries. Test scores and practice draws are not copied. Before the switch, Sam
 says which competitions on test are real and which were only for trying things out.
 
-### Version 1 (needed for 13 March) - built, apart from the last three
+### Version 1 (needed for 13 March) - built
 
 - Competitions + the settings form (Super sets it up): single day, doubles, 32 entries, 21 up
 - People + entries with **doubles pairs**, using the person search
@@ -690,25 +693,26 @@ says which competitions on test are real and which were only for trying things o
   replace)
 - **Scoring with poor signal** (queued taps), **correcting results**, **postponements**
 - **Doubles names in the narrow bracket view** and the **32-draw bracket layout on a phone**
-- Still to do: **privacy notice** (names are public), the **"Easy to read for every age"** pass,
-  and the **"Running a competition? Get in touch"** contact
+- Done since: the **"Easy to read for every age"** pass. Text follows the phone's own text size
+  (and any page can be zoomed), so the "Larger text" button was taken off (2026-10-21). The **privacy notice** is written but kept off the site for now; **"Get in
+  touch"** waits for an address
 
 ## Order of work
 
 Done (October 2026): Next.js 15 upgrade; test database; competitions + settings, people and
-entries (singles and doubles), venues and postponed nights; roles (Super / Admin / Scorer,
-assigned per competition); draws and time slots; scoring with poor signal; correcting results;
-the home page, calendar and competition pages with year-less addresses; sponsor logos.
+entries (singles and doubles), postponed nights; roles (Super / Admin / Scorer, assigned per
+competition); draws and time slots; scoring with poor signal; correcting results; the home page,
+calendar and competition pages with year-less addresses; sponsor logos; qualifying places and
+qualifying competitions; the event page; County competitions; clubs and venues as one list; the
+home page and menu redesign.
 
 Still to do, in order:
-1. Privacy notice, easy-to-read pass, "Get in touch" - then go live (merge, live database,
-   copy the real competitions across)
-2. **Qualifying places and qualifying competitions** (Blackpool Masters) and the
-   **multi-competition event page**
-3. **Player pages and Find a player**; honours boards filled with past winners
-4. The **SuperAdmin overview**; **"Share results" as text**
-5. **Backgrounds** - a general one, and uploaded per competition
-6. Help guide for club admins; privacy removal process
+1. **Player pages and Find a player**; honours boards filled with past winners
+2. The **SuperAdmin overview**; **"Share results" as text**
+3. **Scoring by stage, and typing a score in** (see above)
+4. **Backgrounds** - a general one, and uploaded per competition
+5. Help guide for club admins; privacy removal process
+6. Go live: merge, live database, copy the real competitions across
 7. New domain when the name is chosen; pilot with other clubs, then open up
 8. After the pilot: shareable results images, sponsor reports, follow a player
 

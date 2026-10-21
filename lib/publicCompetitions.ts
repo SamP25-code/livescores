@@ -27,7 +27,14 @@ export type PublicSession = {
   venue_id?: string | null;
 };
 
-export type Champion = { name: string; runnerUp: string | null; date: string | null };
+export type Champion = {
+  name: string;
+  runnerUp: string | null;
+  date: string | null;
+  // The people behind the names, for their player pages (a pair: both)
+  winnerIds?: string[];
+  runnerUpIds?: string[];
+};
 
 export type PublicCompetition = {
   id: string;

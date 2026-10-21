@@ -32,6 +32,18 @@ html {
   scroll-behavior: smooth;
 }
 
+/* On an iPhone, follow the phone's own text size (Settings > Display &
+   Brightness > Text Size): everything is sized from this, so it all grows
+   together. Android's Chrome applies its own text size by itself. */
+/* (Phones and tablets only - on a Mac the same setting is smaller text.) */
+@supports (font: -apple-system-body) {
+  @media (hover: none) and (pointer: coarse) {
+    html {
+      font: -apple-system-body;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -3724,13 +3736,7 @@ a.home-next-go,
   margin: 0;
 }
 
-/* "Larger text" - chosen on the page, remembered on that phone. Everything
-   is sized from the page's base size, so it all grows together. */
-html.larger-text {
-  font-size: 118.75%;
-}
-
-/* Public footer: Privacy · Larger text · Log in */
+/* Public footer: Privacy (when shown) · Sign in */
 .public-footer {
   position: absolute;
   left: 16px;
@@ -5268,4 +5274,130 @@ a.info-pill-club:focus-visible {
 
 .home-section-head + .home-month .home-month-label {
   margin-top: 0;
+}
+
+/* A player's name that opens their page; above a row's own link */
+.player-link {
+  position: relative;
+  z-index: 1;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.honours-results {
+  margin-left: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Player pages */
+.player-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0 0 var(--gap);
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+.player-meta .info-pill {
+  text-shadow: none;
+}
+
+.player-title {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.player-title:last-child {
+  border-bottom: none;
+}
+
+.player-title strong {
+  flex: none;
+  min-width: 78px;
+  color: var(--ink-soft);
+}
+
+.player-title-won strong {
+  color: var(--gold-deep);
+}
+
+.player-comp {
+  margin-bottom: var(--gap);
+}
+
+.player-matches {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.player-match a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  padding: 7px 0 7px 56px;
+  border-bottom: 1px dashed var(--line);
+  color: var(--ink);
+  font-size: 0.92rem;
+  text-decoration: none;
+}
+
+.player-match:last-child a {
+  border-bottom: none;
+}
+
+.player-match-round {
+  min-width: 96px;
+  color: var(--ink-soft);
+}
+
+.player-match-who {
+  flex: 1;
+  min-width: 0;
+}
+
+.player-match-score {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-match-won .player-match-score strong,
+.player-match-walkover .player-match-score strong {
+  color: var(--green-deep);
+}
+
+.player-match-lost .player-match-score strong {
+  color: var(--ink-soft);
+}
+
+.player-match-live .player-match-score strong {
+  color: var(--maroon);
+}
+
+/* Find a player: each result a row */
+.player-result {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.player-result:last-child {
+  border-bottom: none;
+}
+
+.player-result span {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
 }

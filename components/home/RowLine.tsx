@@ -1,4 +1,4 @@
-import PlayerName from "@/components/PlayerName";
+import PlayerLinks from "@/components/PlayerLinks";
 import { sessionLabel, sessionTimes, type PublicCompetition, type RowState } from "@/lib/publicCompetitions";
 
 // The line under a competition's name in any list: "Live · Round of 16",
@@ -18,7 +18,7 @@ export default function RowLine({ competition: c, state }: { competition: Public
   if (state.kind === "won") {
     return (
       <>
-        Won by <PlayerName name={state.champion.name} className="home-row-champion" />
+        Won by <PlayerLinks name={state.champion.name} ids={state.champion.winnerIds} className="home-row-champion" />
       </>
     );
   }

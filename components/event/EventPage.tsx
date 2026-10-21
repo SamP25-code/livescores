@@ -24,6 +24,7 @@ import { loadPublicQualifying } from "@/lib/publicQualifying";
 import { SITE_NAME } from "@/lib/site";
 import SiteHeader from "@/components/SiteHeader";
 import CompetitionRow from "@/components/home/CompetitionRow";
+import MonthGroups from "@/components/home/MonthGroups";
 import RowLine from "@/components/home/RowLine";
 
 type Tab = "overview" | "competitions" | "qualifying" | "news";
@@ -189,20 +190,19 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
       )}
 
       {tab === "competitions" && (
-        <div className="card home-rows">
-          {comps.map((c) => {
-            const state = rowState(c, today);
-            return (
-              <CompetitionRow
-                key={c.id}
-                date={state.date}
-                title={c.name}
-                href={competitionPath(c, all)}
-                line={<RowLine competition={c} state={state} />}
-              />
-            );
-          })}
-        </div>
+        <MonthGroups
+          items={comps.map((c) => ({ c, state: rowState(c, today) }))}
+          dateOf={(x) => x.state.date}
+          render={({ c, state }) => (
+            <CompetitionRow
+              key={c.id}
+              date={state.date}
+              title={c.name}
+              href={competitionPath(c, all)}
+              line={<RowLine competition={c} state={state} />}
+            />
+          )}
+        />
       )}
 
       {tab === "qualifying" &&

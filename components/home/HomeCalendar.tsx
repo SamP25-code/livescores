@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import CompetitionRow from "@/components/home/CompetitionRow";
-import RowLine from "@/components/home/RowLine";
+import PlayerLinks from "@/components/PlayerLinks";
 import { organiserPill } from "@/components/home/HomeLists";
 import {
   MONTH_NAMES,
   competitionPath,
-  rowState,
+  isTrophyDay,
+  sessionLabel,
+  sessionTimes,
   marksByDay,
   monthGrid,
   sessionTitle,
@@ -40,11 +42,12 @@ export default function HomeCalendar({
   const weeks = monthGrid(year, month);
   const marks = marksByDay(competitions);
   const byId = new Map(competitions.map((c) => [c.id, c]));
-  const inView = competitions.filter((c) => colours.has(c.id));
-  // A competition's first date showing on this month's grid
-  const gridDays = new Set(weeks.flat().map((d) => d.iso));
-  const firstInMonth = (c: PublicCompetition) =>
-    c.sessions.map((s) => s.date).filter((d): d is string => Boolean(d && gridDays.has(d))).sort()[0];
+  // Every session dated in this month (not the faded days either side)
+  const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
+  const monthSessions = competitions
+    .flatMap((c) => c.sessions.filter((s) => s.date?.startsWith(monthKey)).map((s) => ({ competition: c, session: s })))
+    .sort((a, b) => a.session.date!.localeCompare(b.session.date!) || a.competition.name.localeCompare(b.competition.name));
+
 
   function step(by: number) {
     const d = new Date(Date.UTC(year, month + by, 1));
@@ -182,23 +185,39 @@ export default function HomeCalendar({
         </div>
       )}
 
-      {inView.length > 0 && <p className="cal-rows-head">On in {MONTH_NAMES[month]}</p>}
-      {inView.length > 0 && (
+      {/* Every session in this month, in date order - each competition's
+          qualifying sessions as well as its Finals Day */}
+      {monthSessions.length > 0 && <p className="cal-rows-head">On in {MONTH_NAMES[month]}</p>}
+      {monthSessions.length > 0 && (
         <div className="home-rows cal-rows">
-          {inView
-            .map((c) => ({ c, state: rowState(c, today) }))
-            // In date order, as they come in the month
-            .sort((a, b) => (firstInMonth(a.c) ?? "9").localeCompare(firstInMonth(b.c) ?? "9"))
-            .map(({ c, state }) => {
+          {monthSessions.map(({ competition: c, session: s }) => {
+            const won = s.status === "complete" && isTrophyDay(s.kind) && c.champion;
+            const start = sessionTimes(s)?.replace(/^.*Start /, "");
             return (
               <CompetitionRow
-                key={c.id}
-                date={state.date}
+                key={s.id}
+                date={s.date}
                 title={c.name}
-                href={competitionPath(c, all)}
+                href={s.draw_published || s.status !== "upcoming" ? `/night/${s.id}` : competitionPath(c, all)}
                 colour={colours.get(c.id)}
                 pill={organiserPill(c, all)}
-                line={<RowLine competition={c} state={state} />}
+                line={
+                  s.status === "live" ? (
+                    <>
+                      <span className="comp-pill comp-pill-live">
+                        <span className="live-dot" />
+                        Live
+                      </span>{" "}
+                      {sessionLabel(c, s)}
+                    </>
+                  ) : won ? (
+                    <>
+                      Won by <PlayerLinks name={c.champion!.name} ids={c.champion!.winnerIds} className="home-row-champion" />
+                    </>
+                  ) : (
+                    [sessionLabel(c, s), s.status === "complete" ? "played" : start].filter(Boolean).join(" · ")
+                  )
+                }
               />
             );
           })}

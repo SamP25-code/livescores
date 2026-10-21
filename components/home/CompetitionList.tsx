@@ -15,6 +15,7 @@ import {
   type PublicCompetition,
 } from "@/lib/publicCompetitions";
 import CompetitionRow from "@/components/home/CompetitionRow";
+import MonthGroups from "@/components/home/MonthGroups";
 import RowLine from "@/components/home/RowLine";
 import { organiserPill } from "@/components/home/HomeLists";
 
@@ -84,6 +85,14 @@ export default function CompetitionList({
     return [{ kind: "event" as const, c, members: thisYear.filter((x) => x.organiser.id === c.organiser.id) }];
   });
 
+  // In date order through the year, a box for each month (as on the home page)
+  const dated = rows
+    .map((row) => ({
+      row,
+      date: row.kind === "event" ? (eventDates(row.members)?.from ?? null) : rowState(row.c, today).date,
+    }))
+    .sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999"));
+
   return (
     <section className="home-section">
       <div className="home-section-head">
@@ -126,8 +135,10 @@ export default function CompetitionList({
       {shown.length === 0 && (
         <p className="quiet-line">{query.trim() ? `Nothing in ${year} matches “${query.trim()}”` : "Nothing here yet"}</p>
       )}
-      <div className="card home-rows" hidden={shown.length === 0}>
-        {rows.map((row) => {
+      <MonthGroups
+        items={dated}
+        dateOf={(x) => x.date}
+        render={({ row }) => {
           if (row.kind === "event") {
             const members = row.members;
             const dates = eventDates(members);
@@ -163,14 +174,13 @@ export default function CompetitionList({
               date={state.date}
               title={c.name}
               href={competitionPath(c, all)}
-              // A club's own page doesn't need its own name on every row
               // A club's own competitions don't need its name on every row
               pill={c.organiser.id === organiserId || organiserKind ? null : organiserPill(c, all)}
               line={<RowLine competition={c} state={state} />}
             />
           );
-        })}
-      </div>
+        }}
+      />
     </section>
   );
 }

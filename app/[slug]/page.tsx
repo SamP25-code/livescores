@@ -20,7 +20,7 @@ import {
 } from "@/lib/publicCompetitions";
 import { SITE_NAME } from "@/lib/site";
 import { originalDateLabel, postponedLabel } from "@/lib/venues";
-import PlayerName from "@/components/PlayerName";
+import PlayerLinks from "@/components/PlayerLinks";
 import { SponsorPanel } from "@/components/Sponsors";
 import WhosEntered from "@/components/WhosEntered";
 import HowToQualify from "@/components/HowToQualify";
@@ -139,10 +139,11 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
 
       {c.champion && (
         <div className="champion-banner">
-          <PlayerName name={c.champion.name} />
+          <PlayerLinks name={c.champion.name} ids={c.champion.winnerIds} />
           <span className="hint">
             {c.name} {c.year} champion
-            {c.champion.runnerUp ? ` · runner-up ${c.champion.runnerUp}` : ""}
+            {c.champion.runnerUp ? " · runner-up " : ""}
+            {c.champion.runnerUp && <PlayerLinks name={c.champion.runnerUp} ids={c.champion.runnerUpIds} className="" />}
           </span>
         </div>
       )}
@@ -177,15 +178,18 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
                 <div key={h.year} className="honours-row">
                   <span className="honours-year">{h.year}</span>
                   <span className="honours-winner">
-                    {year ? (
-                      <Link href={competitionPath(year, all)}>
-                        <PlayerName name={h.winner} />
+                    <PlayerLinks name={h.winner} ids={h.winnerIds} />
+                    {year && (
+                      <Link href={competitionPath(year, all)} className="honours-results">
+                        Results
                       </Link>
-                    ) : (
-                      <PlayerName name={h.winner} />
                     )}
                   </span>
-                  {h.runnerUp && <span className="honours-runner">runner-up {h.runnerUp}</span>}
+                  {h.runnerUp && (
+                    <span className="honours-runner">
+                      runner-up <PlayerLinks name={h.runnerUp} ids={h.runnerUpIds} className="" />
+                    </span>
+                  )}
                 </div>
               );
             })}

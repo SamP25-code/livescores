@@ -67,9 +67,17 @@ export async function loadPublicCompetitions(): Promise<PublicCompetition[]> {
   }
   const nameIds = [...finals.values()].flatMap((m) => [m.player_a_id, m.player_b_id]).filter((id): id is string => Boolean(id));
   const names = new Map<string, string>();
+  const peopleOf = new Map<string, string[]>(); // place in the draw -> its people
   if (nameIds.length) {
-    const { data: people } = await supabase.from("players").select("id, name").in("id", nameIds);
-    for (const p of people ?? []) names.set(p.id, p.name);
+    const { data: people } = await supabase
+      .from("players")
+      .select("id, name, entry:entry_id(person_id, partner_id)")
+      .in("id", nameIds);
+    for (const p of people ?? []) {
+      names.set(p.id, p.name);
+      const entry = p.entry as unknown as { person_id: string; partner_id: string | null } | null;
+      if (entry) peopleOf.set(p.id, [entry.person_id, entry.partner_id].filter((x): x is string => Boolean(x)));
+    }
   }
 
   const entryCount = new Map<string, number>();
@@ -102,6 +110,8 @@ export async function loadPublicCompetitions(): Promise<PublicCompetition[]> {
         name: names.get(f.winner_id!) ?? "Champion",
         runnerUp: loser ? (names.get(loser) ?? null) : null,
         date: s.date,
+        winnerIds: peopleOf.get(f.winner_id!) ?? [],
+        runnerUpIds: loser ? (peopleOf.get(loser) ?? []) : [],
       };
     }
     return {
@@ -187,7 +197,7 @@ export async function loadLiveMatches(): Promise<LiveMatch[]> {
   });
 }
 
-export type HonoursRow = { year: number; winner: string; runnerUp: string | null };
+export type HonoursRow = { year: number; winner: string; runnerUp: string | null; winnerIds: string[]; runnerUpIds: string[] };
 
 // A competition's roll of honour: results played on the site, plus earlier
 // years added by hand (honours_history). The site's own result wins.
@@ -197,17 +207,33 @@ export async function loadHonours(seriesSlug: string, fromSite: PublicCompetitio
   if (series) {
     const { data: history } = await supabase
       .from("honours_history")
-      .select("year, winner_text, runner_up_text, winner:winner_person_id(full_name), runner:runner_up_person_id(full_name)")
+      .select(
+        "year, winner_text, runner_up_text, winner_person_id, runner_up_person_id, winner:winner_person_id(full_name), runner:runner_up_person_id(full_name)"
+      )
       .eq("series_id", series.id);
     for (const h of history ?? []) {
       const winner = (h.winner as unknown as { full_name: string } | null)?.full_name ?? h.winner_text;
       const runner = (h.runner as unknown as { full_name: string } | null)?.full_name ?? h.runner_up_text;
-      if (winner) rows.set(h.year, { year: h.year, winner, runnerUp: runner ?? null });
+      if (winner) {
+        rows.set(h.year, {
+          year: h.year,
+          winner,
+          runnerUp: runner ?? null,
+          winnerIds: h.winner_person_id ? [h.winner_person_id] : [],
+          runnerUpIds: h.runner_up_person_id ? [h.runner_up_person_id] : [],
+        });
+      }
     }
   }
   for (const c of fromSite) {
     if (c.slug === seriesSlug && c.champion) {
-      rows.set(c.year, { year: c.year, winner: c.champion.name, runnerUp: c.champion.runnerUp });
+      rows.set(c.year, {
+        year: c.year,
+        winner: c.champion.name,
+        runnerUp: c.champion.runnerUp,
+        winnerIds: c.champion.winnerIds ?? [],
+        runnerUpIds: c.champion.runnerUpIds ?? [],
+      });
     }
   }
   return [...rows.values()].sort((a, b) => b.year - a.year);

@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { SITE_NAME } from "@/lib/site";
+import { notFound } from "next/navigation";
+import { SHOW_PRIVACY, SITE_NAME } from "@/lib/site";
 import PublicFooter from "@/components/PublicFooter";
 import SiteHeader from "@/components/SiteHeader";
 
 // The privacy notice, in plain words. Names are public on this site, so it
 // says what's shown, what isn't kept, and how to have a name taken off.
 export default function PrivacyPage() {
+  // Kept but not shown for now (lib/site.ts)
+  if (!SHOW_PRIVACY) notFound();
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     document.title = `Privacy · ${SITE_NAME}`;
   }, []);

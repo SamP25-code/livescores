@@ -4,7 +4,6 @@ import "./globals.css";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 import SentryInit from "@/components/SentryInit";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
-import { LARGER_TEXT_SCRIPT } from "@/components/PublicFooter";
 
 // A narrow scoreboard-style face for headings, scores and numbers, and a
 // plain humanist sans for names and everything else. Both come from the
@@ -57,12 +56,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    // "Larger text" may add a class before the page loads (see PublicFooter)
-    <html lang="en" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
-      <head>
-        {/* Larger text, if chosen on this phone, before anything shows */}
-        <script dangerouslySetInnerHTML={{ __html: LARGER_TEXT_SCRIPT }} />
-      </head>
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body>
         <SentryInit />
         {!isSupabaseConfigured && (
