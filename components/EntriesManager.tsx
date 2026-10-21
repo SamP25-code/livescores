@@ -394,7 +394,7 @@ export default function EntriesManager({ competition, sessions }: { competition:
                 )}
                 {g.session && g.list.length > 0 && (
                   <Link href={`/admin/night/${g.session.id}`} className="entries-draw-link">
-                    The draw ›
+                    The draw
                   </Link>
                 )}
               </div>

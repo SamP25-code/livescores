@@ -34,7 +34,7 @@ function tabFromHash(): Tab {
 }
 
 // An event with several competitions (the Blackpool Masters): Overview -
-// countdown, the days, who's qualified, adverts and the latest news -
+// how long to go, the days, who's qualified, adverts and the latest news -
 // then its Competitions, Qualifying (how to qualify) and News.
 export default function EventPage({ event, all }: { event: EventRef; all: PublicCompetition[] }) {
   const [tab, setTab] = useState<Tab>("overview");
@@ -92,8 +92,14 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
       <header className="comp-page-head">
         <h1 className="comp-page-title">{event.organiser.name}</h1>
         <p className="comp-page-by">
-          {firstDate ? `${dateRange(firstDate, dates[dates.length - 1])} ${event.year}` : "Dates to be confirmed"} ·{" "}
-          {comps.length} competition{comps.length === 1 ? "" : "s"}
+          {[
+            firstDate ? `${dateRange(firstDate, dates[dates.length - 1])} ${event.year}` : "Dates to be confirmed",
+            `${comps.length} competition${comps.length === 1 ? "" : "s"}`,
+            !live && days !== null && days > 0 ? `${days} day${days === 1 ? "" : "s"} to go` : null,
+            !live && days === 0 ? "Today" : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
         </p>
         <SponsorPanel sponsors={sponsors} />
       </header>
@@ -110,35 +116,25 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
 
       {tab === "overview" && (
         <>
-          {!live && days !== null && days >= 0 && (
-            <div className="card home-next-when event-countdown">
-              <span className="home-next-count">
-                {days === 0 ? <strong className="home-next-today">Today</strong> : (
-                  <>
-                    <strong>{days}</strong>
-                    <span>{days === 1 ? "day" : "days"}</span>
-                  </>
-                )}
-              </span>
-              <span className="home-next-details">
-                <strong>{longDate(firstDate!)}</strong>
-                <span className="hint">{comps.map((c) => c.name).join(" · ")}</span>
-              </span>
-            </div>
-          )}
-
-          <div className="event-days">
-            {comps.map((c, i) => {
+          {/* Its days, like a competition's sessions: one row each */}
+          <div className="card comp-schedule">
+            {comps.map((c) => {
               const day = c.sessions.find((s) => isTrophyDay(s.kind) && s.date) ?? c.sessions.find((s) => s.date);
               const status = publicStatus(c, today);
               return (
-                <Link key={c.id} href={competitionPath(c, all)} className={`event-day ${day?.date === today ? "event-day-today" : ""}`}>
-                  <span className="event-day-label">{day?.date ? shortDate(day.date).split(" ").slice(0, 2).join(" ") : "TBC"}</span>
-                  <span className="cal-trophy event-day-ring" style={{ background: PALETTE[i % PALETTE.length] }}>
-                    {day?.date ? Number(day.date.slice(8)) : "?"}
+                <Link key={c.id} href={competitionPath(c, all)} className={`comp-schedule-row ${status === "live" ? "comp-schedule-live" : ""}`}>
+                  <span className="comp-schedule-main">
+                    <span className="comp-schedule-line">
+                      <strong>{day?.date ? shortDate(day.date) : "Date TBC"}</strong> &middot; {c.name}
+                    </span>
                   </span>
-                  <span className="event-day-name">{c.name}</span>
-                  {status === "live" && <span className="cal-live">&bull; LIVE</span>}
+                  {status === "live" ? (
+                    <StatusLabel status="live" />
+                  ) : (
+                    <span className="comp-schedule-open" aria-hidden="true">
+                      &rsaquo;
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -149,7 +145,7 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
               <div className="home-section-head">
                 <h2>Who&rsquo;s qualified</h2>
                 <button type="button" className="link-button event-more" onClick={() => show("qualifying")}>
-                  See all ›
+                  See all
                 </button>
               </div>
               <div className="card">
@@ -172,7 +168,7 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
               <div className="home-section-head">
                 <h2>News</h2>
                 <button type="button" className="link-button event-more" onClick={() => show("news")}>
-                  All news ›
+                  All news
                 </button>
               </div>
               <PostList posts={news.slice(0, 2)} slug={slug} year={event.year} all={all} />

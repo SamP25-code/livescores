@@ -294,7 +294,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
   const hideName = (showField && !finalsField) || qualifierDraw;
 
   return (
-    <div className="page page-photo">
+    <div className="page page-photo public-draw">
       <div className="public-background" aria-hidden="true" />
       <SiteHeader
         compact

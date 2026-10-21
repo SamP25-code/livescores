@@ -6,6 +6,9 @@ import { usePublicCompetitions } from "@/lib/usePublicCompetitions";
 import { coloursFor, todayIso, type ListFilter } from "@/lib/publicCompetitions";
 import PublicPage from "@/components/PublicPage";
 import CompetitionList from "@/components/home/CompetitionList";
+import VenueCard from "@/components/VenueCard";
+import { useVenues } from "@/lib/useVenues";
+import { clubs } from "@/lib/siteMenu";
 
 // One club's page: all its competitions, a year at a time
 export default function ClubPage() {
@@ -23,10 +26,13 @@ export default function ClubPage() {
   const thisYear = Number(today.slice(0, 4));
   const year = listYear ?? (years.includes(thisYear) ? thisYear : years[0] ?? thisYear);
   const colours = useMemo(() => coloursFor(all, []), [all]);
+  const venueId = club ? (clubs(all).find((x) => x.id === club.id)?.venueId ?? null) : null;
+  const venue = useVenues([venueId]).get(venueId ?? "");
 
   return (
     <PublicPage title={club?.name ?? "Club"} loading={competitions === null} failed={failed} back="/clubs">
       {competitions !== null && !club && <p className="night-header-hint">No club at this address.</p>}
+      {venue && <VenueCard venue={venue} />}
       {club && (
         <CompetitionList
           all={all}

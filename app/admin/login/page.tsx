@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { isNameLogin, loginEmailFor } from "@/lib/loginName";
 import { SITE_NAME } from "@/lib/site";
+import SiteHeader from "@/components/SiteHeader";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -63,11 +63,9 @@ export default function LoginPage() {
 
   if (mode === "forgot") {
     return (
-      <div className="page page-photo" style={{ maxWidth: 360 }}>
-        <Link href="/" className="page-back-link">
-          <span aria-hidden="true">&lsaquo;</span> Back to results
-        </Link>
-        <h1>Reset password</h1>
+      <div className="page page-photo" style={{ maxWidth: 420 }}>
+        <SiteHeader compact />
+        <h1 className="public-page-title">Reset password</h1>
         <div className="card">
           {resetSent ? (
             <p className="hint">
@@ -114,11 +112,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="page page-photo" style={{ maxWidth: 360 }}>
-      <Link href="/" className="page-back-link">
-        <span aria-hidden="true">&lsaquo;</span> Back to results
-      </Link>
-      <h1>Admin sign in</h1>
+    <div className="page page-photo" style={{ maxWidth: 420 }}>
+      <SiteHeader compact />
+      <h1 className="public-page-title">Sign in</h1>
       <div className="card">
         <form onSubmit={handleSubmit}>
           <div className="field">

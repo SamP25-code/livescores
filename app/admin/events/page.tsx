@@ -107,7 +107,7 @@ export default function EventsPage() {
                       {settingsSummary(c)}
                     </span>
                   </span>
-                  <span className="comp-list-open">Open ›</span>
+                  <span className="comp-list-open">Open</span>
                 </Link>
               ))}
             </div>
@@ -120,7 +120,7 @@ export default function EventsPage() {
               </Link>
               {e.slug && (
                 <Link href={`/${e.slug}`} className="link-button admin-card-more">
-                  View its page ›
+                  View its page
                 </Link>
               )}
             </div>

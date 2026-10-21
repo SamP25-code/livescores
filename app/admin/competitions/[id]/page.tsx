@@ -162,7 +162,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
                       + Add another competition to the {c.series.organiser.name}
                     </Link>
                     <Link href={`/admin/events/${c.series.organiser.id}`} className="link-button">
-                      Its page and posts ›
+                      Its page and posts
                     </Link>
                   </span>
                 </div>
@@ -182,7 +182,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
                           }`}
                       </span>
                     </span>
-                    <span className="comp-list-open">Open ›</span>
+                    <span className="comp-list-open">Open</span>
                   </Link>
                 ))}
               </div>

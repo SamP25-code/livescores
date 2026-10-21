@@ -35,7 +35,7 @@ describe("side menu search", () => {
   });
 
   test("the Clubs page: each club once, A to Z, competitions counted once across years", () => {
-    expect(clubs(all)).toEqual([{ id: "pen", name: "Penwortham SSC", short_name: "Penwortham", href: "/clubs/penwortham", count: 2 }]);
+    expect(clubs(all)).toEqual([{ id: "pen", name: "Penwortham SSC", short_name: "Penwortham", href: "/clubs/penwortham", count: 2, venueId: null }]);
   });
 
   test("the menu's events: dates, and their competitions in date order", () => {

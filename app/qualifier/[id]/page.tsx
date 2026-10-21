@@ -29,7 +29,7 @@ export default function QualifierPage({ params }: { params: Promise<{ id: string
   }, [data]);
 
   return (
-    <div className="page page-photo">
+    <div className="page page-photo public-draw">
       <div className="public-background" aria-hidden="true" />
       <SiteHeader compact />
       {data === undefined && <p className="night-header-hint">Loading&hellip;</p>}

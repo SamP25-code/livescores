@@ -108,7 +108,7 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
             <span className="comp-list-main">
               <strong>{c.name}</strong>
             </span>
-            <span className="comp-list-open">Open ›</span>
+            <span className="comp-list-open">Open</span>
           </Link>
         ))}
       </div>

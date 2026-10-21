@@ -82,7 +82,7 @@ export default function CompetitionsPage() {
                   <h3>{o.name}</h3>
                   {o.kind === "event" && isSuper && (
                     <Link href={`/admin/events/${o.id}`} className="comp-group-link">
-                      Event page and posts ›
+                      Event page and posts
                     </Link>
                   )}
                 </div>

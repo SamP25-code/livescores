@@ -8,7 +8,6 @@ import { longDate } from "@/lib/competitionSetup";
 import { errorMessage } from "@/lib/errors";
 import { loadPublicCompetitions } from "@/lib/publicData";
 import {
-  STATUS_LABEL,
   formatLine,
   publicStatus,
   sessionTimes,
@@ -17,6 +16,7 @@ import {
   todayIso,
   type PublicCompetition,
 } from "@/lib/publicCompetitions";
+import StatusLabel from "@/components/home/StatusLabel";
 
 // The admin home: one card per competition this login runs or scores, saying
 // what's next and with a button for the job at hand - enter players, make
@@ -91,7 +91,7 @@ export default function YourCompetitions({ access }: { access: Access }) {
                   </strong>
                   <span className="hint">{c.champion ? `Champion ${c.champion.name}` : formatLine(c)}</span>
                 </span>
-                <span className="comp-list-open">Open ›</span>
+                <span className="comp-list-open">Open</span>
               </Link>
             ))}
           </div>
@@ -115,10 +115,7 @@ export function CompetitionCard({ competition: c, access, today }: { competition
         <h2 className="admin-card-name">
           {c.name} {c.year}
         </h2>
-        <span className={`comp-pill comp-pill-${status}`}>
-          {status === "live" && <span className="live-dot" />}
-          {STATUS_LABEL[status]}
-        </span>
+        <StatusLabel status={status} />
       </div>
       <p className="admin-card-line">{formatLine(c)}</p>
 
@@ -185,7 +182,7 @@ export function CompetitionCard({ competition: c, access, today }: { competition
         )}
         {runs && (
           <Link href={`/admin/competitions/${c.id}`} className="link-button admin-card-more">
-            Sessions and settings ›
+            Sessions and settings
           </Link>
         )}
       </div>

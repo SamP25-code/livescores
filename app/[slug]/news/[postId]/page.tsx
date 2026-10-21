@@ -86,13 +86,13 @@ export default function PostPage({ params }: { params: Promise<{ slug: string; p
           )}
           {post.qualifier_event_id && (
             <p>
-              <Link href={`/qualifier/${post.qualifier_event_id}`}>See the full {qualifier?.name ?? ""} results ›</Link>
+              <Link href={`/qualifier/${post.qualifier_event_id}`}>See the full {qualifier?.name ?? ""} results</Link>
             </p>
           )}
           {post.link_url && (
             <p>
               <a href={post.link_url} target="_blank" rel="noopener noreferrer">
-                Read more ›
+                Read more
               </a>
             </p>
           )}

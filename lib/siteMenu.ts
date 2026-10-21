@@ -85,19 +85,34 @@ function firstDate(c: PublicCompetition): string {
 }
 
 // Every club with a competition on the site, A to Z, with how many
-// competitions it runs (each counted once, however many years)
-export function clubs(all: PublicCompetition[]): { id: string; name: string; short_name: string; href: string; count: number }[] {
-  const found = new Map<string, { id: string; name: string; short_name: string; href: string; slugs: Set<string> }>();
+// competitions it runs (each counted once, however many years) and the
+// venue its competitions are played at most - for its directions
+export type ClubSummary = { id: string; name: string; short_name: string; href: string; count: number; venueId: string | null };
+export function clubs(all: PublicCompetition[]): ClubSummary[] {
+  const found = new Map<string, { id: string; name: string; short_name: string; href: string; slugs: Set<string>; venues: Map<string, number> }>();
   for (const c of all) {
     const href = c.organiser.kind === "club" ? clubPath(c.organiser) : null;
     if (!href) continue;
     if (!found.has(c.organiser.id)) {
-      found.set(c.organiser.id, { id: c.organiser.id, name: c.organiser.name, short_name: c.organiser.short_name, href, slugs: new Set() });
+      found.set(c.organiser.id, {
+        id: c.organiser.id,
+        name: c.organiser.name,
+        short_name: c.organiser.short_name,
+        href,
+        slugs: new Set(),
+        venues: new Map(),
+      });
     }
-    found.get(c.organiser.id)!.slugs.add(c.slug);
+    const club = found.get(c.organiser.id)!;
+    club.slugs.add(c.slug);
+    if (c.venue_id) club.venues.set(c.venue_id, (club.venues.get(c.venue_id) ?? 0) + 1);
   }
   return [...found.values()]
-    .map(({ slugs, ...club }) => ({ ...club, count: slugs.size }))
+    .map(({ slugs, venues, ...club }) => ({
+      ...club,
+      count: slugs.size,
+      venueId: [...venues.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null,
+    }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
