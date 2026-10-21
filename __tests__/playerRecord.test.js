@@ -115,6 +115,32 @@ describe("a player's page", () => {
     expect(r.played).toBe(0);
   });
 
+  test("qualifying rounds are named across the whole competition", () => {
+    const october = comp({
+      id: "oct",
+      name: "October Singles",
+      format: "qualifying_and_finals",
+      team_size: 1,
+      qualifying_nights: 4,
+      entries_per_night: 16,
+      sessions: [session("q1", "qualifier", "2026-10-12", 1)],
+    });
+    const r = buildPlayerRecord({
+      personId: "wayne",
+      entries: [{ id: "e9", competition_id: "oct", person_id: "wayne", partner_id: null, status: "entered" }],
+      places: [{ id: "w", night_id: "q1", entry_id: "e9" }],
+      matches: [
+        ...Array.from({ length: 8 }, (_, i) => match(`r1-${i}`, "q1", 1, i, i === 0 ? "w" : `a${i}`, `b${i}`, 21, 8)),
+        match("r2", "q1", 2, 0, "w", "x", 21, 18),
+      ],
+      names: new Map(),
+      competitions: [october],
+      honours: [],
+      today: "2026-11-01",
+    });
+    expect(r.competitions[0].matches.map((m) => m.round)).toEqual(["Round of 32", "Round of 64"]);
+  });
+
   test("years added by hand to an honours board", () => {
     const r = buildPlayerRecord({
       personId: "wayne",

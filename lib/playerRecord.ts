@@ -2,7 +2,7 @@
 // they've entered (with their partner, for doubles), each match they've
 // played or have coming up, and what they've won. Pure - the loading is in
 // lib/playerData.ts.
-import { isWalkover, roundLabel } from "@/lib/bracket";
+import { isWalkover, roundLabel, roundName } from "@/lib/bracket";
 import { rowState, type PublicCompetition, type PublicSession, type RowState } from "@/lib/publicCompetitions";
 
 export type RecordEntry = { id: string; competition_id: string; person_id: string; partner_id: string | null; status: string };
@@ -118,7 +118,7 @@ export function buildPlayerRecord({
       list.push({
         id: m.id,
         session,
-        round: roundLabel(session.kind, m.round, inRound),
+        round: playerRound(competition, session, m.round, inRound),
         roundNumber: m.round,
         opponent: otherId ? (names.get(otherId) ?? "TBC") : "TBC",
         opponentIds: otherId ? (peopleOf.get(otherId) ?? []) : [],
@@ -162,3 +162,13 @@ function latestDate(c: PlayerCompetition): string {
   return c.competition.sessions.map((s) => s.date ?? "").sort().at(-1) ?? "";
 }
 
+// The round, named across the whole competition: four qualifying sessions
+// of 16 make 64 players, so a session's first round is the Round of 64 and
+// its second the Round of 32, then Finals Day carries on from the Round of 16
+function playerRound(competition: PublicCompetition, session: PublicSession, round: number, matchesInRound: number): string {
+  if (session.kind !== "qualifier") return roundLabel(session.kind, round, matchesInRound);
+  const sessions = competition.qualifying_nights ?? competition.sessions.filter((s) => s.kind === "qualifier").length;
+  const perSession = competition.entries_per_night ?? matchesInRound * 2 ** round;
+  const left = (sessions * perSession) / 2 ** (round - 1);
+  return Number.isInteger(left) && left >= 2 ? roundName(left) : `Round ${round}`;
+}

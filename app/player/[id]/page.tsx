@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { loadPlayer, type PlayerPage } from "@/lib/playerData";
-import { clubPath, competitionPath, sessionLabel } from "@/lib/publicCompetitions";
+import { clubPath, competitionPath } from "@/lib/publicCompetitions";
 import PublicPage from "@/components/PublicPage";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import RowLine from "@/components/home/RowLine";
@@ -109,7 +109,6 @@ export default function PlayerPage() {
                       // The row opens the session; the opponent's name opens their page
                       <li key={m.id} className={`player-match player-match-${m.result}`}>
                         <Link href={`/night/${m.session.id}`} className="player-match-round">
-                          {m.session.kind === "qualifier" ? `${sessionLabel(c.competition, m.session)} · ` : ""}
                           {m.round}
                         </Link>
                         <span className="player-match-who">
