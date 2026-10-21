@@ -17,7 +17,6 @@ import BracketTree from "@/components/BracketTree";
 import type { MatchRow, Night, Player, Venue } from "@/lib/types";
 import { SITE_NAME } from "@/lib/site";
 import PublicFooter from "@/components/PublicFooter";
-import FindYourMatch from "@/components/FindYourMatch";
 import SiteHeader from "@/components/SiteHeader";
 import VenueCard from "@/components/VenueCard";
 
@@ -435,23 +434,6 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         </div>
       )}
 
-      {!loadError && showDraw && Object.keys(players).length > 0 && (
-        <FindYourMatch
-          players={players}
-          matches={matches}
-          roundName={(m) =>
-            roundLabel(night?.kind ?? "qualifier", m.round, rounds.find(([r]) => r === m.round)?.[1].length ?? 1)
-          }
-          startTime={(m) => (startTimes[m.id] && startTimes[m.id] !== "Time to follow" ? startTimes[m.id] : null)}
-          onShow={(playerId, matchId) => {
-            setHighlightPlayerId(playerId);
-            // Scroll once the highlight has been drawn
-            setTimeout(() => {
-              document.querySelector(`[data-match="${matchId}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-            }, 50);
-          }}
-        />
-      )}
 
       {!loadError && knockout && showDraw && (
         <div className="view-toggle">
@@ -543,7 +525,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         </section>
       )}
 
-      {!loadError && venue && <VenueCard venue={venue} />}
+      {!loadError && venue && <VenueCard venue={venue} spaced />}
 
       <PublicFooter />
     </div>

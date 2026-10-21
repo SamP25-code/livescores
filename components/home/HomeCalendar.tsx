@@ -41,6 +41,10 @@ export default function HomeCalendar({
   const marks = marksByDay(competitions);
   const byId = new Map(competitions.map((c) => [c.id, c]));
   const inView = competitions.filter((c) => colours.has(c.id));
+  // A competition's first date showing on this month's grid
+  const gridDays = new Set(weeks.flat().map((d) => d.iso));
+  const firstInMonth = (c: PublicCompetition) =>
+    c.sessions.map((s) => s.date).filter((d): d is string => Boolean(d && gridDays.has(d))).sort()[0];
 
   function step(by: number) {
     const d = new Date(Date.UTC(year, month + by, 1));
@@ -164,7 +168,7 @@ export default function HomeCalendar({
           <span className="cal-dot cal-key-dot" /> Qualifying session
         </span>
         <span>
-          <span className="cal-key-ring" /> Finals Day / one day (split when there&rsquo;s more than one)
+          <span className="cal-key-ring" /> Finals Day / one day
         </span>
       </div>
 
@@ -178,10 +182,14 @@ export default function HomeCalendar({
         </div>
       )}
 
+      {inView.length > 0 && <p className="cal-rows-head">On in {MONTH_NAMES[month]}</p>}
       {inView.length > 0 && (
         <div className="home-rows cal-rows">
-          {inView.map((c) => {
-            const state = rowState(c, today);
+          {inView
+            .map((c) => ({ c, state: rowState(c, today) }))
+            // In date order, as they come in the month
+            .sort((a, b) => (firstInMonth(a.c) ?? "9").localeCompare(firstInMonth(b.c) ?? "9"))
+            .map(({ c, state }) => {
             return (
               <CompetitionRow
                 key={c.id}

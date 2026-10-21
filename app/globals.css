@@ -3239,8 +3239,7 @@ a.home-next-go,
 }
 
 .cal-rows {
-  margin-top: 12px;
-  border-top: 1px solid var(--line);
+  margin-top: 4px;
 }
 
 .cal-row {
@@ -3363,9 +3362,12 @@ a.home-next-go,
 }
 
 .comp-row-name {
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.3rem;
-  color: var(--green-deep);
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
 }
 
 .comp-row-line {
@@ -3519,9 +3521,12 @@ a.home-next-go,
 }
 
 .comp-schedule-main strong {
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.3rem;
-  color: var(--green-deep);
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
 }
 
 .comp-schedule-main span {
@@ -3529,9 +3534,12 @@ a.home-next-go,
 }
 
 .comp-schedule-line strong {
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.2rem;
-  color: var(--green-deep);
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
 }
 
 .comp-schedule-was {
@@ -4832,10 +4840,12 @@ a.info-pill-club:focus-visible {
 }
 
 .night-header-simple h1 strong {
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.3rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.05rem;
   font-weight: 700;
-  color: var(--green-deep);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
 }
 
 .night-header-simple-finals h1 strong {
@@ -5035,6 +5045,29 @@ a.info-pill-club:focus-visible {
   text-decoration: none;
 }
 
+/* One look for the name on every row, whichever page it's on: the home
+   lists, competitions, clubs, sessions, venues */
+.home-row-name,
+.comp-row-name,
+.comp-schedule-line strong {
+  font-family: var(--font-body), sans-serif;
+}
+
+/* Where a session's played: clear of the draw above it */
+.venue-spaced {
+  margin-top: var(--section-gap);
+}
+
+/* The calendar's list: which month it's for */
+.cal-rows-head {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
 /* The public draw: the same paper draw sheet, slimmer, so a whole round
    fits on a phone screen; round names on the left like other headings */
 .public-draw .round-heading {
@@ -5222,4 +5255,17 @@ a.info-pill-club:focus-visible {
 
 .venue-admin-editing .venue-editor {
   margin: 0;
+}
+
+/* Coming up: a box for each month, its name on the photo above it */
+.home-month-label {
+  margin: 10px 0 4px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+.home-section-head + .home-month .home-month-label {
+  margin-top: 0;
 }

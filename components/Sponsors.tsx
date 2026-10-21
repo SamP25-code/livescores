@@ -23,10 +23,6 @@ export function SponsorStrip({ sponsors }: { sponsors: SponsorShown[] }) {
       <span>Sponsored by</span>
       {sponsors.map((s, i) => (
         <Linked key={s.name} sponsor={s} className="sponsor-strip-item">
-          {s.logo_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={s.logo_url} alt="" className="sponsor-strip-logo" />
-          )}
           <strong>{s.name}</strong>
           {i < sponsors.length - 1 && <span aria-hidden="true">{i === sponsors.length - 2 ? " and" : ","}</span>}
         </Linked>

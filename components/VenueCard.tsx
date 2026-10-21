@@ -3,10 +3,10 @@ import type { Venue } from "@/lib/types";
 
 // Where it's played, as a row like the sessions above it: the name and
 // address, and the whole row opens Google Maps for directions
-export default function VenueCard({ venue }: { venue: Venue }) {
+export default function VenueCard({ venue, spaced = false }: { venue: Venue; spaced?: boolean }) {
   const address = [venue.address, venue.postcode].filter(Boolean).join(" ");
   return (
-    <div className="card comp-schedule">
+    <div className={`card comp-schedule ${spaced ? "venue-spaced" : ""}`}>
       <a className="comp-schedule-row" href={directionsUrl(venue)} target="_blank" rel="noopener noreferrer">
         <span className="comp-schedule-main">
           <span className="comp-schedule-line">
