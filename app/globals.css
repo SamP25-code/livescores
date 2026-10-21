@@ -3093,7 +3093,7 @@ a.home-next-go,
 
 .cal-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: var(--green-deep);
 }
 
@@ -3104,7 +3104,7 @@ a.home-next-go,
   border: none;
   background: transparent;
   color: var(--green-deep);
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   line-height: 1;
 }
 
@@ -3128,8 +3128,8 @@ a.home-next-go,
   align-items: center;
   justify-content: flex-start;
   gap: 2px;
-  min-height: 58px;
-  padding: 4px 0;
+  min-height: 42px;
+  padding: 3px 0;
   border: none;
   border-radius: var(--radius);
   background: transparent;
@@ -3151,11 +3151,11 @@ a.home-next-go,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   font-family: var(--font-display), sans-serif;
-  font-size: 1.15rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -3175,13 +3175,13 @@ a.home-next-go,
 .cal-dots {
   display: flex;
   gap: 3px;
-  min-height: 8px;
+  min-height: 6px;
 }
 
 .cal-dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
 }
 
@@ -3204,7 +3204,7 @@ a.home-next-go,
   margin-top: 8px;
   padding-top: 10px;
   border-top: 1px solid var(--line);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--ink-soft);
 }
 
@@ -3247,7 +3247,7 @@ a.home-next-go,
   display: flex;
   gap: 12px;
   width: 100%;
-  padding: 10px 0;
+  padding: 8px 0;
   border: none;
   border-bottom: 1px solid var(--line);
   border-radius: 0;
@@ -3274,11 +3274,12 @@ a.home-next-go,
 
 .cal-row-text strong {
   font-family: var(--font-display), sans-serif;
-  font-size: 1.2rem;
+  font-size: 1.05rem;
   color: var(--green-deep);
 }
 
 .cal-row-text span {
+  font-size: 0.9rem;
   color: var(--ink-soft);
 }
 
@@ -4994,7 +4995,7 @@ a.info-pill-club:focus-visible {
 .site-menu-event-name {
   display: flex;
   flex-direction: column;
-  padding: 10px 12px 6px;
+  padding: 10px 12px;
   color: var(--gold-deep);
   text-decoration: none;
 }
@@ -5010,19 +5011,7 @@ a.info-pill-club:focus-visible {
   color: var(--ink-soft);
 }
 
-.site-menu-event-comp {
-  display: flex;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 12px;
-  border-top: 1px solid rgba(201, 151, 44, 0.35);
-  color: var(--ink);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.site-menu-event-name:hover,
-.site-menu-event-comp:hover {
+.site-menu-event-name:hover {
   background: rgba(201, 151, 44, 0.15);
 }
 

@@ -149,8 +149,9 @@ export default function HomeCalendar({
               <span className="comp-bar" style={{ background: colours.get(c.id) }} />
               <span className="cal-row-text">
                 <strong>{c.name}</strong>
-                <span>{c.organiser.kind === "event" ? "Event" : c.organiser.short_name}</span>
-                <span>{datesSummary(c.sessions)}</span>
+                <span>
+                  {c.organiser.kind === "event" ? c.organiser.name : c.organiser.short_name} &middot; {datesSummary(c.sessions)}
+                </span>
               </span>
             </button>
           ))}

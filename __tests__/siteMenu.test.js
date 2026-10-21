@@ -38,17 +38,7 @@ describe("side menu search", () => {
     expect(clubs(all)).toEqual([{ id: "pen", name: "Penwortham SSC", short_name: "Penwortham", href: "/clubs/penwortham", count: 2, venueId: null }]);
   });
 
-  test("the menu's events: dates, and their competitions in date order", () => {
-    expect(menuEvents(all)).toEqual([
-      {
-        title: "Blackpool Masters",
-        dates: "Sat 18 – Sun 19 Sep",
-        href: "/blackpool-masters",
-        competitions: [
-          { title: "Masters Invitation 32", href: "/masters-invitation-32" },
-          { title: "Ladies 32", href: "/ladies-32" },
-        ],
-      },
-    ]);
+  test("the menu's events: name and dates", () => {
+    expect(menuEvents(all)).toEqual([{ title: "Blackpool Masters", dates: "Sat 18 – Sun 19 Sep", href: "/blackpool-masters" }]);
   });
 });

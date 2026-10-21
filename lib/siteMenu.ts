@@ -50,10 +50,9 @@ export function menuItems(all: PublicCompetition[]): MenuItem[] {
   return items.sort((a, b) => a.title.localeCompare(b.title));
 }
 
-// The events the menu shows in gold, each with its competitions under it
-// (the Blackpool Masters, NL&F County): their latest year, soonest first,
-// any without dates yet last
-export type MenuEvent = { title: string; dates: string | null; href: string; competitions: { title: string; href: string }[] };
+// The events the menu shows in gold (the Blackpool Masters, NL&F County):
+// their latest year, soonest first, any without dates yet last
+export type MenuEvent = { title: string; dates: string | null; href: string };
 export function menuEvents(all: PublicCompetition[]): MenuEvent[] {
   const byOrganiser = new Map<string, PublicCompetition[]>();
   for (const c of all) {
@@ -64,24 +63,16 @@ export function menuEvents(all: PublicCompetition[]): MenuEvent[] {
   return [...byOrganiser.values()]
     .map((list) => {
       const year = Math.max(...list.map((c) => c.year));
-      const members = list
-        .filter((c) => c.year === year)
-        .sort((a, b) => firstDate(a).localeCompare(firstDate(b)) || a.name.localeCompare(b.name));
-      const dates = eventDates(members);
+      const dates = eventDates(list.filter((c) => c.year === year));
       return {
         title: list[0].organiser.name,
         dates: dates ? dateRange(dates.from, dates.to) : null,
         from: dates?.from ?? "9999",
         href: eventPath(list[0].organiser.slug!, year, all),
-        competitions: members.map((c) => ({ title: c.name, href: competitionPath(c, all) })),
       };
     })
     .sort((a, b) => a.from.localeCompare(b.from) || a.title.localeCompare(b.title))
     .map(({ from: _from, ...e }) => e);
-}
-
-function firstDate(c: PublicCompetition): string {
-  return c.sessions.map((s) => s.date).filter((d): d is string => Boolean(d)).sort()[0] ?? "9999";
 }
 
 // Every club with a competition on the site, A to Z, with how many

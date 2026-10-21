@@ -162,11 +162,6 @@ export default function SiteHeader({ compact = false, back = "/" }: { compact?: 
                       <strong>{e.title}</strong>
                       {e.dates && <span>{e.dates}</span>}
                     </Link>
-                    {e.competitions.map((c) => (
-                      <Link key={c.href} href={c.href} className="site-menu-event-comp">
-                        {c.title}
-                      </Link>
-                    ))}
                   </div>
                 ))}
               </>
