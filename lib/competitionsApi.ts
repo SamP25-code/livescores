@@ -305,6 +305,14 @@ export async function deleteVenue(id: string): Promise<void> {
   if (error) throw error;
 }
 
+// Super: renames a competition - every year of it, and its honours board.
+// Its web address stays the same, so links already shared keep working.
+export async function renameSeries(seriesId: string, name: string): Promise<void> {
+  if (!name.trim()) throw new Error("Enter the competition's name.");
+  const { error } = await supabase.from("series").update({ name: name.trim() }).eq("id", seriesId);
+  if (error) throw error;
+}
+
 // Super: moves a competition (every year of it) to a different club or event
 export async function moveSeries(seriesId: string, organiserId: string): Promise<void> {
   const { error } = await supabase.from("series").update({ organiser_id: organiserId }).eq("id", seriesId);

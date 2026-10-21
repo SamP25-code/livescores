@@ -12,6 +12,7 @@ import {
 import {
   listCompetitions,
   moveSeries,
+  renameSeries,
   createCompetition,
   createOrganiser,
   createSeries,
@@ -78,6 +79,8 @@ export default function CompetitionForm({
   const [newOrgName, setNewOrgName] = useState("");
   // Changing: which club or event it's part of (moves every year of it)
   const [partOf, setPartOf] = useState<string>(c?.series.organiser_id ?? "");
+  // Changing: its name (every year of it)
+  const [rename, setRename] = useState<string>(c?.series.name ?? "");
   // Each competition's venue, for defaulting to the one a club used last
   const [pastVenues, setPastVenues] = useState<{ organiserId: string; venueId: string; year: number }[]>([]);
   const [seriesId, setSeriesId] = useState<string>("");
@@ -272,6 +275,7 @@ export default function CompetitionForm({
       };
 
       if (existing && c) {
+        if (rename.trim() !== c.series.name) await renameSeries(c.series.id, rename);
         if (partOf && partOf !== c.series.organiser_id) await moveSeries(c.series.id, partOf);
         await updateCompetition(c, settings, existing.sessions, sessions);
         await saveSponsors(c.id, sponsors);
@@ -501,6 +505,16 @@ export default function CompetitionForm({
 
       <section className="card">
         <h2>Format</h2>
+        {existing && isSuper && (
+          <div className="field">
+            <label htmlFor="cf-rename">Name</label>
+            <input id="cf-rename" value={rename} onChange={(e) => setRename(e.target.value)} />
+            <p className="hint">
+              Changes it for every year, and its honours board. Its web address stays /{c?.series.slug}, so links already
+              shared still work.
+            </p>
+          </div>
+        )}
         {existing && isSuper && (
           <div className="field">
             <label htmlFor="cf-part-of">Part of</label>
