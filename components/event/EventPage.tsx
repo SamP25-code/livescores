@@ -23,6 +23,7 @@ import {
 import { loadPublicQualifying } from "@/lib/publicQualifying";
 import { SITE_NAME } from "@/lib/site";
 import SiteHeader from "@/components/SiteHeader";
+import { usePageBackground } from "@/lib/backgrounds";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import MonthGroups from "@/components/home/MonthGroups";
 import RowLine from "@/components/home/RowLine";
@@ -39,6 +40,8 @@ function tabFromHash(): Tab {
 // how long to go, the days, who's qualified, adverts and the latest news -
 // then its Competitions, Qualifying (how to qualify) and News.
 export default function EventPage({ event, all }: { event: EventRef; all: PublicCompetition[] }) {
+  // The event's own background on its page
+  usePageBackground(event.organiser.background_image ?? null);
   const [tab, setTab] = useState<Tab>("overview");
   const [posts, setPosts] = useState<EventPost[]>([]);
   const [qualified, setQualified] = useState<{ done: number; total: number } | null>(null);

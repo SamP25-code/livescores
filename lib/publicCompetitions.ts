@@ -50,7 +50,17 @@ export type PublicCompetition = {
   qualifiers_per_night: number | null;
   target_score: 21 | 31;
   venue_id: string | null;
-  organiser: { id: string; name: string; short_name: string; kind: "club" | "event" | "county"; slug: string | null };
+  organiser: {
+    id: string;
+    name: string;
+    short_name: string;
+    kind: "club" | "event" | "county";
+    slug: string | null;
+    // An event's own background, for its pages
+    background_image?: string | null;
+  };
+  // Its own background, shown on its pages
+  background_url?: string | null;
   entry_method: "open" | "qualification" | "on_the_night";
   sponsors: { name: string; url: string | null; logo_url: string | null }[];
   sessions: PublicSession[];

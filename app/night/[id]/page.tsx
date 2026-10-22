@@ -19,6 +19,10 @@ import { SITE_NAME } from "@/lib/site";
 import PublicFooter from "@/components/PublicFooter";
 import SiteHeader from "@/components/SiteHeader";
 import VenueCard from "@/components/VenueCard";
+import { usePageBackground } from "@/lib/backgrounds";
+import ShareButton from "@/components/ShareButton";
+import { sessionShareText } from "@/lib/shareResults";
+import { longDate } from "@/lib/competitionSetup";
 
 export default function NightPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: nightId } = use(params);
@@ -35,7 +39,9 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
     latest: boolean;
     sponsors: SponsorShown[];
     finalsSize: number;
+    background: string | null;
   } | null>(null);
+  usePageBackground(competition?.background);
   const [viewerCount, setViewerCount] = useState(0);
   const [loadError, setLoadError] = useState(false);
   const [connectionLost, setConnectionLost] = useState(false);
@@ -81,13 +87,13 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         const { data: comp } = await supabase
           .from("competitions")
           .select(
-            "venue_id, year, series_id, format, draw_size, series:series_id(name, slug), sponsors:competition_sponsors(*)"
+            "venue_id, year, series_id, format, draw_size, background_url, series:series_id(name, slug, organiser:organiser_id(background_image)), sponsors:competition_sponsors(*)"
           )
           .eq("id", nightData.competition_id)
           .single();
         if (comp) {
           venueId = venueId ?? comp.venue_id ?? null;
-          const series = comp.series as unknown as { name: string; slug: string };
+          const series = comp.series as unknown as { name: string; slug: string; organiser: { background_image: string | null } | null };
           const { data: years } = await supabase.from("competitions").select("year").eq("series_id", comp.series_id);
           const latest = Math.max(...(years ?? []).map((y) => y.year), comp.year) === comp.year;
           const sponsors = [
@@ -97,7 +103,15 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
             .map((s) => ({ name: s.name, url: s.url ?? null, logo_url: s.logo_url ?? null }));
           const finalsSize = comp.format === "qualifying_and_finals" && comp.draw_size ? comp.draw_size : 16;
           if (!cancelled)
-            setCompetition({ name: series.name, year: comp.year, slug: series.slug, latest, sponsors, finalsSize });
+            setCompetition({
+              name: series.name,
+              year: comp.year,
+              slug: series.slug,
+              latest,
+              sponsors,
+              finalsSize,
+              background: comp.background_url ?? series.organiser?.background_image ?? null,
+            });
         }
       }
       if (venueId) {
@@ -523,6 +537,31 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
             ))}
           </div>
         </section>
+      )}
+
+      {!loadError && showDraw && matches.length > 0 && night && (
+        <ShareButton
+          title={night.name}
+          text={() => {
+            const names = Object.fromEntries(Object.values(players).map((p) => [p.id, p.name]));
+            const top = rounds.length ? rounds[rounds.length - 1][1] : [];
+            const final = top.length === 1 && top[0].status === "complete" ? top[0] : null;
+            const loser = final ? (final.winner_id === final.player_a_id ? final.player_b_id : final.player_a_id) : null;
+            return sessionShareText({
+              title: competition
+                ? `${competition.name} ${competition.year} – ${sessionTitle(night as Parameters<typeof sessionTitle>[0])}`
+                : night.name,
+              date: night.date ? longDate(night.date) : null,
+              kind: night.kind,
+              matches,
+              names,
+              champion: champion?.name ?? null,
+              runnerUp: champion && loser ? (names[loser] ?? null) : null,
+              through: qualifiers.filter((p): p is NonNullable<typeof p> => Boolean(p)).map((p) => p.name),
+              url: window.location.href,
+            });
+          }}
+        />
       )}
 
       {!loadError && venue && <VenueCard venue={venue} spaced />}

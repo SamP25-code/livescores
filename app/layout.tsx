@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 import SentryInit from "@/components/SentryInit";
+import SiteBackground from "@/components/SiteBackground";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
 // A narrow scoreboard-style face for headings, scores and numbers, and a
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body>
         <SentryInit />
+        <SiteBackground />
         {!isSupabaseConfigured && (
           <div
             style={{

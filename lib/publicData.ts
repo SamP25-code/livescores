@@ -135,7 +135,9 @@ export async function loadPublicCompetitions(): Promise<PublicCompetition[]> {
         short_name: series.organiser.short_name,
         kind: series.organiser.kind,
         slug: series.organiser.slug ?? null,
+        background_image: (series.organiser as { background_image?: string | null }).background_image ?? null,
       },
+      background_url: (c as { background_url?: string | null }).background_url ?? null,
       sponsors: [
         ...((c.sponsors as { name: string; url: string | null; logo_url?: string | null; position: number }[]) ?? []),
       ]

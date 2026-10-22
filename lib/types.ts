@@ -89,6 +89,8 @@ export type Competition = {
   sponsor_url: string | null;
   venue_id: string | null;
   colour: string | null;
+  // Its own background photo for its pages (migration 2027_17)
+  background_url?: string | null;
   created_at: string;
 };
 

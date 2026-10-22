@@ -9,6 +9,7 @@ import { shortDate, todayIso } from "@/lib/publicCompetitions";
 import { SITE_NAME } from "@/lib/site";
 import { supabase } from "@/lib/supabaseClient";
 import PostForm from "@/components/PostForm";
+import BackgroundPicker from "@/components/BackgroundPicker";
 import { deleteOrganiser, listChoices, moveSeries } from "@/lib/competitionsApi";
 import type { Organiser, Series } from "@/lib/types";
 
@@ -150,6 +151,26 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
           + Add a competition to the {event?.name ?? "event"}
         </Link>
       </p>
+
+      {event && (
+        <div className="card">
+          <BackgroundPicker
+            id="event-background"
+            label="Its page's background (optional)"
+            hint="A photo behind the event's page and its competitions' pages, instead of the site's general one."
+            value={event.background_image ?? null}
+            onChange={async (url) => {
+              setError(null);
+              const { error: saveError } = await supabase.from("organisers").update({ background_image: url }).eq("id", event.id);
+              if (saveError) setError(errorMessage(saveError));
+              else {
+                setEvent({ ...event, background_image: url });
+                setMessage(url ? "Background saved." : "Background removed.");
+              }
+            }}
+          />
+        </div>
+      )}
 
       {others.length > 0 && (
         <div className="card">

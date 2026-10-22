@@ -40,6 +40,7 @@ export default function AdminNav() {
       : []),
     ...(admin ? [{ href: "/admin/users", label: "Users", active: pathname === "/admin/users" }] : []),
     { href: "/admin/settings", label: "Settings", active: pathname === "/admin/settings" },
+    { href: "/admin/help", label: "Help", active: pathname === "/admin/help" },
   ];
 
   return (

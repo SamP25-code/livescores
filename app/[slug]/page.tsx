@@ -8,6 +8,7 @@ import { loadHonours, loadPublicCompetitions, type HonoursRow } from "@/lib/publ
 import {
   eventPath,
   competitionPath,
+  nextSession,
   publicStatus,
   resolveCompetition,
   resolveEvent,
@@ -29,6 +30,9 @@ import type { Venue } from "@/lib/types";
 import PublicFooter from "@/components/PublicFooter";
 import SiteHeader from "@/components/SiteHeader";
 import VenueCard from "@/components/VenueCard";
+import { usePageBackground } from "@/lib/backgrounds";
+import ShareButton from "@/components/ShareButton";
+import { competitionShareText } from "@/lib/shareResults";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +79,8 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
   }, [slug]);
 
   const c = all ? resolveCompetition(all, slug) : null;
+  // Its own background, or its event's
+  usePageBackground(c?.background_url ?? c?.organiser.background_image ?? null);
 
   useEffect(() => {
     document.title = c ? `${c.name} ${c.year} · ${SITE_NAME}` : SITE_NAME;
@@ -165,6 +171,22 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
       {venues.map((v) => (
         <VenueCard key={v.id} venue={v} />
       ))}
+
+      <ShareButton
+        label="Share"
+        title={`${c.name} ${c.year}`}
+        text={() => {
+          const next = nextSession(c, today);
+          return competitionShareText({
+            title: `${c.name} ${c.year}`,
+            runBy,
+            champion: c.champion?.name ?? null,
+            runnerUp: c.champion?.runnerUp ?? null,
+            next: next ? [sessionTitle(next), next.date ? shortDate(next.date) : null, sessionTimes(next)].filter(Boolean).join(" · ") : null,
+            url: window.location.href,
+          });
+        }}
+      />
 
       {honours.length > 0 && (
         <section className="home-section">

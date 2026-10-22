@@ -32,6 +32,7 @@ import { directionsUrl } from "@/lib/venues";
 import { addMinutes } from "@/lib/timeSlots";
 import type { Night, Organiser, Series, Venue } from "@/lib/types";
 import { useIsSuper } from "@/lib/auth";
+import BackgroundPicker from "@/components/BackgroundPicker";
 
 const DEFAULT_START: Record<SessionKind, string> = {
   qualifier: "19:00",
@@ -120,6 +121,8 @@ export default function CompetitionForm({
 
   // Venue
   const [venueId, setVenueId] = useState<string>(c?.venue_id ?? "");
+  // Its own background photo (optional)
+  const [background, setBackground] = useState<string | null>(c?.background_url ?? null);
 
   // Sessions' dates and start times, in plan order
   // Some competitions have no practice: untick to leave practice times off
@@ -273,6 +276,7 @@ export default function CompetitionForm({
         status,
         label: label.trim() || null,
         venue_id: chosenVenueId,
+        background_url: background,
         ...(locked
           ? {}
           : {
@@ -771,8 +775,15 @@ export default function CompetitionForm({
       </section>
 
       <section className="card">
-        <h2>{existing && !isCounty ? "Where and sponsors" : "Sponsors"}</h2>
+        <h2>{existing && !isCounty ? "Where, sponsors and background" : "Sponsors and background"}</h2>
         {existing && !isCounty && venueField}
+        <BackgroundPicker
+          id="cf-background"
+          label="Background (optional)"
+          hint="A photo behind this competition's pages instead of the site's general one - a landscape photo works best."
+          value={background}
+          onChange={setBackground}
+        />
         <div className="comp-form-sponsors">
           <span className="comp-form-sponsors-title">Sponsors (optional)</span>
           {sponsors.map((sponsor, i) => (

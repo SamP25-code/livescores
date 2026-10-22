@@ -713,15 +713,18 @@ home page and menu redesign.
 
 Done since (October 2026): **player pages and Find a player**, **past winners** on honours
 boards (doubles years name both partners), **scoring by stage and typing a score in**, the
-**SuperAdmin overview**.
+**SuperAdmin overview**, **"Share results" as text**.
+
+Also done: **backgrounds** (a general one in Settings, plus one per competition and per event),
+the **help guide** for admins (Admin -> Help, printable), the privacy removal process (Admin ->
+People -> Privacy), and the go-live checklist brought up to date (docs/go-live-checklist.md).
 
 Still to do, in order:
-1. **"Share results" as text**
-2. **Backgrounds** - a general one, and uploaded per competition
-3. Help guide for club admins; privacy removal process
-4. Go live: merge, live database, copy the real competitions across
-5. New domain when the name is chosen; pilot with other clubs, then open up
-6. After the pilot: shareable results images, sponsor reports, follow a player
+1. **Winter testing** on the test database (the checklist's section 2)
+2. Decisions: "Get in touch" address, privacy notice and juniors, the name and domain
+3. Go live: merge, live database, copy the real competitions across
+4. New domain when the name is chosen; pilot with other clubs, then open up
+5. After the pilot: shareable results images, sponsor reports, follow a player
 
 Throughout: the "Easy to read for every age" rules apply to every screen.
 

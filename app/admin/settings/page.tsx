@@ -4,8 +4,12 @@ import { useEffect, useState } from "react";
 import { SITE_NAME } from "@/lib/site";
 import { newPasswordProblem, saveOwnPassword } from "@/lib/choosePassword";
 import { errorMessage } from "@/lib/errors";
+import { useIsSuper } from "@/lib/auth";
+import { loadSiteBackground, saveSiteBackground } from "@/lib/backgrounds";
+import BackgroundPicker from "@/components/BackgroundPicker";
 
 export default function AdminSettingsPage() {
+  const isSuper = useIsSuper();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +79,53 @@ export default function AdminSettingsPage() {
           {saving ? "Saving…" : "Change password"}
         </button>
       </form>
+
+      {isSuper && <SiteBackgroundSetting />}
+    </div>
+  );
+}
+
+// Super: the photo behind every page that hasn't its own
+function SiteBackgroundSetting() {
+  const [url, setUrl] = useState<string | null | undefined>(undefined);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadSiteBackground()
+      .then(setUrl)
+      .catch(() => setUrl(null));
+  }, []);
+
+  async function change(next: string | null) {
+    setError(null);
+    setMessage(null);
+    try {
+      await saveSiteBackground(next);
+      setUrl(next);
+      document.documentElement.style[next ? "setProperty" : "removeProperty"]("--site-background", next ? `url("${next}")` : "");
+      setMessage(next ? "Background changed." : "Back to the built-in photo.");
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  }
+
+  return (
+    <div className="card">
+      <h2>Site background</h2>
+      {url === undefined ? (
+        <p className="hint">Loading&hellip;</p>
+      ) : (
+        <BackgroundPicker
+          id="site-background"
+          label="The photo behind every page"
+          hint="Competitions and events with their own background show theirs instead. A landscape photo works best."
+          value={url}
+          onChange={change}
+        />
+      )}
+      {message && !error && <p className="hint">{message}</p>}
+      {error && <p className="error">{error}</p>}
     </div>
   );
 }
