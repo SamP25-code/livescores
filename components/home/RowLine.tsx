@@ -1,5 +1,6 @@
 import PlayerLinks from "@/components/PlayerLinks";
 import { sessionLabel, sessionTimes, type PublicCompetition, type RowState } from "@/lib/publicCompetitions";
+import LivePill from "@/components/home/LivePill";
 
 // The line under a competition's name in any list: "Live · Round of 16",
 // "Qualifying session 1 of 4 · 6:30pm", "Won by Wayne Ditchfield"
@@ -7,10 +8,7 @@ export default function RowLine({ competition: c, state }: { competition: Public
   if (state.kind === "live") {
     return (
       <>
-        <span className="comp-pill comp-pill-live">
-          <span className="live-dot" />
-          Live
-        </span>{" "}
+        <LivePill />{" "}
         {sessionLabel(c, state.session)}
       </>
     );

@@ -44,8 +44,8 @@ const DEFAULT_START: Record<SessionKind, string> = {
 const SESSION_LABEL: Record<SessionKind, string> = {
   qualifier: "Qualifying session",
   finals: "Finals Day",
-  single_day: "The day",
-  final: "The final",
+  single_day: "One day",
+  final: "Final",
 };
 
 const numberOrNull = (v: string) => (v.trim() === "" ? null : Number(v));

@@ -60,7 +60,7 @@ export default function EventsPage() {
       <div className="comp-list-head">
         <h1>Events</h1>
         <Link href="/admin/competitions/new?kind=event" className="button">
-          New event
+          + New event
         </Link>
       </div>
       <p className="hint">

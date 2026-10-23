@@ -3,10 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { fetchNightStatuses } from "@/lib/nightStatus";
 import { sessionsShown } from "@/lib/sessionsShown";
 import type { Night } from "@/lib/types";
-import type { NightStatus } from "@/lib/bracket";
 
 const WEEKDAY_NAME = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b\s*(.*)$/i;
 const WEEKDAY_ANYWHERE = /(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b\s*(.*)$/i;
@@ -28,12 +26,6 @@ export function splitNightName(night: Night): { day: string; rest: string } | nu
   if (!match || !match[2].trim()) return null;
   return { day: match[1], rest: match[2].trim() };
 }
-
-const STATUS_LABEL: Record<NightStatus, string> = {
-  upcoming: "Upcoming",
-  live: "Live",
-  complete: "Finished",
-};
 
 const WEEKDAY_ABBR: Record<string, string> = {
   Monday: "Mon",
@@ -58,16 +50,13 @@ function shortNightLabel(night: Night): string {
 
 export default function NightNav({
   currentId,
-  variant = "compact",
   hideSingle = false,
 }: {
   currentId?: string;
-  variant?: "compact" | "home";
   // A one-session competition has nothing to switch between
   hideSingle?: boolean;
 }) {
   const [nights, setNights] = useState<Night[]>([]);
-  const [statuses, setStatuses] = useState<Record<string, NightStatus>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -88,61 +77,8 @@ export default function NightNav({
     };
   }, [currentId]);
 
-  useEffect(() => {
-    if (variant !== "home") return;
-
-    let cancelled = false;
-    fetchNightStatuses().then((data) => {
-      if (!cancelled) setStatuses(data);
-    });
-
-    const channel = supabase
-      .channel("home-night-statuses")
-      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => {
-        fetchNightStatuses().then((data) => {
-          if (!cancelled) setStatuses(data);
-        });
-      })
-      .subscribe();
-
-    return () => {
-      cancelled = true;
-      supabase.removeChannel(channel);
-    };
-  }, [variant]);
-
   if (nights.length === 0 || (hideSingle && nights.length === 1)) return null;
 
-  if (variant === "home") {
-    return (
-      <nav className="night-list">
-        {nights.map((n) => {
-          const status = statuses[n.id] ?? "upcoming";
-          const split = splitNightName(n);
-          return (
-            <Link key={n.id} href={`/night/${n.id}`} className={`night-card night-card-${n.kind}`}>
-              <span className="night-card-name">
-                {split ? (
-                  <>
-                    <span className="night-card-day">{split.day}</span>
-                    <span className="night-card-date">{split.rest}</span>
-                  </>
-                ) : (
-                  n.name
-                )}
-              </span>
-              {status !== "upcoming" && (
-                <span className={`status-pill ${status}`}>
-                  {status === "live" && <span className="live-dot" />}
-                  {STATUS_LABEL[status]}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-    );
-  }
 
   return (
     <nav className="night-nav">

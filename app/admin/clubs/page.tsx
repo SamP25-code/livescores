@@ -145,7 +145,7 @@ export default function ClubsAdminPage() {
         <h1>Clubs</h1>
         {editing !== "new" && (
           <button type="button" onClick={() => open(null)}>
-            Add a club
+            + Add a club
           </button>
         )}
       </div>

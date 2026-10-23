@@ -135,7 +135,7 @@ export default function QualifyingManager({ competitionId }: { competitionId: st
                     {p.source === "wildcard" && p.original_source_label ? ` (was: ${p.original_source_label})` : ""}
                   </span>
                   {who ? <strong>{who}</strong> : <em className="hint">{onSite && !p.flagged ? "Played on this site - fills itself" : view.label}</em>}
-                  {view.state === "flagged" && <span className="qualifying-flag">⚑ {p.flagged}</span>}
+                  {view.state === "flagged" && <span className="qualifying-flag">Check: {p.flagged}</span>}
                 </span>
               </div>
               <div className="entries-actions qualifying-actions">

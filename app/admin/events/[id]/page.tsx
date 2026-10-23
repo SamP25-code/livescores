@@ -261,7 +261,7 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
             <div key={p.id} className="comp-list-row">
               <span className="comp-list-main">
                 <strong>
-                  {p.pinned ? "📌 " : ""}
+                  {p.pinned ? "Pinned · " : ""}
                   {p.title}
                 </strong>
                 <span className="hint">
@@ -280,7 +280,7 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
                     if (!confirm(`Remove "${p.title}"?`)) return;
                     try {
                       await deletePost(p.id);
-                      setMessage("Deleted.");
+                      setMessage("Removed.");
                       await load();
                     } catch (err) {
                       setError(errorMessage(err));

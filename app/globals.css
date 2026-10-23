@@ -85,38 +85,6 @@ body {
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
 }
 
-.page-footer-nav {
-  text-align: center;
-  margin-top: 28px;
-}
-
-/* Only the admin needs this, so it's a quiet link rather than a button -
-   still a full-height tap target. */
-.page-footer-nav a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 12px;
-  font-size: 0.8rem;
-  color: var(--cream);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
-  opacity: 0.8;
-}
-
-.page-footer-nav a:hover {
-  opacity: 1;
-}
-
-/* Cream rather than transparent because the sponsor logo has dark text
-   baked in and needs a light surface behind it. */
-.page-photo .top-bar {
-  background: var(--cream);
-  border: 1px solid var(--line);
-  border-bottom: none;
-  border-radius: var(--radius);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-}
-
 .page-photo .champion-banner .hint {
   color: var(--ink-soft);
   text-shadow: none;
@@ -131,17 +99,11 @@ h3 {
   color: var(--green-deep);
 }
 
-/* Capitals only for a page's own name - a competition, an event, the site.
-   Section headings below it are in sentence case. */
+/* Every page title the same size, in normal case. Capitals are only for a
+   competition's or an event's own name (.comp-page-title) and the site's
+   name in the header. */
 h1 {
-  font-size: 1.9rem;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.public-page-title {
-  text-transform: none;
-  letter-spacing: 0;
+  font-size: 2rem;
 }
 
 h2 {
@@ -169,87 +131,6 @@ a {
   padding-top: calc(20px + env(safe-area-inset-top));
   /* Room for the footer, which sits at the very bottom */
   padding-bottom: calc(110px + env(safe-area-inset-bottom));
-}
-
-/* A short, stacked, centred header - title, a thin divider, a small
-   caption, then the logo sized by width so its baked-in wordmark stays
-   readable. Home lives above this card now (.page-back-link), not
-   inside it. */
-.top-bar {
-  padding: 12px 16px;
-  margin-bottom: 14px;
-  border-bottom: 3px solid var(--green-deep);
-}
-
-.top-bar nav {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
-  text-align: center;
-}
-
-.top-bar nav a {
-  font-size: 0.85rem;
-  color: var(--ink-soft);
-  text-decoration: none;
-  margin: 0 7px;
-}
-
-.top-bar nav span {
-  font-size: 0.85rem;
-  color: var(--ink-soft);
-  font-weight: 600;
-  margin: 0 7px;
-}
-
-.brand {
-  display: block;
-  text-align: center;
-}
-
-.brand-name {
-  margin: 0 0 8px;
-  font-family: var(--font-body), sans-serif;
-  font-weight: 600;
-  font-size: 1.05rem;
-  line-height: 1.3;
-  color: var(--ink);
-}
-
-.brand-divider {
-  border: none;
-  border-top: 1px solid var(--line);
-  margin: 0 0 8px;
-}
-
-.brand-caption {
-  margin: 0 0 8px;
-  font-size: 0.72rem;
-  color: var(--ink-soft);
-}
-
-.brand-logo-link {
-  display: block;
-}
-
-/* The logo file's background is solid white rather than transparent -
-   multiply blends it into the cream card so it doesn't show as a white
-   rectangle. Swap in a transparent PNG/SVG later and this can just be
-   dropped. Sizing is all in this one rule, not tied to the file's own
-   pixel dimensions, so swapping the asset needs no CSS changes. */
-.sponsor-logo {
-  display: block;
-  width: 55%;
-  max-width: 220px;
-  height: auto;
-  margin: 0 auto;
-  mix-blend-mode: multiply;
-}
-
-@media (min-width: 640px) {
-  .sponsor-logo {
-    max-width: 240px;
-  }
 }
 
 /* A small back link above the header card, on the raw photo - cream
@@ -287,12 +168,6 @@ a {
 .sponsor-strip strong {
   font-weight: 600;
   color: #fff;
-}
-
-.sponsor-strip-leaf {
-  flex: none;
-  width: 24px;
-  height: 24px;
 }
 
 .link-button {
@@ -426,11 +301,6 @@ a {
   text-shadow: none;
 }
 
-.page-photo .empty {
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
-}
-
 .page-photo > .error {
   background: var(--cream);
   border: 1px solid var(--maroon);
@@ -443,7 +313,7 @@ a {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin: 28px 0 10px;
+  margin: var(--section-gap) 0 10px;
 }
 
 .round-heading h2 {
@@ -451,7 +321,7 @@ a {
 }
 
 .page-photo .round-heading {
-  margin: 24px 0 8px;
+  margin: var(--section-gap) 0 8px;
 }
 
 /* One panel per round with the games as ruled rows, like a paper draw
@@ -876,18 +746,6 @@ a {
   color: #fff;
 }
 
-.status-pill-hidden {
-  background: var(--gold-pale);
-  color: var(--gold-deep);
-  border: 1px solid var(--gold);
-}
-
-.empty {
-  color: var(--ink-soft);
-  font-style: italic;
-  padding: 20px 0;
-}
-
 button,
 .button {
   font-family: var(--font-body), sans-serif;
@@ -1015,7 +873,7 @@ label {
 .night-nav {
   display: flex;
   gap: 6px;
-  margin: 0 0 20px;
+  margin: 0 0 var(--gap);
 }
 
 .night-pill {
@@ -1217,133 +1075,6 @@ label {
   margin: 12px 0 0;
 }
 
-/* Plain notice-board text on the photo, normal size, with just enough
-   shadow to stay readable over the bright parts. */
-.home-hero {
-  text-align: center;
-  margin: 22px 0 20px;
-}
-
-.home-hero h1 {
-  margin-bottom: 6px;
-}
-
-.home-hero .hint {
-  font-size: 0.95rem;
-  margin: 2px 0;
-}
-
-.home-times {
-  display: flex;
-  flex-direction: column;
-}
-
-.home-times + .home-times {
-  margin-top: 10px;
-}
-
-.live-now-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background: var(--maroon);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  margin-bottom: 20px;
-}
-
-.live-now-banner .live-dot {
-  margin-top: 7px;
-  background: #fff;
-  flex: none;
-}
-
-.live-now-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-}
-
-.live-now-item {
-  color: #fff;
-  text-decoration: none;
-  font-size: 0.92rem;
-  font-weight: 600;
-}
-
-.live-now-item:hover {
-  text-decoration: underline;
-}
-
-.live-now-count {
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.85rem;
-}
-
-/* One panel with the nights as ruled rows, like a fixture list, rather
-   than a stack of separate cards. */
-.night-list {
-  display: flex;
-  flex-direction: column;
-  margin: 0 0 20px;
-  background: var(--cream);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.night-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 16px 18px;
-  border-bottom: 1px solid var(--line);
-  background-color: var(--cream);
-  text-decoration: none;
-}
-
-.night-card:last-child {
-  border-bottom: none;
-}
-
-.night-card:hover {
-  background-color: #fff;
-}
-
-.night-card-name {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 8px;
-  font-family: var(--font-display), Georgia, serif;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--green-deep);
-}
-
-.night-card-date {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--ink-soft);
-}
-
-.night-card-finals {
-  background-color: var(--gold-pale);
-}
-
-.night-card-finals .night-card-name {
-  color: var(--gold-deep);
-}
-
-.night-card .status-pill {
-  font-size: 0.8rem;
-  padding: 4px 12px;
-}
-
 .champion-banner {
   text-align: center;
   background: var(--gold-pale);
@@ -1380,7 +1111,7 @@ label {
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin: 20px 0;
+  margin: var(--gap) 0;
 }
 
 /* A faint dark band behind the round links so they stay readable over
@@ -1428,7 +1159,7 @@ label {
 .bracket-scroll {
   overflow-x: auto;
   padding-bottom: 14px;
-  margin: 0 -16px 20px;
+  margin: 0 -16px var(--gap);
   padding-left: 16px;
   padding-right: 16px;
   -webkit-overflow-scrolling: touch;
@@ -1453,8 +1184,6 @@ label {
   font-family: var(--font-display), Georgia, serif;
   font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
   color: var(--green-deep);
   padding-bottom: 8px;
   margin-bottom: 10px;
@@ -1546,8 +1275,6 @@ label {
   font-family: var(--font-display), Georgia, serif;
   font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
   color: var(--gold-deep);
   padding-bottom: 8px;
   margin-bottom: 10px;
@@ -1624,7 +1351,7 @@ label {
 .finals-picker {
   display: flex;
   flex-direction: column;
-  margin-bottom: 20px;
+  margin-bottom: var(--gap);
   background: var(--cream);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -1670,7 +1397,7 @@ label {
 /* Admin viewer log - how many had a night's public page open, minute by
    minute. A single series, so no legend: the heading says what it is. */
 .viewer-log {
-  margin-top: 24px;
+  margin-top: var(--section-gap);
 }
 
 .viewer-log-stats {
@@ -2026,11 +1753,6 @@ label {
   color: #fff;
 }
 
-.user-role-scorer {
-  background: var(--green-pale);
-  color: var(--green-deep);
-}
-
 /* A generated password, shown once to pass on. */
 .password-handover {
   border-color: var(--gold);
@@ -2067,7 +1789,7 @@ label {
 }
 
 .comp-list-year {
-  margin-top: 22px;
+  margin-top: var(--section-gap);
 }
 
 .comp-list {
@@ -2107,17 +1829,17 @@ label {
   color: var(--green-deep);
 }
 
-.comp-status-planned {
+.status-pill-planned {
   background: var(--green-pale);
   color: var(--ink-soft);
 }
 
-.comp-status-active {
+.status-pill-active {
   background: var(--green-deep);
   color: #fff;
 }
 
-.comp-status-archived {
+.status-pill-archived {
   background: var(--line);
   color: var(--ink-soft);
 }
@@ -2245,10 +1967,6 @@ label {
   .comp-form-session-name {
     grid-column: 1 / -1;
   }
-}
-
-.admin-night-group {
-  margin-top: 18px;
 }
 
 .comp-form-sponsors {
@@ -2909,29 +2627,6 @@ label {
   margin: 12px 0 0;
 }
 
-/* ===========================================================================
-   Public pages (2027): home, calendar, competition list, a competition
-   =========================================================================== */
-
-.home-header {
-  text-align: center;
-  margin: 8px 0 18px;
-}
-
-.home-title {
-  margin: 0;
-  font-size: 2.6rem;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.home-tagline {
-  margin: 4px 0 0;
-  color: #fff;
-  font-size: 1.05rem;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
-}
-
 .home-section {
   margin-top: var(--section-gap);
 }
@@ -2959,7 +2654,7 @@ label {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: var(--gap);
   padding: 14px 16px;
   border-radius: var(--radius);
   background: var(--maroon);
@@ -2979,7 +2674,10 @@ label {
 }
 
 .home-live-banner strong {
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-body), sans-serif;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
   font-size: 1.3rem;
 }
 
@@ -3052,63 +2750,12 @@ label {
   color: var(--green-deep);
 }
 
-/* Next up */
-/* Links that look like buttons */
-a.home-next-go,
-.home-next-when {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-
-.home-next-count {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 76px;
-  min-height: 76px;
-  padding: 6px;
-  border-radius: var(--radius);
-  background: var(--green-deep);
-  color: #fff;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 0.06em;
-}
-
-.home-next-count strong {
-  font-family: var(--font-display), sans-serif;
-  font-size: 2.4rem;
-  line-height: 1;
-  letter-spacing: 0;
-}
-
-.home-next-count .home-next-today {
-  font-size: 1.4rem;
-}
-
-.home-next-details {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 1.05rem;
-}
-
 /* Calendar */
 .cal-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
-}
-
-.cal-title {
-  margin: 0;
-  font-size: 1.2rem;
-  color: var(--green-deep);
 }
 
 .cal-step {
@@ -3199,10 +2846,6 @@ a.home-next-go,
   border-radius: 50%;
 }
 
-.cal-faded {
-  opacity: 0.25;
-}
-
 .cal-live {
   font-size: 0.68rem;
   font-weight: 700;
@@ -3256,46 +2899,6 @@ a.home-next-go,
   margin-top: 4px;
 }
 
-.cal-row {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-  padding: 8px 0;
-  border: none;
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.cal-row:last-child {
-  border-bottom: none;
-}
-
-.cal-row-on {
-  background: var(--green-pale);
-}
-
-.cal-row-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.cal-row-text strong {
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.05rem;
-  color: var(--green-deep);
-}
-
-.cal-row-text span {
-  font-size: 0.9rem;
-  color: var(--ink-soft);
-}
-
 /* Competition list */
 .home-filters {
   display: flex;
@@ -3328,66 +2931,6 @@ a.home-next-go,
   padding-bottom: 4px;
 }
 
-.comp-row {
-  display: flex;
-  align-items: stretch;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
-  cursor: pointer;
-}
-
-.comp-row:last-child {
-  border-bottom: none;
-}
-
-.comp-row-on {
-  margin: 0 -14px;
-  padding-left: 14px;
-  padding-right: 14px;
-  background: var(--green-pale);
-  outline: 2px solid var(--green-mid);
-}
-
-.comp-bar {
-  flex: none;
-  width: 5px;
-  border-radius: 3px;
-  background: var(--line);
-}
-
-.comp-bar-dashed {
-  background: repeating-linear-gradient(var(--line) 0 6px, transparent 6px 10px);
-}
-
-.comp-row-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.comp-row-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.comp-row-name {
-  font-family: var(--font-body), sans-serif;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--ink);
-}
-
-.comp-row-line {
-  color: var(--ink-soft);
-}
-
 .comp-pill {
   flex: none;
   display: inline-flex;
@@ -3409,78 +2952,6 @@ a.home-next-go,
   color: #fff;
 }
 
-.comp-pill-coming_up {
-  background: var(--gold-pale);
-  border: 1px solid var(--gold);
-  color: var(--gold-deep);
-}
-
-.comp-pill-planned {
-  background: var(--green-pale);
-  color: var(--ink-soft);
-}
-
-.comp-pill-finished {
-  background: var(--green-deep);
-  color: #fff;
-}
-
-/* Recent champions */
-.champ-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.champ-row:last-child {
-  border-bottom: none;
-}
-
-.champ-badge {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--gold-pale);
-  border: 2px solid var(--gold);
-  color: var(--gold-deep);
-}
-
-.champ-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.champ-text .champ-name {
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--green-deep);
-}
-
-.champ-text > span:last-child {
-  color: var(--ink-soft);
-}
-
-.home-footer {
-  margin-top: 32px;
-  text-align: center;
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
-}
-
-.home-footer p {
-  margin: 0;
-}
-
 /* A competition's page */
 .comp-page-head {
   text-align: center;
@@ -3490,11 +2961,12 @@ a.home-next-go,
 .comp-page-title {
   margin: 4px 0;
   font-size: 2.2rem;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
 .comp-page-by {
-  margin: 0 0 12px;
+  margin: 0 0 var(--gap);
   color: #fff;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
 }
@@ -3503,8 +2975,6 @@ a.home-next-go,
   color: #fff;
   font-weight: 700;
 }
-
-
 
 .comp-schedule {
   padding-top: 0;
@@ -3518,7 +2988,7 @@ a.home-next-go,
   justify-content: space-between;
   gap: 12px;
   margin: 0 -14px;
-  padding: 14px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--line);
   color: var(--ink);
   text-decoration: none;
@@ -3637,22 +3107,12 @@ a.home-next-go,
   text-decoration: none;
 }
 
-.sponsor-strip-logo {
-  height: 22px;
-  width: auto;
-  max-width: 70px;
-  object-fit: contain;
-  padding: 2px 4px;
-  border-radius: 3px;
-  background: var(--cream);
-}
-
 .sponsor-panel {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  margin: 0 auto 14px;
+  margin: 0 auto var(--gap);
   padding: 10px 16px;
   max-width: 420px;
   border-radius: var(--radius);
@@ -3728,12 +3188,6 @@ a.home-next-go,
   height: 20px;
 }
 
-/* Venues page */
-.venue-row-editing {
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
-}
-
 .venue-editor {
   margin: 0;
 }
@@ -3789,7 +3243,7 @@ a.home-next-go,
 }
 
 .page-photo .card.prose h2 {
-  margin: 20px 0 6px;
+  margin: var(--gap) 0 6px;
   font-size: 1.35rem;
   color: var(--green-deep);
 }
@@ -3925,7 +3379,7 @@ a.home-next-go,
 }
 
 .admin-cards-finished {
-  margin-top: 24px;
+  margin-top: var(--section-gap);
 }
 
 /* Tabs on a competition's admin page */
@@ -3933,7 +3387,7 @@ a.home-next-go,
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  margin: 4px 0 14px;
+  margin: 4px 0 var(--gap);
   padding-bottom: 4px;
   -webkit-overflow-scrolling: touch;
 }
@@ -3990,56 +3444,6 @@ a.home-next-go,
 .match-filter-find {
   min-height: 44px;
   font-size: 1.05rem;
-}
-
-/* Public session page: Find your match */
-.find-match-label {
-  display: block;
-  margin-bottom: 6px;
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--green-deep);
-}
-
-.find-match input {
-  min-height: 46px;
-  font-size: 1.05rem;
-}
-
-.find-match-result {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 0 2px;
-  border-top: 1px solid var(--line);
-  margin-top: 10px;
-}
-
-.find-match-main {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.find-match-name {
-  font-weight: 700;
-  color: var(--green-deep);
-}
-
-.find-match-headline {
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.2rem;
-  font-weight: 700;
-}
-
-.find-match-result .hint {
-  margin: 0;
-}
-
-.find-match-result button {
-  flex: none;
 }
 
 /* A competition's page: who's entered */
@@ -4190,15 +3594,6 @@ a.home-next-go,
   flex-basis: 100%;
 }
 
-.how-to-qualify .qualifying-place {
-  align-items: center;
-}
-
-.how-to-qualify-who {
-  font-weight: 700;
-  color: var(--green-deep);
-}
-
 /* Posts: the form */
 .post-form textarea {
   width: 100%;
@@ -4263,8 +3658,10 @@ a.home-next-go,
 }
 
 .event-day-name {
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-body), sans-serif;
   font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--green-deep);
   line-height: 1.1;
 }
@@ -4308,7 +3705,10 @@ a.home-next-go,
 }
 
 .event-post-text strong {
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-body), sans-serif;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
   font-size: 1.15rem;
   line-height: 1.15;
   color: var(--green-deep);
@@ -4346,7 +3746,7 @@ a.home-next-go,
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 12px 0;
+  margin: var(--gap) 0;
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -4404,7 +3804,7 @@ a.home-next-go,
 .event-qualified {
   display: flex;
   flex-direction: column;
-  margin: 12px 0;
+  margin: var(--gap) 0;
   padding: 10px 14px;
   border-radius: var(--radius);
   background: var(--gold-pale);
@@ -4475,7 +3875,7 @@ a.home-next-go,
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 0 18px;
+  margin: 0 0 var(--gap);
 }
 
 .site-header-compact {
@@ -4654,7 +4054,7 @@ a.home-next-go,
 }
 
 .site-menu-heading {
-  margin: 18px 0 2px;
+  margin: var(--gap) 0 2px;
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--ink-soft);
@@ -4716,9 +4116,8 @@ a.home-next-go,
 }
 
 .public-page-title {
-  margin: 12px 0 4px;
+  margin: var(--gap) 0 4px;
   color: #fff;
-  font-size: 2rem;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
 }
 
@@ -4909,6 +4308,7 @@ a.info-pill-club:focus-visible {
 
 /* The name's link covers the whole row; the club pill sits above it */
 .home-row-name {
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--ink);
   text-decoration: none;
@@ -5056,7 +4456,6 @@ a.info-pill-club:focus-visible {
 /* One look for the name on every row, whichever page it's on: the home
    lists, competitions, clubs, sessions, venues */
 .home-row-name,
-.comp-row-name,
 .comp-schedule-line strong {
   font-family: var(--font-body), sans-serif;
 }
@@ -5112,23 +4511,6 @@ a.info-pill-club:focus-visible {
   gap: 10px;
 }
 
-/* A list row as a button (the calendar): lights up the competition's dates */
-.home-row-button {
-  width: 100%;
-  border: none;
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.home-row-on {
-  background: var(--green-pale);
-}
-
 .home-date-tbc {
   justify-content: center;
   min-height: 52px;
@@ -5159,7 +4541,6 @@ a.info-pill-club:focus-visible {
   background: var(--green-deep);
   color: #fff;
   font-size: 0.7rem;
-  text-transform: uppercase;
 }
 
 .event-countdown-count strong {
@@ -5219,7 +4600,7 @@ a.info-pill-club:focus-visible {
 
 /* The menu's County link: gold like the events, just the one line */
 .site-menu-county {
-  margin-top: 18px;
+  margin-top: var(--gap);
 }
 
 .comp-form-session-venue select {
@@ -5241,13 +4622,6 @@ a.info-pill-club:focus-visible {
 
 .venue-admin-card .comp-list-main {
   min-width: 0;
-}
-
-.venue-admin-club {
-  align-self: flex-start;
-  margin-top: 4px;
-  min-height: 24px;
-  font-size: 0.8rem;
 }
 
 .venue-admin-editing {
@@ -5402,25 +4776,6 @@ a.info-pill-club:focus-visible {
   color: var(--maroon);
 }
 
-/* Find a player: each result a row */
-.player-result {
-  display: flex;
-  flex-direction: column;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.player-result:last-child {
-  border-bottom: none;
-}
-
-.player-result span {
-  font-size: 0.9rem;
-  color: var(--ink-soft);
-}
-
 /* The SuperAdmin overview: what needs doing, worst first */
 .overview-item {
   border-left: 4px solid transparent;
@@ -5531,4 +4886,17 @@ a.info-pill-club:focus-visible {
     color: #000;
     text-shadow: none;
   }
+}
+
+/* "Jump to live matches" under the session header */
+.jump-to-live {
+  margin: var(--gap) 0 0;
+}
+
+/* The right-hand end of a list row (a club's Map link) */
+.home-row-end {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  margin-left: auto;
 }

@@ -5,6 +5,7 @@ import PlayerName from "@/components/PlayerName";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import { loadPublicQualifying, type PublicPlace } from "@/lib/publicQualifying";
 import { competitionPath, shortDate, type PublicCompetition } from "@/lib/publicCompetitions";
+import MonthGroups from "@/components/home/MonthGroups";
 
 // How to get into a competition entered by qualification (the Masters
 // Invitation): each qualifying competition as a row - the date of its final,
@@ -26,7 +27,7 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
         <div className="home-section-head">
           <h2>Qualifying competitions</h2>
         </div>
-        <p className="quiet-line">To be announced</p>
+        <p className="quiet-line">No qualifying competitions announced yet</p>
       </section>
     );
   }
@@ -54,7 +55,7 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
           <div className="home-section-head">
             <h2>Qualifying competitions</h2>
           </div>
-          <p className="quiet-line">
+          <p className="public-page-intro">
             {[
               `${qualifying.length} competition${qualifying.length === 1 ? "" : "s"}`,
               `${decided} winner${decided === 1 ? "" : "s"} so far`,
@@ -63,8 +64,10 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
               .filter(Boolean)
               .join(" · ")}
           </p>
-          <div className="card home-rows">
-            {qualifying.map((p) => (
+          <MonthGroups
+            items={qualifying}
+            dateOf={(p) => p.finalDate}
+            render={(p) => (
               <CompetitionRow
                 key={p.number}
                 date={p.finalDate}
@@ -74,15 +77,15 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
                 line={
                   p.who ? (
                     <>
-                      Winner <PlayerName name={p.who} className="home-row-champion" />
+                      Won by <PlayerName name={p.who} className="home-row-champion" />
                     </>
                   ) : (
                     "Winner to be decided"
                   )
                 }
               />
-            ))}
-          </div>
+            )}
+          />
         </section>
       )}
 
@@ -95,7 +98,7 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
             {wildcards.map((p, i) => (
               <CompetitionRow
                 key={p.number}
-                date={null}
+                date={false}
                 title={p.who ?? `Wildcard ${i + 1}`}
                 line={[p.who ? "Wildcard" : "Chosen nearer the time", p.wasSource ? `in place of ${p.wasSource}` : null].filter(Boolean).join(" · ")}
               />

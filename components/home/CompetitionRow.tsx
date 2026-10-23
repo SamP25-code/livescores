@@ -26,62 +26,51 @@ function DateBlock({ iso, colour }: { iso: string | null; colour?: string }) {
   );
 }
 
-// One competition (or event) in a list, the same everywhere: the date, the
-// name, and underneath the club as a pill - which opens the club's page -
-// and one line. The name's link covers the whole row; on the calendar the
-// row is a button that lights up its dates instead.
+// One row in any list on the site, the same everywhere: the date, the name
+// (its link covers the whole row), and underneath a pill - the club, which
+// opens the club's page - and one line. `date={false}` leaves the date off
+// (a club, a wildcard); `end` puts something on the right (a Map link).
 export default function CompetitionRow({
   date,
   title,
   href,
-  onSelect,
-  selected = false,
   pill,
   line,
   colour,
+  end,
 }: {
-  date: string | null;
+  date: string | null | false;
   title: string;
   href?: string;
-  onSelect?: () => void;
-  selected?: boolean;
   pill?: { label: string; href: string | null } | null;
   line: ReactNode;
   colour?: string;
+  end?: ReactNode;
 }) {
-  const pillEl = pill ? (
-    pill.href && !onSelect ? (
-      <Link href={pill.href} className="info-pill info-pill-club home-row-pill">
-        {pill.label}
-      </Link>
-    ) : (
-      <span className="info-pill info-pill-club home-row-pill">{pill.label}</span>
-    )
-  ) : null;
-  const text = (
-    <>
-      <DateBlock iso={date} colour={colour} />
+  return (
+    <div className="home-row">
+      {date !== false && <DateBlock iso={date} colour={colour} />}
       <span className="home-row-text">
-        {onSelect || !href ? (
-          <strong className="home-row-name">{title}</strong>
-        ) : (
+        {href ? (
           <Link href={href} className="home-row-name">
             {title}
           </Link>
+        ) : (
+          <strong className="home-row-name">{title}</strong>
         )}
         <span className="home-row-line">
-          {pillEl}
+          {pill &&
+            (pill.href ? (
+              <Link href={pill.href} className="info-pill info-pill-club home-row-pill">
+                {pill.label}
+              </Link>
+            ) : (
+              <span className="info-pill info-pill-club home-row-pill">{pill.label}</span>
+            ))}
           <span>{line}</span>
         </span>
       </span>
-    </>
+      {end && <span className="home-row-end">{end}</span>}
+    </div>
   );
-  if (onSelect) {
-    return (
-      <button type="button" className={`home-row home-row-button ${selected ? "home-row-on" : ""}`} aria-pressed={selected} onClick={onSelect}>
-        {text}
-      </button>
-    );
-  }
-  return <div className="home-row">{text}</div>;
 }

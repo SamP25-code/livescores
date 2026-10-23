@@ -27,12 +27,12 @@ import WhosEntered from "@/components/WhosEntered";
 import HowToQualify from "@/components/HowToQualify";
 import EventPage from "@/components/event/EventPage";
 import type { Venue } from "@/lib/types";
-import PublicFooter from "@/components/PublicFooter";
-import SiteHeader from "@/components/SiteHeader";
+import PublicPage from "@/components/PublicPage";
 import VenueCard from "@/components/VenueCard";
 import { usePageBackground } from "@/lib/backgrounds";
 import ShareButton from "@/components/ShareButton";
 import { competitionShareText } from "@/lib/shareResults";
+import LivePill from "@/components/home/LivePill";
 
 export const dynamic = "force-dynamic";
 
@@ -89,14 +89,14 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
   if (failed) {
     return (
       <Shell>
-        <p className="night-header-hint">Couldn&rsquo;t load &ndash; check your signal and refresh.</p>
+        <p className="quiet-line">Couldn&rsquo;t load &ndash; check your signal and refresh</p>
       </Shell>
     );
   }
   if (!all) {
     return (
       <Shell>
-        <p className="night-header-hint">Loading&hellip;</p>
+        <p className="quiet-line">Loading&hellip;</p>
       </Shell>
     );
   }
@@ -107,8 +107,8 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
   if (!c) {
     return (
       <Shell>
-        <h1 className="comp-page-title">Not found</h1>
-        <p className="night-header-hint">There&rsquo;s no competition at this address.</p>
+        <h1 className="public-page-title">Page not found</h1>
+        <p className="quiet-line">Nothing at this address</p>
       </Shell>
     );
   }
@@ -133,10 +133,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
         </h1>
         <p className="comp-page-by">
           {status === "live" && (
-            <span className="comp-pill comp-pill-live">
-              <span className="live-dot" />
-              Live
-            </span>
+            <LivePill />
           )}{" "}
           {[runBy, settingsSummary(c).replace(", one day", "")].join(" · ")}
         </p>
@@ -234,14 +231,12 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
   );
 }
 
+// The shared page frame, with Back to wherever this competition lives
 function Shell({ children, back = "/competitions" }: { children: React.ReactNode; back?: string }) {
   return (
-    <div className="page page-photo comp-page">
-      <div className="public-background" aria-hidden="true" />
-      <SiteHeader compact back={back} />
+    <PublicPage loading={false} failed={false} back={back}>
       {children}
-      <PublicFooter />
-    </div>
+    </PublicPage>
   );
 }
 
@@ -264,6 +259,7 @@ function ScheduleRow({
   const details: string[] = [];
   if (postponed) details.push(postponed);
   else if (s.date) details.push(shortDate(s.date));
+  if (s.status === "complete") details.push("played");
   else details.push("Date to be confirmed");
   if (s.status === "complete" && s.kind === "qualifier" && c.qualifiers_per_night) details.push(`${c.qualifiers_per_night} through`);
   else if (s.status === "live") details.push(s.date === today ? "tonight" : "in play");
@@ -282,7 +278,6 @@ function ScheduleRow({
       <span className="comp-schedule-main">
         <span className="comp-schedule-line">
           <strong>
-            {s.status === "complete" && <span aria-label="Finished">&#10003; </span>}
             {sessionTitle(s)}
           </strong>{" "}
           &middot; {details.join(" · ")}
@@ -290,10 +285,7 @@ function ScheduleRow({
         {was && <span className="comp-schedule-was">{was}</span>}
       </span>
       {s.status === "live" ? (
-        <span className="comp-pill comp-pill-live">
-          <span className="live-dot" />
-          Live
-        </span>
+        <LivePill />
       ) : (
         opens && (
           <span className="comp-schedule-open" aria-hidden="true">

@@ -31,7 +31,7 @@ export default function ClubPage() {
 
   return (
     <PublicPage title={summary?.name ?? "Club"} loading={competitions === null} failed={failed} back="/clubs">
-      {competitions !== null && organisers.length > 0 && !summary && <p className="night-header-hint">No club at this address.</p>}
+      {competitions !== null && organisers.length > 0 && !summary && <p className="quiet-line">Nothing at this address</p>}
       {venue && <VenueCard venue={venue} />}
       {club && years.length === 0 && <p className="quiet-line">No competitions yet</p>}
       {club && years.length > 0 && (

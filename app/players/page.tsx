@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import CompetitionRow from "@/components/home/CompetitionRow";
 import { searchPeople } from "@/lib/peopleApi";
 import { monthYear, type PersonDetails } from "@/lib/people";
 import PublicPage from "@/components/PublicPage";
@@ -47,16 +47,17 @@ export default function PlayersPage() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
-      {results !== null && results.length === 0 && <p className="quiet-line">Nobody matches &ldquo;{query.trim()}&rdquo;</p>}
+      {results !== null && results.length === 0 && <p className="quiet-line">Nothing matches &ldquo;{query.trim()}&rdquo;</p>}
       {results !== null && results.length > 0 && (
         <div className="card home-rows">
           {results.map((p) => (
-            <Link key={p.id} href={`/player/${p.id}`} className="player-result">
-              <strong>{p.full_name}</strong>
-              <span>
-                {[p.note, p.club_name, p.last_played ? `last played ${monthYear(p.last_played)}` : null].filter(Boolean).join(" · ")}
-              </span>
-            </Link>
+            <CompetitionRow
+              key={p.id}
+              date={false}
+              title={p.full_name}
+              href={`/player/${p.id}`}
+              line={[p.note, p.club_name, p.last_played ? `last played ${monthYear(p.last_played)}` : null].filter(Boolean).join(" · ")}
+            />
           ))}
         </div>
       )}

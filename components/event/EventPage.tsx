@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import HowToQualify from "@/components/HowToQualify";
-import PublicFooter from "@/components/PublicFooter";
+import PublicPage from "@/components/PublicPage";
 import { SponsorPanel } from "@/components/Sponsors";
 import { longDate } from "@/lib/competitionSetup";
 import { listPosts, POST_KIND_LABEL, type EventPost } from "@/lib/postsApi";
@@ -22,7 +22,6 @@ import {
 } from "@/lib/publicCompetitions";
 import { loadPublicQualifying } from "@/lib/publicQualifying";
 import { SITE_NAME } from "@/lib/site";
-import SiteHeader from "@/components/SiteHeader";
 import { usePageBackground } from "@/lib/backgrounds";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import MonthGroups from "@/components/home/MonthGroups";
@@ -91,9 +90,7 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
   const slug = event.organiser.slug ?? "";
 
   return (
-    <div className="page page-photo event-page">
-      <div className="public-background" aria-hidden="true" />
-      <SiteHeader compact />
+    <PublicPage loading={false} failed={false}>
       <header className="comp-page-head">
         <h1 className="comp-page-title">{event.organiser.name}</h1>
         <p className="comp-page-by">
@@ -149,7 +146,7 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
                     {day?.date ? Number(day.date.slice(8)) : "?"}
                   </span>
                   <span className="event-day-name">{c.name}</span>
-                  {status === "live" && <span className="cal-live">&bull; LIVE</span>}
+                  {status === "live" && <span className="cal-live">&bull; Live</span>}
                 </Link>
               );
             })}
@@ -193,6 +190,7 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
       )}
 
       {tab === "competitions" && (
+        <section className="home-section">
         <MonthGroups
           items={comps.map((c) => ({ c, state: rowState(c, today) }))}
           dateOf={(x) => x.state.date}
@@ -206,19 +204,24 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
             />
           )}
         />
+        </section>
       )}
 
       {tab === "qualifying" &&
         qualifyingComps.map((c) => (
           <div key={c.id}>
-            {qualifyingComps.length > 1 && <h2 className="comp-list-year">{c.name}</h2>}
+            {qualifyingComps.length > 1 && (
+              <div className="home-section-head">
+                <h2>{c.name}</h2>
+              </div>
+            )}
             <HowToQualify competitionId={c.id} all={all} />
           </div>
         ))}
 
       {tab === "news" && (
         <>
-          {news.length === 0 && <p className="night-header-hint">No news yet.</p>}
+          {news.length === 0 && <p className="quiet-line">No news yet</p>}
           <PostList posts={news} slug={slug} year={event.year} all={all} />
           {adverts.map((a) => (
             <Advert key={a.id} post={a} />
@@ -226,8 +229,7 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
         </>
       )}
 
-      <PublicFooter />
-    </div>
+    </PublicPage>
   );
 }
 

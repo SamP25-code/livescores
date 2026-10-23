@@ -49,7 +49,7 @@ export default function CompetitionsPage() {
         <h1>Competitions</h1>
         {isSuper && (
           <Link href="/admin/competitions/new" className="button">
-            New competition
+            + New competition
           </Link>
         )}
       </div>
@@ -97,7 +97,7 @@ export default function CompetitionsPage() {
                           <strong>{c.series.name}</strong>
                           <span className="hint">{settingsSummary(c)}</span>
                         </span>
-                        <span className={`status-pill comp-status-${c.status}`}>{STATUS_LABEL[c.status]}</span>
+                        <span className={`status-pill status-pill-${c.status}`}>{STATUS_LABEL[c.status]}</span>
                       </Link>
                     ))}
                 </div>

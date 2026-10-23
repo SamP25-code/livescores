@@ -9,6 +9,7 @@ import { actionLabel, buildOverview, type Overview } from "@/lib/overview";
 import { sessionLabel, sessionTimes, shortDate, todayIso } from "@/lib/publicCompetitions";
 import { SITE_NAME } from "@/lib/site";
 import { supabase } from "@/lib/supabaseClient";
+import LivePill from "@/components/home/LivePill";
 
 type LogRow = { id: string; at: string; action: string; competition: string | null; competitionId: string | null };
 
@@ -91,10 +92,7 @@ export default function OverviewPage() {
                         {sessionLabel(c, s)} &middot; {s.liveCount} match{s.liveCount === 1 ? "" : "es"} live
                       </span>
                     </span>
-                    <span className="comp-pill comp-pill-live">
-                      <span className="live-dot" />
-                      Live
-                    </span>
+                    <LivePill />
                   </Link>
                 ))}
               </div>

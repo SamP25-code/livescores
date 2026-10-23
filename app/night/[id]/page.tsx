@@ -8,7 +8,6 @@ import { originalDateLabel, postponedLabel } from "@/lib/venues";
 import { sessionTimes, sessionTitle, shortDate, timeOfDay } from "@/lib/publicCompetitions";
 import { startViewerPings } from "@/lib/viewerLog";
 import NightNav, { splitNightName } from "@/components/NightNav";
-import Brand from "@/components/Brand";
 import { SponsorStrip, type SponsorShown } from "@/components/Sponsors";
 import Avatar from "@/components/Avatar";
 import PlayerName from "@/components/PlayerName";
@@ -315,11 +314,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
       />
       {/* The competition's own sponsors; a night from before the 2027 move
           keeps the October Singles sponsor it always had */}
-      {competition ? (
-        <SponsorStrip sponsors={competition.sponsors} />
-      ) : (
-        night && !night.competition_id && <Brand variant="slim" />
-      )}
+      {competition && <SponsorStrip sponsors={competition.sponsors} />}
 
       <NightNav currentId={nightId} hideSingle={Boolean(competition)} />
 
@@ -394,7 +389,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         )}
 
         {!loadError && viewMode === "list" && firstLiveMatchId && (
-          <p style={{ margin: "14px 0 0" }}>
+          <p className="jump-to-live">
             <a href="#jump-to-live" className="link-button jump-to-live-link">
               <span className="live-dot" />
               Jump to live matches
@@ -420,7 +415,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
       )}
 
       {!loadError && rounds.length === 0 && finalsSlots.length === 0 && qualifierPlayers.length === 0 && (
-        <p className="quiet-line" style={{ textAlign: "center" }}>
+        <p className="quiet-line">
           No draw yet
         </p>
       )}
@@ -530,7 +525,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
                 disabled={!p}
               >
                 <span className="name-cell">
-                  {p ? <PlayerName name={p.name} /> : <span className="name">To be decided</span>}
+                  {p ? <PlayerName name={p.name} /> : <span className="name">TBC</span>}
                 </span>
                 {p?.finals_number != null && <span className="finals-number">{p.finals_number}</span>}
               </button>

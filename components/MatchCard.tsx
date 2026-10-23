@@ -37,8 +37,8 @@ export default function MatchCard({
   const absentB = walkover && match.winner_id === match.player_a_id;
   const playerA = match.player_a_id ? players[match.player_a_id] : undefined;
   const playerB = match.player_b_id ? players[match.player_b_id] : undefined;
-  const nameA = match.player_a_id ? playerA?.name ?? "TBC" : isBye ? "BYE" : "TBC";
-  const nameB = match.player_b_id ? playerB?.name ?? "TBC" : isBye ? "BYE" : "TBC";
+  const nameA = match.player_a_id ? playerA?.name ?? "TBC" : isBye ? "Bye" : "TBC";
+  const nameB = match.player_b_id ? playerB?.name ?? "TBC" : isBye ? "Bye" : "TBC";
   const winnerA = Boolean(match.winner_id) && match.winner_id === match.player_a_id;
   const winnerB = Boolean(match.winner_id) && match.winner_id === match.player_b_id;
   const spotlightA = highlightPlayerId != null && match.player_a_id === highlightPlayerId;

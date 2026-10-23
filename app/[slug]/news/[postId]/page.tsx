@@ -3,14 +3,14 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import PlayerName from "@/components/PlayerName";
-import PublicFooter from "@/components/PublicFooter";
+import PublicPage from "@/components/PublicPage";
+import ShareButton from "@/components/ShareButton";
 import { Advert } from "@/components/event/EventPage";
 import { longDate } from "@/lib/competitionSetup";
 import { getPost, listPosts, POST_KIND_LABEL, type EventPost } from "@/lib/postsApi";
 import { todayIso } from "@/lib/publicCompetitions";
 import { loadQualifierResults, type QualifierResults } from "@/lib/publicQualifying";
 import { SITE_NAME } from "@/lib/site";
-import SiteHeader from "@/components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,6 @@ export default function PostPage({ params }: { params: Promise<{ slug: string; p
   const [post, setPost] = useState<EventPost | null | undefined>(undefined);
   const [advert, setAdvert] = useState<EventPost | null>(null);
   const [qualifier, setQualifier] = useState<QualifierResults | null>(null);
-  const [shared, setShared] = useState(false);
   const today = todayIso();
 
   useEffect(() => {
@@ -41,27 +40,11 @@ export default function PostPage({ params }: { params: Promise<{ slug: string; p
     })().catch(() => setPost(null));
   }, [postId, today]);
 
-  async function share() {
-    const url = window.location.href;
-    try {
-      if (navigator.share) await navigator.share({ title: post?.title, url });
-      else {
-        await navigator.clipboard.writeText(url);
-        setShared(true);
-      }
-    } catch {
-      // Cancelled
-    }
-  }
-
   const back = `/${slug}#news`;
 
   return (
-    <div className="page page-photo">
-      <div className="public-background" aria-hidden="true" />
-      <SiteHeader compact back={back} />
-      {post === undefined && <p className="night-header-hint">Loading&hellip;</p>}
-      {post === null && <p className="night-header-hint">This post isn&rsquo;t available.</p>}
+    <PublicPage loading={post === undefined} failed={false} back={back}>
+      {post === null && <p className="quiet-line">This post isn&rsquo;t available</p>}
       {post && (
         <article className="card event-article">
           {post.image_url && (
@@ -100,11 +83,13 @@ export default function PostPage({ params }: { params: Promise<{ slug: string; p
       )}
       {post && advert && <Advert post={advert} />}
       {post && (
-        <button type="button" className="secondary event-share" onClick={share}>
-          {shared ? "Link copied" : "Share this post"}
-        </button>
+        <ShareButton
+          label="Share this post"
+          title={post.title}
+          text={() => `${post.title}
+${window.location.href}`}
+        />
       )}
-      <PublicFooter />
-    </div>
+    </PublicPage>
   );
 }

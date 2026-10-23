@@ -18,13 +18,9 @@ export default function GlobalError({
     <html lang="en">
       <body>
         <div className="page">
-          <div className="home-hero">
-            <h1>Something went wrong</h1>
-            <p className="hint">
-              This page hit an error. Try again or refresh, scores and the draw aren&rsquo;t affected.
-            </p>
-          </div>
-          <p style={{ textAlign: "center" }}>
+          <h1>Something went wrong</h1>
+          <p className="hint">This page hit an error. Try again or refresh - scores and the draw aren&rsquo;t affected.</p>
+          <p>
             <button onClick={reset}>Try again</button>
           </p>
         </div>

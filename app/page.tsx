@@ -15,9 +15,6 @@ import {
   type PublicCompetition,
 } from "@/lib/publicCompetitions";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
-import NightNav from "@/components/NightNav";
-import Brand from "@/components/Brand";
-import LiveNowBanner from "@/components/LiveNowBanner";
 import LiveScores from "@/components/home/LiveScores";
 import SiteHeader from "@/components/SiteHeader";
 import PublicFooter from "@/components/PublicFooter";
@@ -83,8 +80,6 @@ export default function HomePage() {
 
   const all = competitions ?? [];
 
-  // A database not yet moved to the 2027 structure: the home page as it was
-  if (competitions !== null && competitions.length === 0 && !failed) return <OldHome />;
 
   const upcoming = comingUp(all, today);
   const results = latestResults(all, today);
@@ -106,9 +101,9 @@ export default function HomePage() {
       <SiteHeader />
 
       {failed && (
-        <p className="night-header-hint">Couldn&rsquo;t load &ndash; check your signal and refresh.</p>
+        <p className="quiet-line">Couldn&rsquo;t load &ndash; check your signal and refresh</p>
       )}
-      {competitions === null && !failed && <p className="night-header-hint">Loading&hellip;</p>}
+      {competitions === null && !failed && <p className="quiet-line">Loading&hellip;</p>}
 
       {live.length > 0 && (
         <div id="live">
@@ -195,35 +190,5 @@ function TileIcon({ name }: { name: "list" | "calendar" | "pin" | "trophy" }) {
         )}
       </g>
     </svg>
-  );
-}
-
-// Before the 2027 move: the October Singles home page, unchanged
-function OldHome() {
-  return (
-    <div className="page page-photo">
-      <div className="public-background" aria-hidden="true" />
-      <div className="top-bar">
-        <Brand />
-      </div>
-
-      <div className="home-hero">
-        <h1>October Singles 2026</h1>
-        <p className="hint home-times">
-          <strong>Qualifying nights</strong>
-          <span>Practice 6:30pm &middot; Start 7pm</span>
-        </p>
-        <p className="hint home-times">
-          <strong>Finals Day</strong>
-          <span>Practice 12:30pm &middot; Start 1pm</span>
-        </p>
-      </div>
-      <LiveNowBanner />
-      <NightNav variant="home" />
-
-      <nav className="page-footer-nav">
-        <Link href="/admin">Sign in</Link>
-      </nav>
-    </div>
   );
 }

@@ -42,7 +42,7 @@ export default function PlayerPage() {
 
   return (
     <PublicPage title={person?.full_name ?? "Player"} loading={page === undefined} failed={failed} back="/players">
-      {page === null && <p className="quiet-line">No player at this address.</p>}
+      {page === null && <p className="quiet-line">Nothing at this address</p>}
       {person && record && page && (
         <>
           <p className="player-meta">
@@ -88,7 +88,7 @@ export default function PlayerPage() {
             <div className="home-section-head">
               <h2>Competitions</h2>
             </div>
-            {record.competitions.length === 0 && <p className="quiet-line">None on the site yet</p>}
+            {record.competitions.length === 0 && <p className="quiet-line">No competitions yet</p>}
             {record.competitions.map((c) => (
               <div key={c.competition.id} className="card home-rows player-comp">
                 <CompetitionRow

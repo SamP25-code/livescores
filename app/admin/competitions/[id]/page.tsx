@@ -12,7 +12,7 @@ import EntriesManager from "@/components/EntriesManager";
 import UserManager from "@/components/UserManager";
 import QualifyingManager from "@/components/QualifyingManager";
 import PastWinners from "@/components/PastWinners";
-import { sessionTimes } from "@/lib/publicCompetitions";
+import { sessionTimes, sessionTitle as publicSessionTitle } from "@/lib/publicCompetitions";
 import type { Night } from "@/lib/types";
 import { SITE_NAME } from "@/lib/site";
 
@@ -23,11 +23,9 @@ function sponsorList(names: string[]): string {
   return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
+// Named as everywhere else on the site: "Qualifying session 2", "Finals Day", "One day", "Final"
 function sessionTitle(night: Night): string {
-  if (night.kind === "qualifier") return `Qualifying session ${night.session_number}`;
-  if (night.kind === "finals") return "Finals Day";
-  if (night.kind === "final") return "The final";
-  return "The day";
+  return publicSessionTitle({ kind: night.kind, session_number: night.session_number ?? null });
 }
 
 type Tab = "overview" | "entries" | "qualifying" | "people" | "past" | "settings";
@@ -144,7 +142,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
             <>
               <div className="card comp-summary">
                 <p>
-                  <span className={`status-pill comp-status-${c.status}`}>{STATUS_LABEL[c.status]}</span>{" "}
+                  <span className={`status-pill status-pill-${c.status}`}>{STATUS_LABEL[c.status]}</span>{" "}
                   Run by {c.series.organiser.short_name}
                   {c.sponsors.length > 0 ? ` · Sponsored by ${sponsorList(c.sponsors.map((s) => s.name))}` : ""}
                 </p>

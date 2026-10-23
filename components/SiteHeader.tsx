@@ -124,7 +124,7 @@ export default function SiteHeader({ compact = false, back = "/" }: { compact?: 
             {query.trim() ? (
               <div className="site-menu-results">
                 {menu === null && <p className="hint">Loading&hellip;</p>}
-                {menu !== null && results.length === 0 && <p className="hint">Nothing matches &ldquo;{query.trim()}&rdquo;.</p>}
+                {menu !== null && results.length === 0 && <p className="hint">Nothing matches &ldquo;{query.trim()}&rdquo;</p>}
                 {results.map((r) => (
                   <Link key={r.href} href={r.href} className="site-menu-item site-menu-sub">
                     <span>

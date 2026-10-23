@@ -2,18 +2,20 @@ import type { ReactNode } from "react";
 
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-// A list of competitions (or sessions) split by month, the same on every
-// page: the month's name on the photo, then a box of its rows. Items keep
-// the order they're given; any without a date go last, under "Dates to be
-// confirmed".
+// A list of competitions (or sessions) split by month - or by year, for
+// champions - the same on every page: the month's name on the photo, then a
+// box of its rows. Items keep the order they're given; any without a date go
+// last, under "Dates to be confirmed".
 export default function MonthGroups<T>({
   items,
   dateOf,
   render,
+  by = "month",
 }: {
   items: T[];
   dateOf: (item: T) => string | null;
   render: (item: T) => ReactNode;
+  by?: "month" | "year";
 }) {
   const groups: { key: string; label: string; items: T[] }[] = [];
   const tbc: T[] = [];
@@ -23,11 +25,11 @@ export default function MonthGroups<T>({
       tbc.push(item);
       continue;
     }
-    const key = date.slice(0, 7);
+    const key = by === "year" ? date.slice(0, 4) : date.slice(0, 7);
     let group = groups.find((g) => g.key === key);
     if (!group) {
       const [y, m] = key.split("-").map(Number);
-      group = { key, label: `${MONTH_NAMES[m - 1]} ${y}`, items: [] };
+      group = { key, label: by === "year" ? String(y) : `${MONTH_NAMES[m - 1]} ${y}`, items: [] };
       groups.push(group);
     }
     group.items.push(item);

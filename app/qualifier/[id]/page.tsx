@@ -2,12 +2,11 @@
 
 import { use, useEffect, useState } from "react";
 import PlayerName from "@/components/PlayerName";
-import PublicFooter from "@/components/PublicFooter";
+import PublicPage from "@/components/PublicPage";
 import { longDate } from "@/lib/competitionSetup";
 import { STAGE_LABEL } from "@/lib/qualifying";
 import { loadQualifierResults, type QualifierResults } from "@/lib/publicQualifying";
 import { SITE_NAME } from "@/lib/site";
-import SiteHeader from "@/components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -29,11 +28,9 @@ export default function QualifierPage({ params }: { params: Promise<{ id: string
   }, [data]);
 
   return (
-    <div className="page page-photo public-draw">
-      <div className="public-background" aria-hidden="true" />
-      <SiteHeader compact />
-      {data === undefined && <p className="night-header-hint">Loading&hellip;</p>}
-      {data === null && <p className="night-header-hint">There&rsquo;s nothing at this address.</p>}
+    <PublicPage loading={data === undefined} failed={false}>
+      <div className="public-draw">
+      {data === null && <p className="quiet-line">Nothing at this address</p>}
       {data && (
         <>
           <header className="comp-page-head">
@@ -79,11 +76,11 @@ export default function QualifierPage({ params }: { params: Promise<{ id: string
             </section>
           ))}
           {!data.winner && data.stages.length === 0 && (
-            <p className="night-header-hint">No results yet{data.finalDate ? ` - the final is on ${longDate(data.finalDate)}` : ""}.</p>
+            <p className="quiet-line">No results yet{data.finalDate ? ` - the final is on ${longDate(data.finalDate)}` : ""}</p>
           )}
         </>
       )}
-      <PublicFooter />
-    </div>
+      </div>
+    </PublicPage>
   );
 }

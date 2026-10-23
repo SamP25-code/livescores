@@ -5,8 +5,11 @@ import { SITE_NAME } from "@/lib/site";
 import SiteHeader from "@/components/SiteHeader";
 import PublicFooter from "@/components/PublicFooter";
 
-// The frame of the public pages reached from the menu: the header with the
-// menu (☰), the page's title, then its content and the footer
+export const FOOTER_LINE = "Live scores for crown green competitions, free to follow.";
+
+// The frame of every public page: the header with the menu (☰) and Back,
+// the page's title (or, without one, the page's own heading), the
+// loading / problem line, then its content and the footer
 export default function PublicPage({
   title,
   intro,
@@ -15,7 +18,7 @@ export default function PublicPage({
   back,
   children,
 }: {
-  title: string;
+  title?: string;
   intro?: string;
   loading: boolean;
   failed: boolean;
@@ -23,18 +26,18 @@ export default function PublicPage({
   children: ReactNode;
 }) {
   useEffect(() => {
-    document.title = `${title} · ${SITE_NAME}`;
+    if (title) document.title = `${title} · ${SITE_NAME}`;
   }, [title]);
   return (
-    <div className="page page-photo home">
+    <div className="page page-photo">
       <div className="public-background" aria-hidden="true" />
       <SiteHeader compact back={back} />
-      <h1 className="public-page-title">{title}</h1>
+      {title && <h1 className="public-page-title">{title}</h1>}
       {intro && <p className="public-page-intro">{intro}</p>}
-      {failed && <p className="night-header-hint">Couldn&rsquo;t load &ndash; check your signal and refresh.</p>}
-      {loading && !failed && <p className="night-header-hint">Loading&hellip;</p>}
+      {failed && <p className="quiet-line">Couldn&rsquo;t load &ndash; check your signal and refresh</p>}
+      {loading && !failed && <p className="quiet-line">Loading&hellip;</p>}
       {children}
-      <PublicFooter line="Live scores for crown green competitions, free to follow." />
+      <PublicFooter line={FOOTER_LINE} />
     </div>
   );
 }

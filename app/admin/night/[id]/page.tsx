@@ -476,7 +476,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
             <p className="hint" style={{ margin: 0 }}>
               {night.draw_published
                 ? "The public page shows the current bracket and scores."
-                : "The public page only shows the roster — the bracket stays private until you publish it."}
+                : "The public page only shows the roster - the bracket stays private until you publish it."}
             </p>
           </div>
           <button
@@ -599,7 +599,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
       )}
 
       {role === "scorer" && bracketExists && !night?.draw_published && (
-        <p className="empty">This draw isn&rsquo;t published yet &mdash; nothing to score.</p>
+        <p className="quiet-line">This draw isn&rsquo;t published yet - nothing to score</p>
       )}
 
       {bracketExists && role !== null && (role === "owner" || night?.draw_published) && (
@@ -611,7 +611,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
             onQuery={setMatchQuery}
           />
           {shownCount === 0 && (
-            <p className="empty">
+            <p className="quiet-line">
               {matchQuery.trim() ? "No match with that name here." : `No ${FILTER_LABEL[matchFilter].toLowerCase()} matches.`}
             </p>
           )}
@@ -752,7 +752,7 @@ function PlayerSection({
       {!bracketExists && (
         <>
           <p className="hint">
-            Add players in any order, then drag them into position for round 1 pairing &mdash; player 1 plays
+            Add players in any order, then drag them into position for round 1 pairing - player 1 plays
             player 2, player 3 plays player 4, and so on. Didn&rsquo;t show up on the day? Mark their spot as
             a bye instead of removing them, so everyone else&rsquo;s position stays put.
           </p>
@@ -835,7 +835,7 @@ function SortablePlayerRow({
         <span style={{ flex: "none" }}>{index + 1}.</span>
         {player.is_bye ? (
           <span className="hint" style={{ margin: 0, fontStyle: "italic" }}>
-            BYE <span style={{ opacity: 0.7 }}>(was {player.name})</span>
+            Bye <span style={{ opacity: 0.7 }}>(was {player.name})</span>
           </span>
         ) : player.entry_id ? (
           // Names from an entry are changed on the competition's entries
@@ -875,7 +875,7 @@ function SortablePlayerRow({
           </button>
         )}
         {onRemove && (
-          <button className="secondary" onClick={onRemove}>
+          <button type="button" className="link-button comp-form-remove" onClick={onRemove}>
             Remove
           </button>
         )}
@@ -934,7 +934,7 @@ function AddExtraFinalsPlayer({
         autoFocus
       />
       <button type="submit">Add</button>
-      <button type="button" className="secondary" onClick={() => setOpen(false)}>
+      <button type="button" className="link-button" onClick={() => setOpen(false)}>
         Cancel
       </button>
     </form>
@@ -957,7 +957,7 @@ function BracketSetup({
       <h2>Set up the draw</h2>
       <p className="hint">
         Round 1 is built from the list above, paired in the order shown. Doesn&rsquo;t need to be an exact
-        power of two (8, 16, 32&hellip;) &mdash; if it isn&rsquo;t, the odd one(s) out get a bye and advance
+        power of two (8, 16, 32&hellip;) - if it isn&rsquo;t, the odd one(s) out get a bye and advance
         automatically.
       </p>
       <button onClick={onGenerate} disabled={!canGenerate}>
@@ -966,7 +966,7 @@ function BracketSetup({
       {!canGenerate && <p className="hint">Add at least two players first.</p>}
       {canGenerate && !isPowerOfTwo && (
         <p className="hint">
-          {count} players &mdash; {nextPowerOfTwo(count) - count} bye
+          {count} players - {nextPowerOfTwo(count) - count} bye
           {nextPowerOfTwo(count) - count === 1 ? "" : "s"} will fill out round 1.
         </p>
       )}
@@ -1030,7 +1030,7 @@ function MatchEditor({
           {isBye
             ? `${advancingName ?? "This player"} gets a bye and advances automatically.`
             : advancingName
-            ? `${advancingName} is through — waiting for their opponent.`
+            ? `${advancingName} is through - waiting for their opponent.`
             : match.round === 1
             ? "Waiting for this slot's draw number to be given out."
             : "Waiting for the winners of earlier matches."}
@@ -1041,8 +1041,8 @@ function MatchEditor({
 
   const complete = match.status === "complete";
   const canComplete = !complete && isMatchComplete(match);
-  const nameA = playerNames[match.player_a_id] ?? "—";
-  const nameB = playerNames[match.player_b_id] ?? "—";
+  const nameA = playerNames[match.player_a_id] ?? "-";
+  const nameB = playerNames[match.player_b_id] ?? "-";
 
   // Didn't turn up: both names stay, the absent one struck through
   if (isWalkover(match)) {
@@ -1050,7 +1050,7 @@ function MatchEditor({
     return (
       <div className="card walkover">
         <p style={{ margin: 0 }}>
-          <span className="walkover-absent">{absentA ? nameA : nameB}</span> didn&rsquo;t turn up &mdash;{" "}
+          <span className="walkover-absent">{absentA ? nameA : nameB}</span> didn&rsquo;t turn up -{" "}
           <strong>{absentA ? nameB : nameA}</strong> through.
         </p>
         <button
@@ -1210,7 +1210,7 @@ function ResetBracketControl({ nightName, onReset }: { nightName: string; onRese
   if (!open) {
     return (
       <button className="secondary" onClick={() => setOpen(true)}>
-        Reset bracket
+        Clear the draw
       </button>
     );
   }
@@ -1218,7 +1218,7 @@ function ResetBracketControl({ nightName, onReset }: { nightName: string; onRese
   return (
     <div className="card" style={{ borderColor: "var(--maroon)" }}>
       <p className="error" style={{ marginTop: 0 }}>
-        This deletes every match and score for this session. There&rsquo;s no way to undo it.
+        This removes every match and score in this session. There&rsquo;s no way to undo it.
       </p>
       <p className="hint">
         Type the session&rsquo;s name to confirm: <strong>{nightName}</strong>
@@ -1241,11 +1241,11 @@ function ResetBracketControl({ nightName, onReset }: { nightName: string; onRese
             setConfirmText("");
           }}
         >
-          Delete everything
+          Remove every match
         </button>
         <button
           type="button"
-          className="secondary"
+          className="link-button"
           onClick={() => {
             setOpen(false);
             setConfirmText("");
@@ -1453,7 +1453,7 @@ function ResultEntry({
       </div>
       {levelWhenComplete && (
         <p className="error" style={{ margin: "8px 0 0", fontSize: "0.9rem" }}>
-          Scores can&rsquo;t be level once someone&rsquo;s reached {targetScore} &mdash; there has to be a winner.
+          Scores can&rsquo;t be level once someone&rsquo;s reached {targetScore} - there has to be a winner.
         </p>
       )}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>

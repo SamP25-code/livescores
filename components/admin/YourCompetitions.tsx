@@ -66,7 +66,7 @@ export default function YourCompetitions({ access }: { access: Access }) {
       {error && <p className="error">{error}</p>}
       {all === null && !error && <p className="hint">Loading&hellip;</p>}
       {all !== null && mine.length === 0 && (
-        <p className="empty">
+        <p className="quiet-line">
           {access.isSuper
             ? "Nothing set up yet - start with New competition."
             : "You're not assigned to a competition yet - ask its organiser to add you."}

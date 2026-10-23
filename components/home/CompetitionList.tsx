@@ -18,6 +18,7 @@ import CompetitionRow from "@/components/home/CompetitionRow";
 import MonthGroups from "@/components/home/MonthGroups";
 import RowLine from "@/components/home/RowLine";
 import { organiserPill } from "@/components/home/HomeLists";
+import LivePill from "@/components/home/LivePill";
 
 // Every competition in the chosen year: live first, then coming up, planned,
 // finished. Earlier years are the archive. Tap a row to open it. With a
@@ -133,7 +134,7 @@ export default function CompetitionList({
       )}
 
       {shown.length === 0 && (
-        <p className="quiet-line">{query.trim() ? `Nothing in ${year} matches “${query.trim()}”` : "Nothing here yet"}</p>
+        <p className="quiet-line">{query.trim() ? `Nothing matches “${query.trim()}” in ${year}` : "No competitions yet"}</p>
       )}
       <MonthGroups
         items={dated}
@@ -153,10 +154,7 @@ export default function CompetitionList({
                   <>
                     {live && (
                       <>
-                        <span className="comp-pill comp-pill-live">
-                          <span className="live-dot" />
-                          Live
-                        </span>{" "}
+                        <LivePill />{" "}
                       </>
                     )}
                     Event &middot; {members.length} competition{members.length === 1 ? "" : "s"}

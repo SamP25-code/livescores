@@ -1,29 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
 import { notFound } from "next/navigation";
 import { SHOW_PRIVACY, SITE_NAME } from "@/lib/site";
-import PublicFooter from "@/components/PublicFooter";
-import SiteHeader from "@/components/SiteHeader";
+import PublicPage from "@/components/PublicPage";
 
 // The privacy notice, in plain words. Names are public on this site, so it
 // says what's shown, what isn't kept, and how to have a name taken off.
 export default function PrivacyPage() {
   // Kept but not shown for now (lib/site.ts)
   if (!SHOW_PRIVACY) notFound();
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useEffect(() => {
-    document.title = `Privacy · ${SITE_NAME}`;
-  }, []);
-
   return (
-    <div className="page page-photo">
-      <div className="public-background" aria-hidden="true" />
-      <SiteHeader compact />
-      <h1 className="comp-page-title" style={{ textAlign: "center" }}>
-        Privacy
-      </h1>
-
+    <PublicPage title="Privacy" loading={false} failed={false}>
       <article className="card prose">
         <p className="prose-lead">
           {SITE_NAME} shows live scores and results from crown green bowls competitions, so that players, families and
@@ -82,7 +69,6 @@ export default function PrivacyPage() {
         <h2>Junior players</h2>
         <p>Players under 18 are only shown by name with the agreement of their club.</p>
       </article>
-      <PublicFooter />
-    </div>
+    </PublicPage>
   );
 }

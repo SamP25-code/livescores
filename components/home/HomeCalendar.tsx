@@ -15,6 +15,7 @@ import {
   sessionTitle,
   type PublicCompetition,
 } from "@/lib/publicCompetitions";
+import LivePill from "@/components/home/LivePill";
 
 // The month calendar: a dot under a qualifying session's date, the
 // competition's colour in a gold ring for a trophy day (Finals Day or a
@@ -160,7 +161,7 @@ export default function HomeCalendar({
                   />
                 ))}
               </span>
-              {live && <span className="cal-live">&bull; LIVE</span>}
+              {live && <span className="cal-live">&bull; Live</span>}
             </button>
           );
         })}
@@ -204,10 +205,7 @@ export default function HomeCalendar({
                 line={
                   s.status === "live" ? (
                     <>
-                      <span className="comp-pill comp-pill-live">
-                        <span className="live-dot" />
-                        Live
-                      </span>{" "}
+                      <LivePill />{" "}
                       {sessionLabel(c, s)}
                     </>
                   ) : won ? (
