@@ -79,7 +79,7 @@ describe("a player's page", () => {
       "Semi-Final v C & D 21-15 won",
     ]);
     expect(r).toMatchObject({ played: 2, won: 2 });
-    expect(r.titles).toEqual([{ place: "Winner", name: "Spring Doubles", year: 2027, href: null, partner: "Lee Hanson" }]);
+    expect(r.titles).toEqual([{ place: "Winner", name: "Spring Doubles", year: 2027, href: "spring", partner: "Lee Hanson" }]);
   });
 
   test("the partner sees it from their side too", () => {
@@ -152,6 +152,6 @@ describe("a player's page", () => {
       honours: [{ year: 2019, seriesName: "October Singles", seriesSlug: "october-singles", place: "Runner-up" }],
       today: "2027-04-01",
     });
-    expect(r.titles).toEqual([{ place: "Runner-up", name: "October Singles", year: 2019, href: "/october-singles", partner: null }]);
+    expect(r.titles).toEqual([{ place: "Runner-up", name: "October Singles", year: 2019, href: null, partner: null }]);
   });
 });

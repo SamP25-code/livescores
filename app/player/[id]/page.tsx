@@ -75,7 +75,12 @@ export default function PlayerPage() {
                   <div key={i} className={`player-title ${t.place === "Winner" ? "player-title-won" : ""}`}>
                     <strong>{t.place}</strong>
                     <span>
-                      {t.href ? <Link href={t.href}>{t.name}</Link> : t.name} {t.year}
+                      {(() => {
+                        // Linked only when its results are on the site
+                        const comp = t.href ? page.all.find((c) => c.id === t.href) : undefined;
+                        return comp ? <Link href={competitionPath(comp, page.all)}>{t.name}</Link> : t.name;
+                      })()}{" "}
+                      {t.year}
                       {t.partner ? ` · with ${t.partner}` : ""}
                     </span>
                   </div>

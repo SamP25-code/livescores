@@ -40,6 +40,11 @@ export default function HomeCalendar({
   all: PublicCompetition[];
 }) {
   const [picked, setPicked] = useState<string | null>(null);
+  // The month chooser: open or not, and the year it's showing
+  const [choosing, setChoosing] = useState(false);
+  const [pickYear, setPickYear] = useState(year);
+  // Months with a session in them, for the dots in the chooser
+  const monthsWithBowls = new Set(competitions.flatMap((c) => c.sessions.map((s) => s.date?.slice(0, 7)).filter((d): d is string => Boolean(d))));
   const weeks = monthGrid(year, month);
   const marks = marksByDay(competitions);
   const byId = new Map(competitions.map((c) => [c.id, c]));
@@ -60,9 +65,6 @@ export default function HomeCalendar({
     onMonth(y, m);
   }
 
-  // The years to jump between: every year with a competition, and this one
-  const thisYear = Number(today.slice(0, 4));
-  const years = [...new Set([thisYear, year, ...competitions.map((c) => c.year)])].sort((a, b) => a - b);
 
   const pickedList = picked
     ? competitions.flatMap((c) =>
@@ -72,40 +74,64 @@ export default function HomeCalendar({
 
   return (
     <div className="card cal">
-      {/* The month and the year, each with its own arrows either side and a
-          drop-down to jump straight there */}
+      {/* ‹ October 2026 ›: the arrows step a month; tapping the title opens
+          a year with its twelve months, to jump straight to any of them */}
       <div className="cal-head">
-        <span className="cal-head-group">
-          <button type="button" className="cal-step" aria-label="Previous month" onClick={() => step(-1)}>
-            &lsaquo;
-          </button>
-          <select aria-label="Month" className="cal-pick" value={month} onChange={(e) => go(year, Number(e.target.value))}>
-            {MONTH_NAMES.map((name, i) => (
-              <option key={name} value={i}>
-                {name}
-              </option>
-            ))}
-          </select>
-          <button type="button" className="cal-step" aria-label="Next month" onClick={() => step(1)}>
-            &rsaquo;
-          </button>
-        </span>
-        <span className="cal-head-group">
-          <button type="button" className="cal-step" aria-label="Previous year" onClick={() => go(year - 1, month)}>
-            &lsaquo;
-          </button>
-          <select aria-label="Year" className="cal-pick" value={year} onChange={(e) => go(Number(e.target.value), month)}>
-            {years.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-          <button type="button" className="cal-step" aria-label="Next year" onClick={() => go(year + 1, month)}>
-            &rsaquo;
-          </button>
-        </span>
+        <button type="button" className="cal-step" aria-label="Previous month" onClick={() => step(-1)}>
+          &lsaquo;
+        </button>
+        <button
+          type="button"
+          className="cal-title-button"
+          aria-expanded={choosing}
+          onClick={() => {
+            setPickYear(year);
+            setChoosing((v) => !v);
+          }}
+        >
+          {MONTH_NAMES[month]} {year}
+          <span className="cal-title-caret" aria-hidden="true">
+            &#9662;
+          </span>
+        </button>
+        <button type="button" className="cal-step" aria-label="Next month" onClick={() => step(1)}>
+          &rsaquo;
+        </button>
       </div>
+
+      {choosing && (
+        <div className="cal-chooser">
+          <div className="cal-chooser-year">
+            <button type="button" className="cal-step" aria-label="Previous year" onClick={() => setPickYear(pickYear - 1)}>
+              &lsaquo;
+            </button>
+            <strong>{pickYear}</strong>
+            <button type="button" className="cal-step" aria-label="Next year" onClick={() => setPickYear(pickYear + 1)}>
+              &rsaquo;
+            </button>
+          </div>
+          <div className="cal-chooser-months">
+            {MONTH_NAMES.map((name, i) => {
+              const key = `${pickYear}-${String(i + 1).padStart(2, "0")}`;
+              const on = monthsWithBowls.has(key);
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  className={`cal-chooser-month ${pickYear === year && i === month ? "cal-chooser-month-on" : ""}`}
+                  onClick={() => {
+                    setChoosing(false);
+                    go(pickYear, i);
+                  }}
+                >
+                  {name.slice(0, 3)}
+                  {on && <span className="cal-dot cal-chooser-dot" aria-label="has competitions" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="cal-grid" role="grid" aria-label={`${MONTH_NAMES[month]} ${year}`}>
         {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (

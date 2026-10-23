@@ -45,6 +45,8 @@ export type PlayerCompetition = {
   matches: PlayerMatch[];
 };
 
+// href: the competition (by id) whose results are on the site, or null for
+// a year added by hand to an honours board
 export type PlayerTitle = { place: "Winner" | "Runner-up"; name: string; year: number; href: string | null; partner: string | null };
 
 export type PlayerRecord = {
@@ -144,13 +146,15 @@ export function buildPlayerRecord({
         b.roundNumber - a.roundNumber
     );
     out.push({ competition, partner, state: rowState(competition, today), finish, matches: list });
-    if (finish) titles.push({ place: finish, name: competition.name, year: competition.year, href: null, partner });
+    // Played here: its page has the results
+    if (finish) titles.push({ place: finish, name: competition.name, year: competition.year, href: competition.id, partner });
   }
 
   // Years added by hand, unless the site already has them
   for (const h of honours) {
     if (titles.some((t) => t.name === h.seriesName && t.year === h.year)) continue;
-    titles.push({ place: h.place, name: h.seriesName, year: h.year, href: `/${h.seriesSlug}`, partner: null });
+    // A year added by hand: no results on the site to open
+    titles.push({ place: h.place, name: h.seriesName, year: h.year, href: null, partner: null });
   }
   titles.sort((a, b) => b.year - a.year || (a.place === "Winner" ? -1 : 1));
 

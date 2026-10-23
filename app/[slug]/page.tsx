@@ -256,18 +256,20 @@ function ScheduleRow({
   const finals = s.kind === "finals";
   const postponed = postponedLabel(s);
   const was = originalDateLabel(s);
+  // One line: when, where it's up to, and its start time
   const details: string[] = [];
   if (postponed) details.push(postponed);
   else if (s.date) details.push(shortDate(s.date));
-  if (s.status === "complete") details.push("played");
   else details.push("Date to be confirmed");
+  if (s.status === "complete") details.push("played");
   if (s.status === "complete" && s.kind === "qualifier" && c.qualifiers_per_night) details.push(`${c.qualifiers_per_night} through`);
   else if (s.status === "live") details.push(s.date === today ? "tonight" : "in play");
-  else if (s.status === "upcoming" && sessionTimes(s)) details.push(sessionTimes(s)!);
   if (finals && s.status === "upcoming" && c.draw_size) details.push(`${c.draw_size} qualifiers`);
-  // Played somewhere other than the competition's venue: say where
-  const elsewhere = s.venue_id && s.venue_id !== c.venue_id ? venues.find((v) => v.id === s.venue_id) : undefined;
+  // Where it's played, only when the competition moves between greens (a
+  // county one) - otherwise the venue row underneath says it
+  const elsewhere = venues.length > 1 && s.venue_id ? venues.find((v) => v.id === s.venue_id) : undefined;
   if (elsewhere) details.push(elsewhere.name);
+  if (s.status === "upcoming" && sessionTimes(s)) details.push(sessionTimes(s)!);
 
   // A one-day competition (or a final) has nothing more to show before its
   // draw is out - the row only opens once there is
