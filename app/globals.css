@@ -3446,44 +3446,6 @@ label {
   font-size: 1.05rem;
 }
 
-/* A competition's page: who's entered */
-.whos-entered-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.whos-entered-head strong {
-  font-size: 1.1rem;
-}
-
-.whos-entered-head .link-button {
-  min-height: 44px;
-  font-weight: 700;
-}
-
-.whos-entered-group h3 {
-  margin: 12px 0 4px;
-  font-size: 1.1rem;
-  color: var(--green-deep);
-}
-
-.whos-entered ul {
-  margin: 6px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.whos-entered li {
-  padding: 7px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.whos-entered li:last-child {
-  border-bottom: none;
-}
-
 /* Qualifying tab: places, qualifying competitions and their results */
 .qualifying-total {
   font-size: 1.15rem;

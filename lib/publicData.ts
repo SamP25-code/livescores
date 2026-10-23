@@ -244,37 +244,6 @@ export async function loadHonours(seriesSlug: string, fromSite: PublicCompetitio
   return [...rows.values()].sort((a, b) => b.year - a.year);
 }
 
-export type EnteredName = { name: string; sessionId: string | null };
-
-// Who's entered in a competition, as shown publicly: pairs as "A & B", a
-// club or note only where two people share a name, and anyone who's asked to
-// be taken off as "Withdrawn player". A to Z.
-export async function loadEnteredNames(competitionId: string): Promise<EnteredName[]> {
-  const { data, error } = await supabase
-    .from("entries")
-    .select(
-      "session_id, partner_id, person:person_id(id, full_name, note, club:club_id(short_name)), partner:partner_id(id, full_name, note, club:club_id(short_name))"
-    )
-    .eq("competition_id", competitionId)
-    .eq("status", "entered");
-  if (error) throw error;
-  type P = { id: string; full_name: string; note: string | null; club: { short_name: string } | null } | null;
-  const rows = (data ?? []) as unknown as { session_id: string | null; partner_id: string | null; person: P; partner: P }[];
-  const people = rows
-    .flatMap((r) => [r.person, r.partner])
-    .filter((p): p is NonNullable<P> => Boolean(p))
-    .map((p) => ({ id: p.id, full_name: p.full_name, note: p.note, club_name: p.club?.short_name ?? null }));
-  const shown = distinguishedNames(people);
-  // Someone hidden for privacy can't be read publicly, so comes back empty
-  const nameOf = (p: P) => (p ? (shown.get(p.id) ?? p.full_name) : "Withdrawn player");
-  return rows
-    .map((r) => ({
-      name: r.partner_id ? `${nameOf(r.person)} & ${nameOf(r.partner)}` : nameOf(r.person),
-      sessionId: r.session_id,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-}
-
 // Every club, for the Clubs page and the menu's search - including a venue
 // ticked "also a club" that doesn't run a competition yet
 export async function loadClubOrganisers(): Promise<ClubOrganiser[]> {

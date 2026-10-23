@@ -23,7 +23,6 @@ import { SITE_NAME } from "@/lib/site";
 import { originalDateLabel, postponedLabel } from "@/lib/venues";
 import PlayerLinks from "@/components/PlayerLinks";
 import { SponsorPanel } from "@/components/Sponsors";
-import WhosEntered from "@/components/WhosEntered";
 import HowToQualify from "@/components/HowToQualify";
 import EventPage from "@/components/event/EventPage";
 import type { Venue } from "@/lib/types";
@@ -162,8 +161,6 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
       )}
 
       {c.entry_method === "qualification" && <HowToQualify competitionId={c.id} all={all} />}
-
-      <WhosEntered competition={c} />
 
       {venues.map((v) => (
         <VenueCard key={v.id} venue={v} />
