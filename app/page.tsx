@@ -5,12 +5,8 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { loadLiveMatches, loadPublicCompetitions, type LiveMatch } from "@/lib/publicData";
 import {
-  dateRange,
-  eventDates,
-  eventPath,
   comingUp,
   latestResults,
-  publicStatus,
   todayIso,
   type PublicCompetition,
 } from "@/lib/publicCompetitions";
@@ -23,9 +19,9 @@ import { ComingUp, LatestResults } from "@/components/home/HomeLists";
 export const dynamic = "force-dynamic";
 
 // The home page, like a front page: live scores when something's on, the
-// ways into the site (four buttons, then any event coming up), and two short
-// lists to scan - what's coming up and the latest results. Everything else
-// is in the menu (☰).
+// ways into the site (four buttons), and two short lists to scan - what's
+// coming up and the latest results. Everything else, events included, is in
+// the menu (☰).
 export default function HomePage() {
   const [competitions, setCompetitions] = useState<PublicCompetition[] | null>(null);
   const [live, setLive] = useState<LiveMatch[]>([]);
@@ -84,17 +80,6 @@ export default function HomePage() {
   const upcoming = comingUp(all, today);
   const results = latestResults(all, today);
 
-  // Events still to come (or on now) get a button of their own
-  const events = [...new Map(all.filter((c) => c.organiser.kind === "event" && c.organiser.slug).map((c) => [`${c.organiser.id}:${c.year}`, c])).values()]
-    .map((c) => {
-      const members = all.filter((x) => x.organiser.id === c.organiser.id && x.year === c.year);
-      // A sponsor's logo, when one's been added, says more than any styling
-      const logo = members.flatMap((m) => m.sponsors).find((s) => s.logo_url)?.logo_url ?? null;
-      return { organiser: c.organiser, year: c.year, members, dates: eventDates(members), logo };
-    })
-    .filter((e) => e.members.some((m) => ["live", "coming_up", "planned"].includes(publicStatus(m, today))))
-    .sort((a, b) => (a.dates?.from ?? "9").localeCompare(b.dates?.from ?? "9"));
-
   return (
     <div className="page page-photo home">
       <div className="public-background" aria-hidden="true" />
@@ -132,20 +117,6 @@ export default function HomePage() {
             </Link>
           </nav>
 
-          {events.map((e) => (
-            <Link key={`${e.organiser.id}-${e.year}`} href={eventPath(e.organiser.slug!, e.year, all)} className="home-event-tile">
-              {e.logo && <img src={e.logo} alt="" className="home-event-tile-logo" />}
-              <span>
-                <strong>
-                  {e.organiser.name} {e.year}
-                </strong>
-                <span>
-                  {e.dates ? `${dateRange(e.dates.from, e.dates.to)} · ` : ""}
-                  {e.members.length} competition{e.members.length === 1 ? "" : "s"}
-                </span>
-              </span>
-            </Link>
-          ))}
 
           <ComingUp picks={upcoming} all={all} />
           <LatestResults picks={results} all={all} />

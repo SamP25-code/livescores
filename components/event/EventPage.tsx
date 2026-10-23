@@ -12,7 +12,6 @@ import {
   competitionPath,
   dateRange,
   daysUntil,
-  rowState,
   isTrophyDay,
   publicStatus,
   shortDate,
@@ -27,21 +26,13 @@ import CompetitionRow from "@/components/home/CompetitionRow";
 import MonthGroups from "@/components/home/MonthGroups";
 import RowLine from "@/components/home/RowLine";
 
-type Tab = "overview" | "competitions" | "qualifying" | "news";
-const TABS: Record<Tab, string> = { overview: "Overview", competitions: "Competitions", qualifying: "Qualifying", news: "News" };
-
-function tabFromHash(): Tab {
-  const h = typeof window === "undefined" ? "" : window.location.hash.replace("#", "");
-  return (Object.keys(TABS) as Tab[]).includes(h as Tab) ? (h as Tab) : "overview";
-}
-
-// An event with several competitions (the Blackpool Masters): Overview -
-// how long to go, the days, who's qualified, adverts and the latest news -
-// then its Competitions, Qualifying (how to qualify) and News.
+// An event with several competitions (the Blackpool Masters), all on one
+// page: how long to go, its days (each opens that competition - the
+// Invitation's page lists its qualifying competitions), who's qualified so
+// far, adverts and every news post.
 export default function EventPage({ event, all }: { event: EventRef; all: PublicCompetition[] }) {
   // The event's own background on its page
   usePageBackground(event.organiser.background_image ?? null);
-  const [tab, setTab] = useState<Tab>("overview");
   const [posts, setPosts] = useState<EventPost[]>([]);
   const [qualified, setQualified] = useState<{ done: number; total: number } | null>(null);
   const today = todayIso();
@@ -51,13 +42,6 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
   const qualifyingComps = comps.filter((c) => c.entry_method === "qualification");
   const dates = comps.flatMap((c) => c.sessions.map((s) => s.date)).filter((d): d is string => Boolean(d)).sort();
   const firstDate = dates[0] ?? null;
-
-  useEffect(() => {
-    setTab(tabFromHash());
-    const onHash = () => setTab(tabFromHash());
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  }, []);
 
   useEffect(() => {
     document.title = `${event.organiser.name} ${event.year} · ${SITE_NAME}`;
@@ -72,12 +56,6 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event.organiser.id, event.year]);
-
-  function show(next: Tab) {
-    setTab(next);
-    history.replaceState(null, "", next === "overview" ? window.location.pathname : `#${next}`);
-    window.scrollTo({ top: 0 });
-  }
 
   // The event's sponsors: everyone sponsoring any of its competitions, once
   const sponsors = comps
@@ -104,18 +82,6 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
         <SponsorPanel sponsors={sponsors} />
       </header>
 
-      <div className="comp-tabs event-tabs" role="tablist">
-        {(Object.keys(TABS) as Tab[])
-          .filter((t) => t !== "qualifying" || qualifyingComps.length > 0)
-          .map((t) => (
-            <button key={t} type="button" role="tab" aria-selected={tab === t} className={`comp-tab ${tab === t ? "comp-tab-on" : ""}`} onClick={() => show(t)}>
-              {TABS[t]}
-            </button>
-          ))}
-      </div>
-
-      {tab === "overview" && (
-        <>
           {!live && days !== null && days >= 0 && (
             <div className="card event-countdown">
               <span className="event-countdown-count">
@@ -156,16 +122,18 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
             <section className="home-section">
               <div className="home-section-head">
                 <h2>Who&rsquo;s qualified</h2>
-                <button type="button" className="link-button event-more" onClick={() => show("qualifying")}>
-                  See all
-                </button>
+                {qualifyingComps[0] && (
+                  <Link href={competitionPath(qualifyingComps[0], all)} className="link-button event-more">
+                    See all
+                  </Link>
+                )}
               </div>
               <div className="card">
                 <strong>
                   {qualified.done} of {qualified.total} places decided
                 </strong>
                 <div className="qualifying-meter" aria-hidden="true">
-                  <i style={{ width: `${(qualified.done / qualified.total) * 100}%`, background: "var(--green-deep)" }} />
+                  <i style={{ width: `${(qualified.done / qualified.total) * 100}%` }} />
                 </div>
               </div>
             </section>
@@ -179,55 +147,10 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
             <section className="home-section">
               <div className="home-section-head">
                 <h2>News</h2>
-                <button type="button" className="link-button event-more" onClick={() => show("news")}>
-                  All news
-                </button>
               </div>
-              <PostList posts={news.slice(0, 2)} slug={slug} year={event.year} all={all} />
+              <PostList posts={news} slug={slug} year={event.year} all={all} />
             </section>
           )}
-        </>
-      )}
-
-      {tab === "competitions" && (
-        <section className="home-section">
-        <MonthGroups
-          items={comps.map((c) => ({ c, state: rowState(c, today) }))}
-          dateOf={(x) => x.state.date}
-          render={({ c, state }) => (
-            <CompetitionRow
-              key={c.id}
-              date={state.date}
-              title={c.name}
-              href={competitionPath(c, all)}
-              line={<RowLine competition={c} state={state} />}
-            />
-          )}
-        />
-        </section>
-      )}
-
-      {tab === "qualifying" &&
-        qualifyingComps.map((c) => (
-          <div key={c.id}>
-            {qualifyingComps.length > 1 && (
-              <div className="home-section-head">
-                <h2>{c.name}</h2>
-              </div>
-            )}
-            <HowToQualify competitionId={c.id} all={all} />
-          </div>
-        ))}
-
-      {tab === "news" && (
-        <>
-          {news.length === 0 && <p className="quiet-line">No news yet</p>}
-          <PostList posts={news} slug={slug} year={event.year} all={all} />
-          {adverts.map((a) => (
-            <Advert key={a.id} post={a} />
-          ))}
-        </>
-      )}
 
     </PublicPage>
   );

@@ -40,7 +40,7 @@ export default function PostPage({ params }: { params: Promise<{ slug: string; p
     })().catch(() => setPost(null));
   }, [postId, today]);
 
-  const back = `/${slug}#news`;
+  const back = `/${slug}`;
 
   return (
     <PublicPage loading={post === undefined} failed={false} back={back}>

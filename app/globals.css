@@ -3499,6 +3499,7 @@ label {
 }
 
 .qualifying-meter i {
+  background: var(--green-deep);
   display: block;
 }
 
@@ -3617,10 +3618,6 @@ label {
 }
 
 /* Event page (the Blackpool Masters) */
-.event-tabs .comp-tab {
-  flex: 1 0 auto;
-}
-
 .event-days {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
@@ -4155,49 +4152,6 @@ a.info-pill-club:focus-visible {
 
 /* The big event of the year, on its own above the other buttons: a gold
    border, and the sponsor's logo when there is one */
-.home-event-tile {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: var(--gap);
-  padding: 10px 14px;
-  border: 1px solid var(--gold);
-  border-left: 4px solid var(--gold);
-  border-radius: var(--radius);
-  background: var(--gold-pale);
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.home-event-tile:hover,
-.home-event-tile:focus-visible {
-  background: var(--gold-pale);
-}
-
-.home-event-tile > span {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.home-event-tile strong {
-  font-family: var(--font-display), Georgia, serif;
-  font-size: 1.15rem;
-  line-height: 1.2;
-  color: var(--gold-deep);
-}
-
-.home-event-tile > span > span {
-  color: var(--ink-soft);
-}
-
-.home-event-tile-logo {
-  flex: none;
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-}
-
 .comp-status {
   flex: none;
   font-size: 0.85rem;
