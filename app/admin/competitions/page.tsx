@@ -8,7 +8,7 @@ import { settingsSummary } from "@/lib/competitionSetup";
 import { errorMessage } from "@/lib/errors";
 import { SITE_NAME } from "@/lib/site";
 
-const STATUS_LABEL = { planned: "Planned", active: "Active", archived: "Archived" } as const;
+const STATUS_LABEL = { planned: "Coming up", active: "On now", archived: "Finished" } as const;
 
 // The competitions set up so far, by year: every one for Super, the ones
 // they run for an admin. Only Super sets up new ones.

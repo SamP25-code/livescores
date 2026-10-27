@@ -10,6 +10,8 @@ export type PublicPlace = {
   source: string; // "Fylde Classic · Kirkham · Sat 5 Jun" (without "Winner ·")
   name: string; // "Fylde Classic"
   location: string | null; // "Kirkham"
+  // That club's page, when it's played at one from Clubs
+  locationHref: string | null;
   wasSource: string | null; // a wildcard that was once a qualifying place
   wildcard: boolean;
   who: string | null;
@@ -21,6 +23,14 @@ export type PublicPlace = {
 
 export async function loadPublicQualifying(competitionId: string): Promise<PublicPlace[]> {
   const data = await loadQualifying(competitionId);
+  // Clubs by their green, for the location pill's link
+  const venueIds = [...new Set([...data.events.values()].map((e) => e.venue_id).filter((v): v is string => Boolean(v)))];
+  const clubByVenue = new Map<string, string>();
+  if (venueIds.length) {
+    const { data: clubs, error } = await supabase.from("organisers").select("slug, venue_id").eq("kind", "club").in("venue_id", venueIds);
+    if (error) throw error;
+    for (const c of clubs ?? []) if (c.slug && c.venue_id) clubByVenue.set(c.venue_id, `/clubs/${c.slug}`);
+  }
   const out: PublicPlace[] = [];
   for (const p of data.places) {
     const event = p.qualifier_event_id ? data.events.get(p.qualifier_event_id) : undefined;
@@ -40,6 +50,7 @@ export async function loadPublicQualifying(competitionId: string): Promise<Publi
       source: p.source === "wildcard" ? "Wildcard" : p.source_label.replace(/^Winner · /, ""),
       name: event?.name ?? p.source_label.replace(/^Winner · /, "").split(" · ")[0],
       location: event?.location ?? null,
+      locationHref: event?.venue_id ? (clubByVenue.get(event.venue_id) ?? null) : null,
       wasSource: p.source === "wildcard" ? (p.original_source_label?.replace(/^Winner · /, "") ?? null) : null,
       wildcard: p.source === "wildcard",
       who,

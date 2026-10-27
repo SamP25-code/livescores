@@ -54,7 +54,7 @@ describe("share results", () => {
 
   test("a qualifying session: who's through", () => {
     const text = sessionShareText({
-      title: "Floodlit Singles 2027 – Qualifying session 1",
+      title: "Floodlit Singles 2027 – Session 1",
       date: null,
       kind: "qualifier",
       matches: [m(1, 0, "w", "e", 21, 3)],
@@ -64,7 +64,7 @@ describe("share results", () => {
       through: ["Wayne Ditchfield"],
       url: "u",
     });
-    expect(text).toBe(["Floodlit Singles 2027 – Qualifying session 1", "", "Through to Finals Day: Wayne Ditchfield", "", "Round 1", "Wayne Ditchfield 21–3 Eamon Hernen", "", "Full results: u"].join("\n"));
+    expect(text).toBe(["Floodlit Singles 2027 – Session 1", "", "Through to Finals Day: Wayne Ditchfield", "", "Round 1", "Wayne Ditchfield 21–3 Eamon Hernen", "", "Full results: u"].join("\n"));
   });
 
   test("a competition: its champion, or what's next", () => {

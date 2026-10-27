@@ -36,7 +36,7 @@ export default function NewCompetitionPage() {
         <CompetitionForm
           presetOrganiserId={presetEvent ?? undefined}
           presetKind={presetKind}
-          onSaved={(id) => router.replace(`/admin/competitions/${id}`)}
+          onSaved={(id, entry) => router.replace(`/admin/competitions/${id}${entry === "qualification" ? "#qualifying" : ""}`)}
         />
       )}
     </div>

@@ -161,7 +161,7 @@ describe("a competition in a list", () => {
     const state = rowState(floodlit, "2027-06-08");
     expect(state.kind).toBe("next");
     expect(state.date).toBe("2027-06-08");
-    expect(sessionLabel(floodlit, state.session)).toBe("Qualifying session 2 of 4");
+    expect(sessionLabel(floodlit, state.session)).toBe("Session 2 of 4");
     expect(sessionLabel(march, march.sessions[0])).toBe("One day");
   });
 
@@ -238,7 +238,7 @@ describe("addresses", () => {
 
 describe("session wording", () => {
   test("titles and times", () => {
-    expect(sessionTitle({ kind: "qualifier", session_number: 3 })).toBe("Qualifying session 3");
+    expect(sessionTitle({ kind: "qualifier", session_number: 3 })).toBe("Session 3");
     expect(sessionTitle({ kind: "finals", session_number: 5 })).toBe("Finals Day");
     expect(timeOfDay("19:00:00")).toBe("7pm");
     expect(timeOfDay("12:30")).toBe("12:30pm");

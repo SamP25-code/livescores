@@ -17,7 +17,8 @@ describe("rounds to enter", () => {
     expect(stagesFor("final")).toEqual([1]);
     expect(stagesFor("semis")).toEqual([2, 1]);
     expect(stagesFor("quarters")).toEqual([3, 2, 1]);
-    expect([1, 2, 3].map(matchesInStage)).toEqual([1, 2, 4]);
+    expect(stagesFor("last16")).toEqual([4, 3, 2, 1]);
+    expect([1, 2, 3, 4].map(matchesInStage)).toEqual([1, 2, 4, 8]);
   });
 });
 

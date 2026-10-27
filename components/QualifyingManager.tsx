@@ -197,6 +197,7 @@ export default function QualifyingManager({ competitionId }: { competitionId: st
                 <QualifierForm
                   initial={event}
                   comps={comps}
+                  clubs={clubs}
                   busy={busy}
                   onCancel={() => setOpen(null)}
                   onSave={(input) => run(() => updateQualifier(event, input), `${input.name} saved.`)}
@@ -239,6 +240,7 @@ export default function QualifyingManager({ competitionId }: { competitionId: st
           <h3>Add a qualifying competition</h3>
           <QualifierForm
             comps={comps}
+            clubs={clubs}
             busy={busy}
             onCancel={() => setOpen(null)}
             onSave={(input) => run(() => addQualifier(competitionId, input), `${input.name} added.`)}
@@ -266,18 +268,24 @@ export default function QualifyingManager({ competitionId }: { competitionId: st
 function QualifierForm({
   initial,
   comps,
+  clubs,
   busy,
   onSave,
   onCancel,
 }: {
   initial?: QualifierEvent;
   comps: CompetitionWithSeries[];
+  clubs: Organiser[];
   busy: boolean;
   onSave: (input: QualifierInput) => void;
   onCancel: () => void;
 }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [location, setLocation] = useState(initial?.location ?? "");
+  // Where it's played: a club from Clubs (with its address and directions),
+  // or somewhere not in Clubs with just a name
+  const greens = clubs.filter((c) => c.venue_id);
+  const [clubVenue, setClubVenue] = useState<string>(initial?.venue_id ?? (initial?.location ? "elsewhere" : ""));
   const [date, setDate] = useState(initial?.final_date ?? "");
   const [onSite, setOnSite] = useState(Boolean(initial?.source_competition_id));
   const [source, setSource] = useState(initial?.source_competition_id ?? "");
@@ -304,6 +312,12 @@ function QualifierForm({
               setSource(e.target.value);
               const c = comps.find((x) => x.id === e.target.value);
               if (c && !name) setName(c.series.name);
+              // Played on its club's green, to begin with
+              const green = c?.venue_id ? greens.find((g) => g.venue_id === c.venue_id) : undefined;
+              if (green && !clubVenue) {
+                setClubVenue(green.venue_id!);
+                setLocation(green.short_name);
+              }
             }}
           >
             <option value="">Choose one</option>
@@ -321,8 +335,33 @@ function QualifierForm({
       </div>
       <div className="comp-form-grid">
         <div className="field">
-          <label htmlFor="q-where">Where</label>
-          <input id="q-where" placeholder="Kirkham" value={location} onChange={(e) => setLocation(e.target.value)} />
+          <label htmlFor="q-where">Where is it played?</label>
+          <select
+            id="q-where"
+            value={clubVenue}
+            onChange={(e) => {
+              setClubVenue(e.target.value);
+              const club = greens.find((c) => c.venue_id === e.target.value);
+              if (club) setLocation(club.short_name);
+            }}
+          >
+            <option value="">Not set yet</option>
+            {greens.map((c) => (
+              <option key={c.id} value={c.venue_id!}>
+                {c.name}
+              </option>
+            ))}
+            <option value="elsewhere">Somewhere not in Clubs</option>
+          </select>
+          {clubVenue === "elsewhere" && (
+            <input
+              aria-label="Where it's played"
+              className="qualifier-where"
+              placeholder="Kirkham"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+          )}
         </div>
         <div className="field">
           <label htmlFor="q-date">Date of the final</label>
@@ -346,7 +385,8 @@ function QualifierForm({
           onClick={() =>
             onSave({
               name,
-              location: location.trim() || null,
+              location: clubVenue ? location.trim() || null : null,
+              venue_id: clubVenue && clubVenue !== "elsewhere" ? clubVenue : null,
               final_date: date || null,
               source_competition_id: onSite ? source : null,
               results_depth: depth,

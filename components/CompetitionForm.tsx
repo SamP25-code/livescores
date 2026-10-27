@@ -42,7 +42,7 @@ const DEFAULT_START: Record<SessionKind, string> = {
 };
 
 const SESSION_LABEL: Record<SessionKind, string> = {
-  qualifier: "Qualifying session",
+  qualifier: "Session",
   finals: "Finals Day",
   single_day: "One day",
   final: "Final",
@@ -64,7 +64,7 @@ export default function CompetitionForm({
   presetOrganiserId?: string;
   // "New event" on the Events page: start on "Part of an event"
   presetKind?: "club" | "event" | "county";
-  onSaved: (competitionId: string) => void;
+  onSaved: (competitionId: string, entryMethod: CompetitionInput["entry_method"]) => void;
 }) {
   const c = existing?.competition;
   const locked = Boolean(c?.structure_locked);
@@ -92,6 +92,7 @@ export default function CompetitionForm({
   const [newSeriesName, setNewSeriesName] = useState("");
   const [newSeriesSlug, setNewSeriesSlug] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
+  const [editSlug, setEditSlug] = useState(false);
 
   // Settings
   const [year, setYear] = useState<number>(c?.year ?? new Date().getFullYear() + 1);
@@ -293,7 +294,7 @@ export default function CompetitionForm({
         if (partOf && partOf !== c.series.organiser_id) await moveSeries(c.series.id, partOf);
         await updateCompetition(c, settings, existing.sessions, sessions);
         await saveSponsors(c.id, sponsors);
-        onSaved(c.id);
+        onSaved(c.id, entryMethod);
         return;
       }
 
@@ -330,7 +331,7 @@ export default function CompetitionForm({
         sessions
       );
       await saveSponsors(created.id, sponsors);
-      onSaved(created.id);
+      onSaved(created.id, entryMethod);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -516,21 +517,31 @@ export default function CompetitionForm({
                   }}
                 />
               </div>
-              <div className="field">
-                <label htmlFor="cf-series-slug">Web address</label>
-                <div className="comp-form-slug">
-                  <span>/</span>
-                  <input
-                    id="cf-series-slug"
-                    value={newSeriesSlug}
-                    onChange={(e) => {
-                      setSlugEdited(true);
-                      setNewSeriesSlug(e.target.value);
-                    }}
-                  />
+              {/* Filled in from the name; changed only if asked for */}
+              {editSlug ? (
+                <div className="field">
+                  <label htmlFor="cf-series-slug">Web address</label>
+                  <div className="comp-form-slug">
+                    <span>/</span>
+                    <input
+                      id="cf-series-slug"
+                      value={newSeriesSlug}
+                      onChange={(e) => {
+                        setSlugEdited(true);
+                        setNewSeriesSlug(e.target.value);
+                      }}
+                    />
+                  </div>
+                  <p className="hint">Always opens the latest year. Can&rsquo;t be changed later.</p>
                 </div>
-                <p className="hint">Always opens the latest year. Can&rsquo;t be changed later.</p>
-              </div>
+              ) : (
+                <p className="hint">
+                  Its web address: /{slugify(newSeriesSlug || newSeriesName) || "spring-doubles"}{" "}
+                  <button type="button" className="link-button" onClick={() => setEditSlug(true)}>
+                    Change the web address
+                  </button>
+                </p>
+              )}
             </div>
           )}
 
@@ -550,6 +561,39 @@ export default function CompetitionForm({
 
       <section className="card">
         <h2>Format</h2>
+        <fieldset className="comp-form-choice">
+          <legend>How do players get in?</legend>
+          {(
+            [
+              ["open", "The organiser enters them"],
+              ["qualification", "Qualifying competitions and wildcards"],
+              ["on_the_night", "Entered on the day"],
+            ] as const
+          ).map(([value, text]) => (
+            <label key={value}>
+              <input
+                type="radio"
+                name="cf-entry"
+                disabled={locked}
+                checked={entryMethod === value}
+                onChange={() => setEntryMethod(value)}
+              />
+              {text}
+            </label>
+          ))}
+        </fieldset>
+        {entryMethod === "qualification" && (
+          <p className="hint">Once it&rsquo;s saved, add its qualifying competitions on its Qualifying tab.</p>
+        )}
+        <div className="field">
+          <label htmlFor="cf-status">Where it&rsquo;s up to</label>
+          <select id="cf-status" value={status} onChange={(e) => setStatus(e.target.value as typeof status)}>
+            <option value="planned">Coming up</option>
+            <option value="active">On now - the current one</option>
+            <option value="archived">Finished</option>
+          </select>
+          <p className="hint">It shows on the site whichever you pick - this says where it&rsquo;s up to.</p>
+        </div>
         {existing && isSuper && (
           <div className="field">
             <label htmlFor="cf-rename">Name</label>
@@ -672,14 +716,6 @@ export default function CompetitionForm({
             <select id="cf-scoring" disabled={locked} value={scoringStyle} onChange={(e) => setScoringStyle(e.target.value as typeof scoringStyle)}>
               <option value="live">Live, point by point</option>
               <option value="results">Results only</option>
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="cf-entry">Entry</label>
-            <select id="cf-entry" disabled={locked} value={entryMethod} onChange={(e) => setEntryMethod(e.target.value as typeof entryMethod)}>
-              <option value="open">Open - the organiser enters players</option>
-              <option value="qualification">By qualification and wildcards</option>
-              <option value="on_the_night">Entered on the day</option>
             </select>
           </div>
           <div className="field">
@@ -845,14 +881,6 @@ export default function CompetitionForm({
           >
             + Add another sponsor
           </button>
-        </div>
-        <div className="field">
-          <label htmlFor="cf-status">Status</label>
-          <select id="cf-status" value={status} onChange={(e) => setStatus(e.target.value as typeof status)}>
-            <option value="planned">Planned - shown with its dates, nothing to open yet</option>
-            <option value="active">Active - the current one</option>
-            <option value="archived">Archived - finished, results kept</option>
-          </select>
         </div>
       </section>
 

@@ -216,7 +216,7 @@ export function nextSession(c: Pick<PublicCompetition, "sessions">, today: strin
   );
 }
 
-// "Qualifying session 1 of 4", so it's clear there are more to come
+// "Session 1 of 4", so it's clear there are more to come
 export function sessionLabel(c: Pick<PublicCompetition, "sessions">, s: Pick<PublicSession, "kind" | "session_number">): string {
   const qualifying = c.sessions.filter((x) => x.kind === "qualifier").length;
   return s.kind === "qualifier" && qualifying > 1 ? `${sessionTitle(s)} of ${qualifying}` : sessionTitle(s);
@@ -403,9 +403,10 @@ export function resolveCompetition<C extends Pick<PublicCompetition, "slug" | "y
   return all.find((c) => c.slug === match[1] && c.year === Number(match[2])) ?? null;
 }
 
-// "Qualifying session 3", "Finals Day", "One day", "Final"
+// "Session 3", "Finals Day", "One day", "Final" - the same as the tabs on a
+// session's page
 export function sessionTitle(s: Pick<PublicSession, "kind" | "session_number">): string {
-  return s.kind === "qualifier" ? `Qualifying session ${s.session_number ?? ""}`.trim() : TROPHY_LABEL[s.kind];
+  return s.kind === "qualifier" ? `Session ${s.session_number ?? ""}`.trim() : TROPHY_LABEL[s.kind];
 }
 
 // "7pm", "12:30pm"

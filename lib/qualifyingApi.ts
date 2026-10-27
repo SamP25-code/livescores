@@ -163,6 +163,7 @@ export async function fillPlaces(competitionId: string): Promise<void> {
 export type QualifierInput = {
   name: string;
   location: string | null;
+  venue_id: string | null;
   final_date: string | null;
   source_competition_id: string | null;
   results_depth: ResultsDepth;

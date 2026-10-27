@@ -15,15 +15,18 @@ import PastWinners from "@/components/PastWinners";
 import { sessionTimes, sessionTitle as publicSessionTitle } from "@/lib/publicCompetitions";
 import type { Night } from "@/lib/types";
 import { SITE_NAME } from "@/lib/site";
+import { supabase } from "@/lib/supabaseClient";
+import { setupChecklist } from "@/lib/setupChecklist";
+import { entryCapacity } from "@/lib/people";
 
-const STATUS_LABEL = { planned: "Planned", active: "Active", archived: "Archived" } as const;
+const STATUS_LABEL = { planned: "Coming up", active: "On now", archived: "Finished" } as const;
 
 // "A", "A and B", "A, B and C"
 function sponsorList(names: string[]): string {
   return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
-// Named as everywhere else on the site: "Qualifying session 2", "Finals Day", "One day", "Final"
+// Named as everywhere else on the site: "Session 2", "Finals Day", "One day", "Final"
 function sessionTitle(night: Night): string {
   return publicSessionTitle({ kind: night.kind, session_number: night.session_number ?? null });
 }
@@ -60,6 +63,8 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<Tab>("overview");
+  // For the checklist: entries, admins and qualifying places
+  const [counts, setCounts] = useState<{ entered: number; admins: number; places: number } | null>(null);
 
   useEffect(() => {
     setTab(tabFromHash());
@@ -76,6 +81,12 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
   async function load() {
     try {
       setData(await getCompetition(id));
+      const [entered, admins, places] = await Promise.all([
+        supabase.from("entries").select("id", { count: "exact", head: true }).eq("competition_id", id).eq("status", "entered"),
+        supabase.from("assignments").select("user_id", { count: "exact", head: true }).eq("competition_id", id).eq("role", "admin"),
+        supabase.from("qualifying_places").select("id", { count: "exact", head: true }).eq("competition_id", id),
+      ]);
+      setCounts({ entered: entered.count ?? 0, admins: admins.count ?? 0, places: places.count ?? 0 });
     } catch (err) {
       setError(errorMessage(err));
     }
@@ -140,6 +151,36 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
 
           {tab === "overview" && (
             <>
+              {counts && (
+                <div className="card setup-checklist">
+                  <h2>Set-up</h2>
+                  {setupChecklist({
+                    sessions: data.sessions,
+                    venueId: c.venue_id,
+                    movesBetweenClubs: c.series.organiser.kind === "county",
+                    entered: counts.entered,
+                    capacity: entryCapacity(c),
+                    admins: counts.admins,
+                    qualification: c.entry_method === "qualification",
+                    qualifyingPlaces: counts.places,
+                  }).map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      className={`setup-item ${item.done ? "setup-item-done" : ""}`}
+                      onClick={() => {
+                        if (item.tab === "settings" && !isSuper) return;
+                        show(item.tab);
+                        if (item.tab === "settings") setEditing(true);
+                      }}
+                    >
+                      <strong>{item.label}</strong>
+                      <span>{item.detail}</span>
+                      <span className="setup-item-state">{item.done ? "Done" : "To do"}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="card comp-summary">
                 <p>
                   <span className={`status-pill status-pill-${c.status}`}>{STATUS_LABEL[c.status]}</span>{" "}

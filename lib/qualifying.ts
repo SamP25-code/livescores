@@ -2,23 +2,26 @@
 // Masters Invitation 32): its places, each filled by the winner of a
 // qualifying competition or as a wildcard. The rules, without the database.
 
-export type ResultsDepth = "winner" | "final" | "semis" | "quarters";
+export type ResultsDepth = "winner" | "final" | "semis" | "quarters" | "last16";
 
 export const DEPTH_LABEL: Record<ResultsDepth, string> = {
   winner: "Just the winner (no scores)",
   final: "Just the final",
   semis: "Semi-finals and final",
   quarters: "Quarter-finals onwards",
+  last16: "Last 16 onwards",
 };
 
-// Stage numbers: 1 is the final, 2 the semi-finals, 3 the quarter-finals
-export const STAGE_LABEL: Record<number, string> = { 1: "Final", 2: "Semi-finals", 3: "Quarter-finals" };
+// Stage numbers: 1 is the final, 2 the semi-finals, 3 the quarter-finals, 4 the last 16
+export const STAGE_LABEL: Record<number, string> = { 1: "Final", 2: "Semi-finals", 3: "Quarter-finals", 4: "Last 16" };
 
 export type QualifierEvent = {
   id: string;
   competition_id: string;
   name: string;
   location: string | null;
+  // The club it's played at, from Clubs (migration 2027_19)
+  venue_id?: string | null;
   final_date: string | null;
   source_competition_id: string | null;
   results_depth: ResultsDepth;
@@ -48,7 +51,7 @@ export type Place = {
 
 // The rounds to enter, earliest first: semi-finals then final, and so on
 export function stagesFor(depth: ResultsDepth): number[] {
-  return { winner: [], final: [1], semis: [2, 1], quarters: [3, 2, 1] }[depth];
+  return { winner: [], final: [1], semis: [2, 1], quarters: [3, 2, 1], last16: [4, 3, 2, 1] }[depth];
 }
 
 export function matchesInStage(stage: number): number {
@@ -89,7 +92,12 @@ export function resultsProblem(depth: ResultsDepth, matches: QualifierMatch[], w
   for (const stage of stagesFor(depth)) {
     for (let slot = 0; slot < matchesInStage(stage); slot++) {
       const m = matches.find((x) => x.stage === stage && x.slot === slot);
-      const name = stage === 1 ? "the final" : `${STAGE_LABEL[stage].toLowerCase().replace(/s$/, "")} ${slot + 1}`;
+      const name =
+        stage === 1
+          ? "the final"
+          : stage === 4
+            ? `last 16 match ${slot + 1}`
+            : `${STAGE_LABEL[stage].toLowerCase().replace(/s$/, "")} ${slot + 1}`;
       if (!m || !m.person_a_id || !m.person_b_id) {
         // Earlier rounds can be left empty; the final can't
         if (stage === 1) return "Enter both players in the final.";

@@ -73,7 +73,7 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
                 date={p.finalDate}
                 title={p.name}
                 href={href(p)}
-                pill={p.location ? { label: p.location, href: null } : null}
+                pill={p.location ? { label: p.location, href: p.locationHref } : null}
                 line={
                   p.who ? (
                     <>

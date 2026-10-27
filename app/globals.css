@@ -4620,3 +4620,51 @@ a.info-pill-club:focus-visible {
 .page-narrow {
   max-width: 420px;
 }
+
+/* A qualifying competition played somewhere not in Clubs: its name */
+.qualifier-where {
+  margin-top: 6px;
+}
+
+/* A competition's set-up checklist: each item, done or to do */
+.setup-checklist h2 {
+  margin-bottom: 6px;
+}
+
+.setup-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.setup-item:last-child {
+  border-bottom: none;
+}
+
+.setup-item strong {
+  min-width: 150px;
+}
+
+.setup-item span {
+  color: var(--ink-soft);
+}
+
+.setup-item .setup-item-state {
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--maroon);
+}
+
+.setup-item-done .setup-item-state {
+  color: var(--green-mid);
+}

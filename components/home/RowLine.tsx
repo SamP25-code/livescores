@@ -3,7 +3,7 @@ import { sessionLabel, type PublicCompetition, type RowState, startTime } from "
 import LivePill from "@/components/home/LivePill";
 
 // The line under a competition's name in any list: "Live · Round of 16",
-// "Qualifying session 1 of 4 · 6:30pm", "Won by Wayne Ditchfield"
+// "Session 1 of 4 · 6:30pm", "Won by Wayne Ditchfield"
 export default function RowLine({ competition: c, state }: { competition: PublicCompetition; state: RowState }) {
   if (state.kind === "live") {
     return (
