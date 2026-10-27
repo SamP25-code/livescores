@@ -57,3 +57,23 @@ describe("default session for a new entry", () => {
     expect(defaultSession([], [], 2)).toBeNull();
   });
 });
+
+describe("a full session or draw", () => {
+  const { drawLimit, fullProblem } = require("../lib/sessionEntries.ts");
+  const october = { format: "qualifying_and_finals", entries_per_night: 16, draw_size: 16 };
+  const doubles = { format: "single_day", entries_per_night: null, draw_size: 32 };
+
+  test("how many each draw holds", () => {
+    expect(drawLimit(october, "qualifier")).toBe(16);
+    expect(drawLimit(october, "finals")).toBe(16);
+    expect(drawLimit(doubles, "single_day")).toBe(32);
+    expect(drawLimit({ format: "final_only", entries_per_night: null, draw_size: null }, "final")).toBe(2);
+  });
+
+  test("the 17th of 16 is stopped; room left is fine", () => {
+    expect(fullProblem({ limit: 16, count: 15, where: "Session 2" })).toBeNull();
+    expect(fullProblem({ limit: 16, count: 16, where: "Session 2" })).toBe("Session 2 is full - 16 of 16.");
+    expect(fullProblem({ limit: 32, count: 30, adding: 4, where: "The draw" })).toBe("The draw only has room for 2 more (30 of 32).");
+    expect(fullProblem({ limit: null, count: 99, where: "The draw" })).toBeNull();
+  });
+});

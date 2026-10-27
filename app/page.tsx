@@ -123,7 +123,7 @@ export default function HomePage() {
         </>
       )}
 
-      <PublicFooter line="Live scores for crown green competitions, free to follow." />
+      <PublicFooter signIn />
     </div>
   );
 }

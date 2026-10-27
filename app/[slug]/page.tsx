@@ -162,26 +162,6 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
 
       {c.entry_method === "qualification" && <HowToQualify competitionId={c.id} all={all} />}
 
-      {venues.map((v) => (
-        <VenueCard key={v.id} venue={v} />
-      ))}
-
-      <ShareButton
-        label="Share"
-        title={`${c.name} ${c.year}`}
-        text={() => {
-          const next = nextSession(c, today);
-          return competitionShareText({
-            title: `${c.name} ${c.year}`,
-            runBy,
-            champion: c.champion?.name ?? null,
-            runnerUp: c.champion?.runnerUp ?? null,
-            next: next ? [sessionTitle(next), next.date ? shortDate(next.date) : null, sessionTimes(next)].filter(Boolean).join(" · ") : null,
-            url: window.location.href,
-          });
-        }}
-      />
-
       {honours.length > 0 && (
         <section className="home-section">
           <div className="home-section-head">
@@ -224,6 +204,27 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
           ))}
         </p>
       )}
+
+      <ShareButton
+        label="Share"
+        title={`${c.name} ${c.year}`}
+        text={() => {
+          const next = nextSession(c, today);
+          return competitionShareText({
+            title: `${c.name} ${c.year}`,
+            runBy,
+            champion: c.champion?.name ?? null,
+            runnerUp: c.champion?.runnerUp ?? null,
+            next: next ? [sessionTitle(next), next.date ? shortDate(next.date) : null, sessionTimes(next)].filter(Boolean).join(" · ") : null,
+            url: window.location.href,
+          });
+        }}
+      />
+
+      {/* Where it's played, at the bottom of the page */}
+      {venues.map((v, i) => (
+        <VenueCard key={v.id} venue={v} spaced={i === 0} />
+      ))}
     </Shell>
   );
 }

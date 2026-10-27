@@ -82,10 +82,11 @@ import MatchHistory from "@/components/MatchHistory";
 import ViewerLog from "@/components/ViewerLog";
 import type { Competition, MatchRow, Night, Organiser, Player, Venue } from "@/lib/types";
 import { SITE_NAME } from "@/lib/site";
+import { drawLimit, fullProblem } from "@/lib/sessionEntries";
 
 type CompetitionInfo = Pick<
   Competition,
-  "id" | "year" | "team_size" | "target_score" | "scoring_style" | "qualifying_scoring" | "venue_id" | "format" | "draw_size"
+  "id" | "year" | "team_size" | "target_score" | "scoring_style" | "qualifying_scoring" | "venue_id" | "format" | "draw_size" | "entries_per_night"
 > & {
   series: { name: string };
 };
@@ -106,7 +107,7 @@ async function loadCompetitionContext(competitionId: string, nightId: string): P
   const [{ data: competition, error }, entries, { data: timeSlots, error: slotsError }, clubs, { data: venues }] = await Promise.all([
     supabase
       .from("competitions")
-      .select("id, year, team_size, target_score, scoring_style, qualifying_scoring, venue_id, format, draw_size, series:series_id(name)")
+      .select("id, year, team_size, target_score, scoring_style, qualifying_scoring, venue_id, format, draw_size, entries_per_night, series:series_id(name)")
       .eq("id", competitionId)
       .single(),
     listEntries(competitionId),
@@ -366,7 +367,17 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
       pairs={context.competition.team_size === 2}
       entries={context.entries}
       problemFor={(entryId) => (inThisSession.has(entryId) ? "Already in this draw" : null)}
-      onAdd={withContextRefresh((ids: string[]) => addEntriesToSession(nightId, ids))}
+      onAdd={withContextRefresh(async (ids: string[]) => {
+        // A full draw takes no more: 16 of 16 stays 16
+        const full = fullProblem({
+          limit: night ? drawLimit(context.competition, night.kind) : null,
+          count: players.filter((p) => !p.is_bye).length,
+          adding: ids.length,
+          where: "This draw",
+        });
+        if (full) throw new Error(full);
+        await addEntriesToSession(nightId, ids);
+      })}
     />
   );
 

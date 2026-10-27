@@ -129,8 +129,12 @@ a {
   min-height: 100vh;
   min-height: 100dvh;
   padding-top: calc(20px + env(safe-area-inset-top));
-  /* Room for the footer, which sits at the very bottom */
-  padding-bottom: calc(110px + env(safe-area-inset-bottom));
+  padding-bottom: calc(48px + env(safe-area-inset-bottom));
+}
+
+/* Room for the footer (Sign in, on the home page), at the very bottom */
+.page-photo:has(> .public-footer) {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
 }
 
 /* A small back link above the header card, on the raw photo - cream
@@ -4436,46 +4440,6 @@ a.info-pill-club:focus-visible {
   font-size: 0.85rem;
 }
 
-/* The event's countdown: a small box, not a banner */
-.event-countdown {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-}
-
-.event-countdown-count {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 54px;
-  min-height: 54px;
-  padding: 4px;
-  border-radius: var(--radius);
-  background: var(--green-deep);
-  color: #fff;
-  font-size: 0.7rem;
-}
-
-.event-countdown-count strong {
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.6rem;
-  line-height: 1;
-}
-
-.event-countdown-details {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.event-countdown-details span {
-  font-size: 0.9rem;
-  color: var(--ink-soft);
-}
-
 /* The menu's County link: gold like the events, just the one line */
 .site-menu-county {
   margin-top: var(--gap);
@@ -4858,4 +4822,15 @@ a.info-pill-club:focus-visible {
 
 .cal-chooser-month-on .cal-chooser-dot {
   background: #fff;
+}
+
+/* The event page's qualifying card: the next final, then places decided */
+.event-next-final {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.event-places {
+  font-size: 0.92rem;
+  color: var(--ink-soft);
 }

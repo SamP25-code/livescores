@@ -5,7 +5,6 @@ import Link from "next/link";
 import HowToQualify from "@/components/HowToQualify";
 import PublicPage from "@/components/PublicPage";
 import { SponsorPanel } from "@/components/Sponsors";
-import { longDate } from "@/lib/competitionSetup";
 import { listPosts, POST_KIND_LABEL, type EventPost } from "@/lib/postsApi";
 import {
   PALETTE,
@@ -34,7 +33,12 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
   // The event's own background on its page
   usePageBackground(event.organiser.background_image ?? null);
   const [posts, setPosts] = useState<EventPost[]>([]);
-  const [qualified, setQualified] = useState<{ done: number; total: number } | null>(null);
+  // Qualifying for the event: places decided so far, and the next final
+  const [qualified, setQualified] = useState<{
+    done: number;
+    total: number;
+    next: { name: string; date: string } | null;
+  } | null>(null);
   const today = todayIso();
   const comps = [...event.competitions].sort((a, b) =>
     (a.sessions.find((s) => s.date)?.date ?? "9").localeCompare(b.sessions.find((s) => s.date)?.date ?? "9")
@@ -51,7 +55,16 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
       .catch(() => setPosts([]));
     if (qualifyingComps[0]) {
       loadPublicQualifying(qualifyingComps[0].id)
-        .then((places) => setQualified({ done: places.filter((p) => p.who).length, total: places.length }))
+        .then((places) => {
+          const next = places
+            .filter((p) => !p.wildcard && !p.who && p.finalDate && p.finalDate >= today)
+            .sort((a, b) => a.finalDate!.localeCompare(b.finalDate!))[0];
+          setQualified({
+            done: places.filter((p) => p.who).length,
+            total: places.length,
+            next: next ? { name: next.name, date: next.finalDate! } : null,
+          });
+        })
         .catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -75,31 +88,14 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
           {[
             firstDate ? `${dateRange(firstDate, dates[dates.length - 1])} ${event.year}` : "Dates to be confirmed",
             `${comps.length} competition${comps.length === 1 ? "" : "s"}`,
+            !live && days !== null && days > 0 ? `${days} day${days === 1 ? "" : "s"} to go` : null,
+            !live && days === 0 ? "Today" : null,
           ]
             .filter(Boolean)
             .join(" · ")}
         </p>
         <SponsorPanel sponsors={sponsors} />
       </header>
-
-          {!live && days !== null && days >= 0 && (
-            <div className="card event-countdown">
-              <span className="event-countdown-count">
-                {days === 0 ? (
-                  <strong>Today</strong>
-                ) : (
-                  <>
-                    <strong>{days}</strong>
-                    <span>{days === 1 ? "day" : "days"}</span>
-                  </>
-                )}
-              </span>
-              <span className="event-countdown-details">
-                <strong>{longDate(firstDate!)}</strong>
-                <span>{comps.map((c) => c.name).join(" · ")}</span>
-              </span>
-            </div>
-          )}
 
           <div className="event-days">
             {comps.map((c, i) => {
@@ -121,7 +117,7 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
           {qualified && qualified.total > 0 && (
             <section className="home-section">
               <div className="home-section-head">
-                <h2>Who&rsquo;s qualified</h2>
+                <h2>Qualifying</h2>
                 {qualifyingComps[0] && (
                   <Link href={competitionPath(qualifyingComps[0], all)} className="link-button event-more">
                     See all
@@ -129,9 +125,14 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
                 )}
               </div>
               <div className="card">
-                <strong>
-                  {qualified.done} of {qualified.total} places decided
-                </strong>
+                {qualified.next && (
+                  <strong className="event-next-final">
+                    Next final: {qualified.next.name} &middot; {shortDate(qualified.next.date)}
+                  </strong>
+                )}
+                <span className="event-places">
+                  {qualified.done} of {qualified.total} place{qualified.total === 1 ? "" : "s"} decided
+                </span>
                 <div className="qualifying-meter" aria-hidden="true">
                   <i style={{ width: `${(qualified.done / qualified.total) * 100}%` }} />
                 </div>

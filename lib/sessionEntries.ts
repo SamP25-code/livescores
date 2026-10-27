@@ -52,3 +52,32 @@ export function defaultSession<S extends { id: string }>(
   const count = (id: string) => entries.filter((e) => e.status === "entered" && e.session_id === id).length;
   return sessions.find((s) => perSession == null || count(s.id) < perSession) ?? sessions[0];
 }
+
+// How many a draw holds: a qualifying session its "per session" number, a
+// one-day draw (or Finals Day) its draw size, a final two. null: no limit set.
+export function drawLimit(
+  c: { format: string; entries_per_night: number | null; draw_size: number | null },
+  kind: string
+): number | null {
+  if (kind === "qualifier") return c.entries_per_night;
+  if (kind === "final" || c.format === "final_only") return 2;
+  return c.draw_size;
+}
+
+// Why these can't go in: the session (or the draw) is already full. Adding
+// one more than it holds would leave 17 in a session of 16.
+export function fullProblem({
+  limit,
+  count,
+  adding = 1,
+  where,
+}: {
+  limit: number | null;
+  count: number;
+  adding?: number;
+  where: string; // "Session 2", "The draw"
+}): string | null {
+  if (!limit || count + adding <= limit) return null;
+  if (count >= limit) return `${where} is full - ${count} of ${limit}.`;
+  return `${where} only has room for ${limit - count} more (${count} of ${limit}).`;
+}

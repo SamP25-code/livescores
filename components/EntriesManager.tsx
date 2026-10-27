@@ -25,7 +25,7 @@ import {
   setEntryStatus,
   type EntryWithPeople,
 } from "@/lib/peopleApi";
-import { defaultSession } from "@/lib/sessionEntries";
+import { defaultSession, fullProblem } from "@/lib/sessionEntries";
 import type { Competition, Night, Organiser } from "@/lib/types";
 
 // Who's entered in one competition: add a player (or a pair for doubles) with
@@ -98,6 +98,21 @@ export default function EntriesManager({ competition, sessions }: { competition:
   const suggested = defaultSession(qualifyingSessions, entries ?? [], competition.entries_per_night);
   const chosenSession = sessionChoice || suggested?.id || "";
 
+  // A full session (or a full one-day draw) takes no more: 16 of 16 stays 16
+  const inSession = (id: string | null) => entered.filter((e) => e.session_id === id).length;
+  function roomProblem(sessionId: string | null, leaving?: EntryWithPeople): string | null {
+    if (qualifying && sessionId) {
+      const s = qualifyingSessions.find((x) => x.id === sessionId);
+      return fullProblem({
+        limit: competition.entries_per_night,
+        count: inSession(sessionId) - (leaving && leaving.session_id === sessionId ? 1 : 0),
+        where: s ? `Session ${s.session_number}` : "That session",
+      });
+    }
+    if (!qualifying) return fullProblem({ limit: capacity, count: entered.length - (leaving ? 1 : 0), where: "The draw" });
+    return null;
+  }
+
   // Names on this list, with a club or note added only where two share a name
   const shown = useMemo(
     () => distinguishedNames((entries ?? []).flatMap((e) => (e.partner ? [e.person, e.partner] : [e.person]))),
@@ -154,6 +169,11 @@ export default function EntriesManager({ competition, sessions }: { competition:
     }
     const name = entryName(person!.full_name, partner?.full_name);
     const sessionId = qualifying ? chosenSession || null : null;
+    const full = roomProblem(sessionId);
+    if (full) {
+      setError(qualifying ? `${full} Choose another session.` : `${full} Withdraw someone to make room.`);
+      return;
+    }
     await run(
       async () => {
         await addEntry(competition.id, person!.id, pairs ? partner!.id : null, sessionId);
@@ -260,13 +280,14 @@ export default function EntriesManager({ competition, sessions }: { competition:
               className="entries-move"
               value={e.session_id ?? ""}
               disabled={busy}
-              onChange={(ev) =>
-                run(
-                  () => moveEntry(e, ev.target.value),
-                  `${nameOf(e)} moved.`,
-                  drawsFor(e.session_id, ev.target.value)
-                )
-              }
+              onChange={(ev) => {
+                const full = roomProblem(ev.target.value);
+                if (full) {
+                  setError(`${full} ${nameOf(e)} stays where they are.`);
+                  return;
+                }
+                run(() => moveEntry(e, ev.target.value), `${nameOf(e)} moved.`, drawsFor(e.session_id, ev.target.value));
+              }}
             >
               {!e.session_id && <option value="">No session</option>}
               {qualifyingSessions.map((s) => (
@@ -358,10 +379,12 @@ export default function EntriesManager({ competition, sessions }: { competition:
             <select id="entry-session" value={chosenSession} onChange={(e) => setSessionChoice(e.target.value)}>
               {qualifyingSessions.map((s) => {
                 const count = entered.filter((e) => e.session_id === s.id).length;
+                const full = Boolean(competition.entries_per_night && count >= competition.entries_per_night);
                 return (
-                  <option key={s.id} value={s.id}>
+                  <option key={s.id} value={s.id} disabled={full}>
                     {sessionLabel(s)} ({count}
-                    {competition.entries_per_night ? ` of ${competition.entries_per_night}` : ""})
+                    {competition.entries_per_night ? ` of ${competition.entries_per_night}` : ""}
+                    {full ? " - full" : ""})
                   </option>
                 );
               })}
@@ -419,7 +442,14 @@ export default function EntriesManager({ competition, sessions }: { competition:
                     type="button"
                     className="link-button"
                     disabled={busy}
-                    onClick={() => run(() => setEntryStatus(e, "entered"), `${nameOf(e)} back in.`, drawsFor(e.session_id))}
+                    onClick={() => {
+                      const full = roomProblem(e.session_id ?? null);
+                      if (full) {
+                        setError(`${full} Make room before bringing ${nameOf(e)} back.`);
+                        return;
+                      }
+                      run(() => setEntryStatus(e, "entered"), `${nameOf(e)} back in.`, drawsFor(e.session_id));
+                    }}
                   >
                     Reinstate
                   </button>

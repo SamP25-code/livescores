@@ -5,8 +5,6 @@ import { SITE_NAME } from "@/lib/site";
 import SiteHeader from "@/components/SiteHeader";
 import PublicFooter from "@/components/PublicFooter";
 
-export const FOOTER_LINE = "Live scores for crown green competitions, free to follow.";
-
 // The frame of every public page: the header with the menu (☰) and Back,
 // the page's title (or, without one, the page's own heading), the
 // loading / problem line, then its content and the footer
@@ -37,7 +35,7 @@ export default function PublicPage({
       {failed && <p className="quiet-line">Couldn&rsquo;t load &ndash; check your signal and refresh</p>}
       {loading && !failed && <p className="quiet-line">Loading&hellip;</p>}
       {children}
-      <PublicFooter line={FOOTER_LINE} />
+      <PublicFooter />
     </div>
   );
 }
