@@ -87,7 +87,7 @@ export default function MatchHistory({
   const visibleEvents = admin ? events : events.filter((e) => e.event_type !== "reopen");
 
   if (visibleEvents.length === 0) {
-    return <p className="hint match-history-empty">No history yet.</p>;
+    return <p className="hint match-history-empty">No history yet</p>;
   }
 
   if (!nameA || !nameB) {

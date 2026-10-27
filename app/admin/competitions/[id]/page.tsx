@@ -108,7 +108,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
         <span aria-hidden="true">&lsaquo;</span> Your competitions
       </Link>
       {error && <p className="error">{error}</p>}
-      {!data && !error && <p className="hint">Loading&hellip;</p>}
+      {!data && !error && <p className="quiet-line">Loading&hellip;</p>}
 
       {c && (
         <>

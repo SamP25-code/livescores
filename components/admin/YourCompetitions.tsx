@@ -64,7 +64,7 @@ export default function YourCompetitions({ access }: { access: Access }) {
         )}
       </div>
       {error && <p className="error">{error}</p>}
-      {all === null && !error && <p className="hint">Loading&hellip;</p>}
+      {all === null && !error && <p className="quiet-line">Loading&hellip;</p>}
       {all !== null && mine.length === 0 && (
         <p className="quiet-line">
           {access.isSuper

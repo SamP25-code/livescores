@@ -18,11 +18,16 @@ function DateBlock({ iso, colour }: { iso: string | null; colour?: string }) {
   const [y, m, d] = iso.split("-").map(Number);
   const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
   return (
-    <span className="home-date" style={style} aria-hidden="true">
-      <span>{DAY[dow]}</span>
-      <strong>{d}</strong>
-      <span>{MONTH[m - 1]}</span>
-    </span>
+    <>
+      <span className="home-date" style={style} aria-hidden="true">
+        <span>{DAY[dow]}</span>
+        <strong>{d}</strong>
+        <span>{MONTH[m - 1]}</span>
+      </span>
+      <span className="visually-hidden">
+        {DAY[dow]} {d} {MONTH[m - 1]}
+      </span>
+    </>
   );
 }
 

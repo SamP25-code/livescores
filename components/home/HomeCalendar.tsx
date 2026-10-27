@@ -3,17 +3,17 @@
 import { useState } from "react";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import PlayerLinks from "@/components/PlayerLinks";
-import { organiserPill } from "@/components/home/HomeLists";
 import {
   MONTH_NAMES,
-  competitionPath,
   isTrophyDay,
   sessionLabel,
-  sessionTimes,
   marksByDay,
   monthGrid,
   sessionTitle,
   type PublicCompetition,
+  startTime,
+  sessionPath,
+  organiserPill,
 } from "@/lib/publicCompetitions";
 import LivePill from "@/components/home/LivePill";
 
@@ -119,13 +119,15 @@ export default function HomeCalendar({
                   key={name}
                   type="button"
                   className={`cal-chooser-month ${pickYear === year && i === month ? "cal-chooser-month-on" : ""}`}
+                  aria-current={pickYear === year && i === month ? "date" : undefined}
+                  aria-label={`${name} ${pickYear}${on ? " - has competitions" : ""}`}
                   onClick={() => {
                     setChoosing(false);
                     go(pickYear, i);
                   }}
                 >
                   {name.slice(0, 3)}
-                  {on && <span className="cal-dot cal-chooser-dot" aria-label="has competitions" />}
+                  {on && <span className="cal-dot cal-chooser-dot" aria-hidden="true" />}
                 </button>
               );
             })}
@@ -133,7 +135,7 @@ export default function HomeCalendar({
         </div>
       )}
 
-      <div className="cal-grid" role="grid" aria-label={`${MONTH_NAMES[month]} ${year}`}>
+      <div className="cal-grid" role="group" aria-label={`${MONTH_NAMES[month]} ${year}`}>
         {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
           <span key={i} className="cal-weekday" aria-hidden="true">
             {d}
@@ -219,13 +221,13 @@ export default function HomeCalendar({
         <div className="home-rows cal-rows">
           {monthSessions.map(({ competition: c, session: s }) => {
             const won = s.status === "complete" && isTrophyDay(s.kind) && c.champion;
-            const start = sessionTimes(s)?.replace(/^.*Start /, "");
+            const start = startTime(s);
             return (
               <CompetitionRow
                 key={s.id}
                 date={s.date}
                 title={c.name}
-                href={s.draw_published || s.status !== "upcoming" ? `/night/${s.id}` : competitionPath(c, all)}
+                href={sessionPath(c, s, all)}
                 colour={colours.get(c.id)}
                 pill={organiserPill(c, all)}
                 line={

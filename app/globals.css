@@ -576,8 +576,8 @@ a {
   color: var(--ink-soft);
 }
 
-/* Finals Day draw number - a gold disc (gold is Finals Day's colour in
-   the night tabs) so it can't be read as a score or mixed up with the
+/* Finals Day draw number - a gold disc (gold is Finals Day's colour
+   across the site) so it can't be read as a score or mixed up with the
    green qualifying-night draw numbers. */
 .finals-number {
   flex: none;
@@ -917,149 +917,6 @@ label {
 .night-header-card {
   margin: 0 0 var(--gap);
   text-align: center;
-}
-
-.night-header-title {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 2px;
-  background: var(--cream);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 12px 28px;
-}
-
-/* Just groups the day and date so they can be hidden together - lays out
-   as if they were direct children of the title. */
-.night-header-name {
-  display: contents;
-}
-
-.night-header-day {
-  font-family: var(--font-display), Georgia, serif;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--green-deep);
-  line-height: 1.15;
-}
-
-.night-header-date {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.95rem;
-  font-style: italic;
-  color: var(--ink-soft);
-}
-
-.night-header-times {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--green-deep);
-  margin-top: 6px;
-}
-
-.night-header-viewers {
-  display: block;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.85rem;
-  color: var(--ink-soft);
-  margin-top: 4px;
-}
-
-/* Day, date and watchers side by side, the same height as the sponsor
-   strip above it. Anything that doesn't fit (the start times before play
-   begins) wraps onto a small second line, with the watcher count as a pill
-   so it reads cleanly wherever it lands. */
-.night-header-title-slim {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  align-content: center;
-  justify-content: center;
-  gap: 4px 8px;
-  min-height: 44px;
-  padding: 7px 14px;
-}
-
-.night-header-title-slim .night-header-day {
-  font-size: 1.3rem;
-  letter-spacing: 0.02em;
-}
-
-.night-header-title-slim .night-header-date {
-  font-size: 0.85rem;
-}
-
-.night-header-title-slim .night-header-times {
-  order: 1;
-  margin-top: 0;
-  font-size: 0.88rem;
-}
-
-.night-header-title-slim .night-header-viewers {
-  margin-top: 0;
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  white-space: nowrap;
-}
-
-/* Filled in the same colour as the highlighted night tab above, with
-   white writing - green on a qualifying night, gold on Finals Day. */
-.night-header-title-slim {
-  background: var(--green-deep);
-  border-color: var(--green-deep);
-}
-
-.night-header-title-slim.night-header-title-finals {
-  background: var(--gold-deep);
-  border-color: var(--gold-deep);
-}
-
-.night-header-title-slim .night-header-day,
-.night-header-title-slim .night-header-times {
-  color: #fff;
-}
-
-.night-header-title-slim .night-header-date {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.night-header-title-slim .night-header-viewers {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-}
-
-/* A qualifying night's draw page: no strip, just the watcher count as a
-   see-through dark pill on the photo, like the band behind the bracket's
-   round links. */
-.night-header-title-slim.night-header-title-bare {
-  min-height: 0;
-  padding: 0;
-  background: none;
-  border: none;
-}
-
-.night-header-title-bare .night-header-viewers {
-  padding: 4px 12px;
-  font-size: 0.8rem;
-  background: rgba(0, 0, 0, 0.5);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
-}
-
-/* Over the field list it's only the start time, so a touch bigger than
-   the small second line on the draw pages. */
-.night-header-title-field .night-header-times {
-  font-size: 0.9rem;
-}
-
-/* Finals Day's draw page: the start time sits on the same line as the
-   date ("Saturday 17th Oct · 1pm start"), so it matches the date's size. */
-.night-header-title-slim.night-header-title-finals .night-header-times {
-  order: 0;
-  font-size: 0.9rem;
 }
 
 /* Hidden on screen, still read out by screen readers. */
@@ -1604,8 +1461,8 @@ label {
 }
 
 /* Admin menu - a row of tabs across the top on a phone, a column down the
-   left on a wider screen. Same look as the night tabs: cream, with the
-   current page filled green. */
+   left on a wider screen. Cream, with the current page filled
+   green. */
 .admin-nav {
   max-width: 640px;
   margin: 0 auto;
@@ -3054,37 +2911,6 @@ label {
   color: var(--ink-soft);
 }
 
-.honours-row {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.honours-row:last-child {
-  border-bottom: none;
-}
-
-.honours-year {
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--gold-deep);
-}
-
-.honours-winner {
-  flex: 1;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.honours-runner {
-  color: var(--ink-soft);
-  font-size: 0.9rem;
-}
-
 .comp-page-years {
   margin-top: var(--section-gap);
   text-align: center;
@@ -3781,12 +3607,6 @@ label {
   color: var(--green-deep);
 }
 
-.event-share {
-  display: block;
-  width: 100%;
-  min-height: 44px;
-}
-
 /* A competition that's part of an event: adding another to it */
 .event-admin-links {
   display: flex;
@@ -4038,7 +3858,7 @@ label {
   color: var(--green-deep);
 }
 
-/* The home page's big buttons: three on one line */
+/* The home page's big buttons: four on one line */
 .home-tiles {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -4339,23 +4159,6 @@ a.info-pill-club:focus-visible {
   color: var(--ink-soft);
 }
 
-/* Clubs: the name opens the club (the whole row), Map opens Google Maps */
-.club-row {
-  position: relative;
-  align-items: center;
-}
-
-.club-row-name {
-  color: inherit;
-  text-decoration: none;
-}
-
-.club-row-name::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-}
-
 .club-row-map {
   position: relative;
   z-index: 1;
@@ -4504,12 +4307,6 @@ a.info-pill-club:focus-visible {
   text-underline-offset: 2px;
 }
 
-.honours-results {
-  margin-left: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
 /* Player pages */
 .player-meta {
   display: flex;
@@ -4523,27 +4320,6 @@ a.info-pill-club:focus-visible {
 
 .player-meta .info-pill {
   text-shadow: none;
-}
-
-.player-title {
-  display: flex;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.player-title:last-child {
-  border-bottom: none;
-}
-
-.player-title strong {
-  flex: none;
-  min-width: 78px;
-  color: var(--ink-soft);
-}
-
-.player-title-won strong {
-  color: var(--gold-deep);
 }
 
 .player-comp {
@@ -4833,4 +4609,14 @@ a.info-pill-club:focus-visible {
 .event-places {
   font-size: 0.92rem;
   color: var(--ink-soft);
+}
+
+/* A hint with no space around it (inside a row or a tight card) */
+.hint-flush {
+  margin: 0;
+}
+
+/* The sign-in and password pages: a narrower column */
+.page-narrow {
+  max-width: 420px;
 }

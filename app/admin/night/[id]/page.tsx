@@ -484,7 +484,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
         >
           <div>
             <strong>{night.draw_published ? "Draw is live" : "Draw is hidden"}</strong>
-            <p className="hint" style={{ margin: 0 }}>
+            <p className="hint hint-flush">
               {night.draw_published
                 ? "The public page shows the current bracket and scores."
                 : "The public page only shows the roster - the bracket stays private until you publish it."}
@@ -547,7 +547,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
       {role === "owner" && !isFinals && !bracketExists && context && activePlayers.length < 2 && (
         <div className="card">
           <h2>Make the draw</h2>
-          <p className="hint" style={{ margin: 0 }}>
+          <p className="hint hint-flush">
             {activePlayers.length === 0 ? "Nobody entered yet." : "Only one entered so far."} Enter{" "}
             {context.competition.team_size === 2 ? "pairs" : "players"} on the{" "}
             <Link href={`/admin/competitions/${context.competition.id}`}>competition&rsquo;s page</Link> - they
@@ -1037,7 +1037,7 @@ function MatchEditor({
     const advancingName = advancingId ? playerNames[advancingId] : null;
     return (
       <div className="card">
-        <p className="hint" style={{ margin: 0 }}>
+        <p className="hint hint-flush">
           {isBye
             ? `${advancingName ?? "This player"} gets a bye and advances automatically.`
             : advancingName
@@ -1060,7 +1060,7 @@ function MatchEditor({
     const absentA = match.winner_id === match.player_b_id;
     return (
       <div className="card walkover">
-        <p style={{ margin: 0 }}>
+        <p className="hint-flush">
           <span className="walkover-absent">{absentA ? nameA : nameB}</span> didn&rsquo;t turn up -{" "}
           <strong>{absentA ? nameB : nameA}</strong> through.
         </p>

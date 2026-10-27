@@ -3,17 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { loadClubOrganisers, loadLiveMatches, loadPublicCompetitions } from "@/lib/publicData";
+import { loadClubOrganisers, loadLiveMatches, loadPublicCompetitionsShared } from "@/lib/publicData";
 import type { PublicCompetition } from "@/lib/publicCompetitions";
 import { SHOW_PRIVACY, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { menuEvents, menuItems, searchMenu, type MenuEvent, type MenuItem } from "@/lib/siteMenu";
 
 // Loaded the first time the menu opens, then kept for the visit
 type Menu = { items: MenuItem[]; events: MenuEvent[]; live: number };
+// Kept for a minute, so the "Live now" count stays current
 let cached: Promise<Menu> | null = null;
+let cachedAt = 0;
 function loadMenu() {
-  if (!cached) {
-    cached = Promise.all([loadPublicCompetitions(), loadLiveMatches(), loadClubOrganisers().catch(() => [])]).then(([all, live, organisers]) => ({
+  if (!cached || Date.now() - cachedAt > 60_000) {
+    cachedAt = Date.now();
+    cached = Promise.all([loadPublicCompetitionsShared(), loadLiveMatches(), loadClubOrganisers().catch(() => [])]).then(([all, live, organisers]) => ({
       items: menuItems(all as PublicCompetition[], organisers),
       events: menuEvents(all),
       live: live.length,
@@ -54,6 +57,7 @@ export default function SiteHeader({ compact = false, back = "/" }: { compact?: 
   const [query, setQuery] = useState("");
   const [menu, setMenu] = useState<Menu | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -66,9 +70,12 @@ export default function SiteHeader({ compact = false, back = "/" }: { compact?: 
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     menuRef.current?.focus();
+    const button = buttonRef.current;
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
+      // Back to the ☰ button, so a keyboard or screen reader carries on from it
+      button?.focus();
     };
   }, [open]);
 
@@ -83,7 +90,7 @@ export default function SiteHeader({ compact = false, back = "/" }: { compact?: 
   return (
     <>
       <header className={`site-header ${compact ? "site-header-compact" : ""}`}>
-        <button type="button" className="site-menu-button" aria-label="Menu" aria-expanded={open} onClick={() => setOpen(true)}>
+        <button ref={buttonRef} type="button" className="site-menu-button" aria-label="Menu" aria-expanded={open} onClick={() => setOpen(true)}>
           <span />
           <span />
           <span />

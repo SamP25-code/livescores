@@ -33,17 +33,22 @@ export default function HomePage() {
   }, []);
 
   // Everything once, then the live scores as they change. Score changes come
-  // in fast on a busy night, so they're gathered up: the scores refresh after
-  // a moment, the rest of the page (statuses, champions) after a few seconds.
+  // in fast on a busy day, so they're gathered up: the scores refresh a
+  // couple of seconds after a change. The rest of the page (statuses,
+  // champions, what's next) only reloads when a match starts or finishes -
+  // not on every point - so a big crowd watching doesn't weigh on the database.
   const timers = useRef<{ live?: ReturnType<typeof setTimeout>; all?: ReturnType<typeof setTimeout> }>({});
   useEffect(() => {
     let cancelled = false;
+    let liveIds = "";
+    const t = timers.current;
     async function loadAll() {
       try {
         const [comps, matches] = await Promise.all([loadPublicCompetitions(), loadLiveMatches()]);
         if (cancelled) return;
         setCompetitions(comps);
         setLive(matches);
+        liveIds = matches.map((m) => m.id).sort().join();
         setFailed(false);
       } catch {
         if (!cancelled) setFailed(true);
@@ -52,18 +57,23 @@ export default function HomePage() {
     async function loadLive() {
       try {
         const matches = await loadLiveMatches();
-        if (!cancelled) setLive(matches);
+        if (cancelled) return;
+        setLive(matches);
+        // A match started or finished: the rest of the page has moved on too
+        const ids = matches.map((m) => m.id).sort().join();
+        if (ids !== liveIds) {
+          liveIds = ids;
+          if (!t.all) t.all = setTimeout(() => ((t.all = undefined), loadAll()), 5000);
+        }
       } catch {
         // Keep what's shown; the next change tries again
       }
     }
     loadAll();
-    const t = timers.current;
     const channel = supabase
       .channel("home-scores")
       .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => {
-        if (!t.live) t.live = setTimeout(() => ((t.live = undefined), loadLive()), 1500);
-        if (!t.all) t.all = setTimeout(() => ((t.all = undefined), loadAll()), 8000);
+        if (!t.live) t.live = setTimeout(() => ((t.live = undefined), loadLive()), 2000);
       })
       .subscribe();
     return () => {
@@ -128,7 +138,7 @@ export default function HomePage() {
   );
 }
 
-// Simple line drawings for the three buttons, in the page's green
+// Simple line drawings for the four buttons, in the page's green
 function TileIcon({ name }: { name: "list" | "calendar" | "pin" | "trophy" }) {
   return (
     <svg className="home-tile-icon" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">

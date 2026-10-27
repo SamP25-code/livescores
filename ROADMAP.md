@@ -250,6 +250,15 @@ address at some point - nothing changes on this side, it just needs its link upd
 
 ## Navigation - competitions first (agreed 2026-10-16)
 
+> **As built (2026-10-27) - this replaces the plan below where they differ.** Home: live scores
+> when something's on, four buttons (Competitions, Calendar, Clubs, Champions), then Coming up
+> and Latest results, a box per month; Sign in at the bottom. The ☰ menu on every page: search
+> (competitions, clubs, events), the main pages, Find a player, County, and the events in gold.
+> Every list uses the same row (date, name, club pill, one line). Calendar: the month grid with
+> a month chooser, and every session that month listed under it. The event page is one page
+> (no tabs): its days, qualifying, adverts and news. No "Next up" card, countdown, "Recent
+> champions", "Showing / Show all" bar or "Open ›" links any more.
+
 Replaces the earlier clubs-then-competitions layout. Visitors care about competitions, so the
 site is **Home -> Competition -> Night** - three levels, with clubs and events in the
 background. Concept mockups made 2026-10-16 - see `docs/concepts/` (`home-live-and-quiet.jpg`,
@@ -628,7 +637,8 @@ With 20 competitions at different greens it has to be handled:
 ## Easy to read for every age (agreed 2026-10-16 - applies to every screen)
 
 Many players and spectators are older, so: big text, strong contrast, large tap targets, plain
-words. A **"Larger text"** option (remembered on that phone) is cheap to add. Check every new
+words. Text follows the phone's own text size, and any page can be zoomed (the "Larger text" button
+was tried and taken off, 2026-10-21). Check every new
 screen against this before it ships, on a real phone outdoors.
 
 ## Follow a player (agreed 2026-10-16 - after the core work)

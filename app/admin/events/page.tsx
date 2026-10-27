@@ -50,7 +50,7 @@ export default function EventsPage() {
     return (
       <div className="page page-photo">
         <h1>Events</h1>
-        <p className="hint">Only Sam (Super) can set up events.</p>
+        <p className="hint">Only the site admin can set up events.</p>
       </div>
     );
   }
@@ -67,10 +67,10 @@ export default function EventsPage() {
         An event is several competitions under one name, with a page of its own for news, qualifier updates and adverts.
       </p>
       {error && <p className="error">{error}</p>}
-      {events === null && !error && <p className="hint">Loading&hellip;</p>}
+      {events === null && !error && <p className="quiet-line">Loading&hellip;</p>}
       {events?.length === 0 && (
         <div className="card">
-          <p className="hint" style={{ margin: 0 }}>
+          <p className="hint hint-flush">
             No events yet. <strong>New event</strong> sets one up with its first competition.
           </p>
         </div>
@@ -97,7 +97,7 @@ export default function EventsPage() {
               </p>
             )}
             <div className="comp-list">
-              {shown.length === 0 && <p className="hint">No competitions yet.</p>}
+              {shown.length === 0 && <p className="hint">No competitions yet</p>}
               {shown.map((c) => (
                 <Link key={c.id} href={`/admin/competitions/${c.id}`} className="comp-list-row">
                   <span className="comp-list-main">

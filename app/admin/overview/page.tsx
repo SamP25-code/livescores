@@ -61,7 +61,7 @@ export default function OverviewPage() {
     return (
       <div className="page page-photo">
         <h1>Overview</h1>
-        <p className="hint">Only Sam (Super) sees the overview.</p>
+        <p className="hint">Only the site admin sees the overview.</p>
       </div>
     );
   }

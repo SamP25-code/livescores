@@ -31,7 +31,7 @@ export default function NewCompetitionPage() {
         <span aria-hidden="true">&lsaquo;</span> Competitions
       </Link>
       <h1>New competition</h1>
-      {isSuper === false && <p className="hint">Only Sam (Super) can set up competitions.</p>}
+      {isSuper === false && <p className="hint">Only the site admin can set up competitions.</p>}
       {isSuper && presetEvent !== undefined && (
         <CompetitionForm
           presetOrganiserId={presetEvent ?? undefined}

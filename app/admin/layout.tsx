@@ -53,7 +53,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <>
         <div className="public-background" aria-hidden="true" />
         <div className="page page-photo">
-          <p className="hint">Loading&hellip;</p>
+          <p className="quiet-line">Loading&hellip;</p>
         </div>
       </>
     );

@@ -32,7 +32,7 @@ export default function ResetPasswordPage() {
 
   if (done) {
     return (
-      <div className="page page-photo" style={{ maxWidth: 360 }}>
+      <div className="page page-photo page-narrow">
         <h1>Password updated</h1>
         <p className="hint">Taking you to admin&hellip;</p>
       </div>
@@ -40,7 +40,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="page page-photo" style={{ maxWidth: 360 }}>
+    <div className="page page-photo page-narrow">
       <h1>Set a new password</h1>
       <form onSubmit={handleSubmit} className="card">
         <div className="field">

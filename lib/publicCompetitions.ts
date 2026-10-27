@@ -80,6 +80,23 @@ export function organiserPath(c: PublicCompetition, all: PublicCompetition[]): s
   return c.organiser.kind === "event" ? eventPath(c.organiser.slug, c.year, all) : clubPath(c.organiser);
 }
 
+// The pill under a competition's name: its club (short name) or event,
+// opening that club's or event's page
+export function organiserPill(c: PublicCompetition, all: PublicCompetition[]) {
+  return { label: c.organiser.kind === "event" ? c.organiser.name : c.organiser.short_name, href: organiserPath(c, all) };
+}
+
+// Where a session's row goes: its draw once there is one (or it's under
+// way), otherwise the competition's page
+export function sessionPath(c: PublicCompetition, s: PublicSession, all: PublicCompetition[]): string {
+  return s.draw_published || s.status !== "upcoming" ? `/night/${s.id}` : competitionPath(c, all);
+}
+
+// Just the start time for a list row: "10am" (practice is on its page)
+export function startTime(s: Pick<PublicSession, "start_time" | "practice_time">): string | null {
+  return timeOfDay(s.start_time ?? null);
+}
+
 export type PublicStatus = "live" | "coming_up" | "planned" | "finished";
 
 export const STATUS_LABEL: Record<PublicStatus, string> = {
@@ -179,21 +196,6 @@ export function formatLine(c: Pick<PublicCompetition, "organiser" | "team_size" 
   return [c.organiser.kind === "event" ? "Event" : c.organiser.short_name, kind, c.label, shape]
     .filter(Boolean)
     .join(" · ");
-}
-
-// What it is, without who runs it: "Singles · Ladies · 32 players",
-// "Doubles · 5 sessions + Finals Day". A one-day competition's "one day"
-// is left to its date ("One day Sat 18 Sep"), so it isn't said twice.
-export function whatItIs(c: Pick<PublicCompetition, "team_size" | "label" | "format" | "draw_size" | "qualifying_nights">): string {
-  const shape =
-    c.format === "qualifying_and_finals"
-      ? `${c.qualifying_nights ?? "?"} sessions + Finals Day`
-      : c.format === "single_day"
-        ? c.draw_size
-          ? `${c.draw_size} ${c.team_size === 2 ? "pairs" : "players"}`
-          : null
-        : "Final";
-  return [c.team_size === 2 ? "Doubles" : "Singles", c.label, shape].filter(Boolean).join(" · ");
 }
 
 export function publicStatus(c: Pick<PublicCompetition, "sessions" | "champion">, today: string): PublicStatus {

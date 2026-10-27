@@ -54,10 +54,10 @@ export default function CompetitionsPage() {
         )}
       </div>
       {error && <p className="error">{error}</p>}
-      {competitions === null && !error && <p className="hint">Loading&hellip;</p>}
+      {competitions === null && !error && <p className="quiet-line">Loading&hellip;</p>}
       {competitions?.length === 0 && (
         <div className="card">
-          <p className="hint" style={{ margin: 0 }}>
+          <p className="hint hint-flush">
             {isSuper ? (
               <>
                 Nothing set up yet. Start with <strong>New competition</strong>.

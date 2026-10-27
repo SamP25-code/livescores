@@ -1,116 +1,134 @@
 // Loads what the public pages show: every competition with its sessions
 // (each with its status from its matches), entries count and champion; the
 // matches being played right now; and a series' honours board. A handful of
-// requests in all, however many competitions there are.
+// requests in all; each session's status comes ready-worked-out from the
+// database (night_summaries), so it doesn't need every match ever played.
 import { supabase } from "@/lib/supabaseClient";
-import { computeNightStatus, roundLabel } from "@/lib/bracket";
-import { distinguishedNames } from "@/lib/people";
+import { roundLabel } from "@/lib/bracket";
 import type { Champion, PublicCompetition, PublicSession, PublicSessionKind } from "@/lib/publicCompetitions";
 import type { ClubOrganiser } from "@/lib/siteMenu";
 
-type MatchLite = {
-  id: string;
+// Every row of a table, a page of 1,000 at a time - the database hands back
+// at most 1,000 at once, and a season soon has more than that
+async function allRows<T>(page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await page(from, from + 999);
+    if (error) throw error;
+    out.push(...(data ?? []));
+    if (!data || data.length < 1000) return out;
+  }
+}
+
+// A long list of ids, asked for 100 at a time so the request stays short
+async function inChunks<T>(ids: string[], fetch: (chunk: string[]) => PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> {
+  const out: T[] = [];
+  for (let i = 0; i < ids.length; i += 100) {
+    const { data, error } = await fetch(ids.slice(i, i + 100));
+    if (error) throw error;
+    out.push(...(data ?? []));
+  }
+  return out;
+}
+
+// Each session's summary, worked out by the database (migration 2027_18)
+type NightSummary = {
   night_id: string;
-  round: number;
-  slot: number;
+  match_count: number;
+  live_count: number;
   status: "upcoming" | "live" | "complete";
-  winner_id: string | null;
-  player_a_id: string | null;
-  player_b_id: string | null;
-  score_a: number;
-  score_b: number;
+  final_winner_id: string | null;
+  final_loser_id: string | null;
 };
 
+// The same, shared for half a minute: moving between pages (and opening the
+// menu) uses one copy rather than loading everything again each time. The
+// home page loads fresh, and its copy is shared too.
+let shared: { at: number; data: Promise<PublicCompetition[]> } | null = null;
+export function loadPublicCompetitionsShared(): Promise<PublicCompetition[]> {
+  if (shared && Date.now() - shared.at < 30_000) return shared.data;
+  const data = loadPublicCompetitions();
+  shared = { at: Date.now(), data };
+  data.catch(() => {
+    if (shared?.data === data) shared = null;
+  });
+  return data;
+}
+
 export async function loadPublicCompetitions(): Promise<PublicCompetition[]> {
-  const [comps, nights, entries] = await Promise.all([
-    supabase
-      .from("competitions")
-      .select(
-        "*, series:series_id(id, name, slug, organiser:organiser_id(*)), sponsors:competition_sponsors(*)"
-      ),
-    supabase
-      .from("nights")
-      .select(
-        "*"
-      )
-      .not("competition_id", "is", null),
-    supabase.from("entries").select("competition_id").eq("status", "entered"),
+  const fresh = loadPublicCompetitionsFresh();
+  shared = { at: Date.now(), data: fresh };
+  fresh.catch(() => {
+    if (shared?.data === fresh) shared = null;
+  });
+  return fresh;
+}
+
+async function loadPublicCompetitionsFresh(): Promise<PublicCompetition[]> {
+  const [comps, nights, summaries, counts] = await Promise.all([
+    allRows((from, to) =>
+      supabase
+        .from("competitions")
+        .select("*, series:series_id(id, name, slug, organiser:organiser_id(*)), sponsors:competition_sponsors(*)")
+        .order("id")
+        .range(from, to)
+    ),
+    allRows((from, to) => supabase.from("nights").select("*").not("competition_id", "is", null).order("id").range(from, to)),
+    allRows<NightSummary>((from, to) => supabase.from("night_summaries").select("*").order("night_id").range(from, to)),
+    allRows<{ competition_id: string; entered: number }>((from, to) =>
+      supabase.from("competition_entry_counts").select("*").order("competition_id").range(from, to)
+    ),
   ]);
-  if (comps.error) throw comps.error;
-  if (nights.error) throw nights.error;
+  const summaryOf = new Map(summaries.map((x) => [x.night_id, x]));
+  const entryCount = new Map(counts.map((x) => [x.competition_id, x.entered]));
 
-  const nightIds = (nights.data ?? []).map((n) => n.id);
-  const { data: matchData, error: matchError } = nightIds.length
-    ? await supabase
-        .from("matches")
-        .select("id, night_id, round, slot, status, winner_id, player_a_id, player_b_id, score_a, score_b")
-        .in("night_id", nightIds)
-    : { data: [], error: null };
-  if (matchError) throw matchError;
-  const matches = (matchData ?? []) as MatchLite[];
-
-  const byNight = new Map<string, MatchLite[]>();
-  for (const m of matches) {
-    if (!byNight.has(m.night_id)) byNight.set(m.night_id, []);
-    byNight.get(m.night_id)!.push(m);
+  // Each trophy session's final, for the champion and runner-up: their names
+  // and the people behind them
+  const finals = new Map<string, NightSummary>(); // night id -> its summary
+  for (const n of nights) {
+    const sum = summaryOf.get(n.id);
+    if (n.kind !== "qualifier" && sum?.final_winner_id) finals.set(n.id, sum);
   }
-
-  // Each trophy session's final, for the champion
-  const finals = new Map<string, MatchLite>(); // night id -> final
-  for (const n of nights.data ?? []) {
-    if (n.kind === "qualifier") continue;
-    const list = byNight.get(n.id) ?? [];
-    if (list.length === 0) continue;
-    const top = Math.max(...list.map((m) => m.round));
-    const last = list.filter((m) => m.round === top);
-    if (last.length === 1 && last[0].status === "complete" && last[0].winner_id) finals.set(n.id, last[0]);
-  }
-  const nameIds = [...finals.values()].flatMap((m) => [m.player_a_id, m.player_b_id]).filter((id): id is string => Boolean(id));
+  const nameIds = [...new Set([...finals.values()].flatMap((f) => [f.final_winner_id, f.final_loser_id]).filter((id): id is string => Boolean(id)))];
   const names = new Map<string, string>();
   const peopleOf = new Map<string, string[]>(); // place in the draw -> its people
-  if (nameIds.length) {
-    const { data: people } = await supabase
-      .from("players")
-      .select("id, name, entry:entry_id(person_id, partner_id)")
-      .in("id", nameIds);
-    for (const p of people ?? []) {
-      names.set(p.id, p.name);
-      const entry = p.entry as unknown as { person_id: string; partner_id: string | null } | null;
-      if (entry) peopleOf.set(p.id, [entry.person_id, entry.partner_id].filter((x): x is string => Boolean(x)));
-    }
+  const places = await inChunks(nameIds, (chunk) =>
+    supabase.from("players").select("id, name, entry:entry_id(person_id, partner_id)").in("id", chunk)
+  );
+  for (const p of places as { id: string; name: string; entry: unknown }[]) {
+    names.set(p.id, p.name);
+    const entry = p.entry as { person_id: string; partner_id: string | null } | null;
+    if (entry) peopleOf.set(p.id, [entry.person_id, entry.partner_id].filter((x): x is string => Boolean(x)));
   }
 
-  const entryCount = new Map<string, number>();
-  for (const e of entries.data ?? []) entryCount.set(e.competition_id, (entryCount.get(e.competition_id) ?? 0) + 1);
-
   const sessionsByComp = new Map<string, PublicSession[]>();
-  for (const n of nights.data ?? []) {
-    const list = byNight.get(n.id) ?? [];
+  for (const n of nights) {
+    const sum = summaryOf.get(n.id);
     const session: PublicSession = {
       ...n,
       kind: n.kind as PublicSessionKind,
       postponed: Boolean(n.postponed),
-      status: list.length ? computeNightStatus(list) : "upcoming",
-      liveCount: list.filter((m) => m.status === "live").length,
-      matchCount: list.length,
+      status: sum?.status ?? "upcoming",
+      liveCount: sum?.live_count ?? 0,
+      matchCount: sum?.match_count ?? 0,
     };
     if (!sessionsByComp.has(n.competition_id)) sessionsByComp.set(n.competition_id, []);
     sessionsByComp.get(n.competition_id)!.push(session);
   }
 
-  return (comps.data ?? []).map((c) => {
-    const series = c.series as { name: string; slug: string; organiser: PublicCompetition["organiser"] };
+  return comps.map((c) => {
+    const series = (c as { series: unknown }).series as { name: string; slug: string; organiser: PublicCompetition["organiser"] };
     const sessions = (sessionsByComp.get(c.id) ?? []).sort((a, b) => (a.session_number ?? 0) - (b.session_number ?? 0));
     let champion: Champion | null = null;
     for (const s of sessions) {
       const f = finals.get(s.id);
-      if (!f) continue;
-      const loser = f.winner_id === f.player_a_id ? f.player_b_id : f.player_a_id;
+      if (!f?.final_winner_id) continue;
+      const loser = f.final_loser_id;
       champion = {
-        name: names.get(f.winner_id!) ?? "Champion",
+        name: names.get(f.final_winner_id) ?? "Winner",
         runnerUp: loser ? (names.get(loser) ?? null) : null,
         date: s.date,
-        winnerIds: peopleOf.get(f.winner_id!) ?? [],
+        winnerIds: peopleOf.get(f.final_winner_id) ?? [],
         runnerUpIds: loser ? (peopleOf.get(loser) ?? []) : [],
       };
     }
@@ -173,11 +191,15 @@ export async function loadLiveMatches(): Promise<LiveMatch[]> {
 
   const nightIds = [...new Set(live.map((m) => m.night_id))];
   const playerIds = live.flatMap((m) => [m.player_a_id, m.player_b_id]).filter((id): id is string => Boolean(id));
-  const [{ data: nights }, { data: players }, { data: rounds }] = await Promise.all([
+  const [nightsRes, playersRes, roundsRes] = await Promise.all([
     supabase.from("nights").select("id, kind, competition_id").in("id", nightIds),
     supabase.from("players").select("id, name").in("id", playerIds),
     supabase.from("matches").select("night_id, round").in("night_id", nightIds),
   ]);
+  for (const r of [nightsRes, playersRes, roundsRes]) if (r.error) throw r.error;
+  const nights = nightsRes.data;
+  const players = playersRes.data;
+  const rounds = roundsRes.data;
   const nightById = new Map((nights ?? []).map((n) => [n.id, n]));
   const nameById = new Map((players ?? []).map((p) => [p.id, p.name as string]));
   // Matches per round, for "Quarter-Final" and the like
@@ -205,14 +227,16 @@ export type HonoursRow = { year: number; winner: string; runnerUp: string | null
 // years added by hand (honours_history). The site's own result wins.
 export async function loadHonours(seriesSlug: string, fromSite: PublicCompetition[]): Promise<HonoursRow[]> {
   const rows = new Map<number, HonoursRow>();
-  const { data: series } = await supabase.from("series").select("id").eq("slug", seriesSlug).maybeSingle();
+  const { data: series, error: seriesError } = await supabase.from("series").select("id").eq("slug", seriesSlug).maybeSingle();
+  if (seriesError) throw seriesError;
   if (series) {
-    const { data: history } = await supabase
+    const { data: history, error: historyError } = await supabase
       .from("honours_history")
       .select(
         "year, winner_text, runner_up_text, winner_person_id, winner_partner_id, runner_up_person_id, runner_up_partner_id, winner:winner_person_id(full_name), winnerPartner:winner_partner_id(full_name), runner:runner_up_person_id(full_name), runnerPartner:runner_up_partner_id(full_name)"
       )
       .eq("series_id", series.id);
+    if (historyError) throw historyError;
     for (const h of history ?? []) {
       // A doubles year: "A & B"
       const nameOf = (x: unknown) => (x as { full_name: string } | null)?.full_name ?? null;

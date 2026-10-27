@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { loadClubOrganisers, loadPublicCompetitions } from "@/lib/publicData";
+import { loadClubOrganisers, loadPublicCompetitionsShared } from "@/lib/publicData";
 import type { ClubOrganiser } from "@/lib/siteMenu";
 import type { PublicCompetition } from "@/lib/publicCompetitions";
 
@@ -12,7 +12,7 @@ export function usePublicCompetitions(): { competitions: PublicCompetition[] | n
   const [failed, setFailed] = useState(false);
   useEffect(() => {
     let cancelled = false;
-    loadPublicCompetitions()
+    loadPublicCompetitionsShared()
       .then((c) => !cancelled && setCompetitions(c))
       .catch(() => !cancelled && setFailed(true));
     return () => {
@@ -22,17 +22,20 @@ export function usePublicCompetitions(): { competitions: PublicCompetition[] | n
   return { competitions, failed };
 }
 
-// Every club (the Clubs page, a club's page); empty until loaded
-export function useClubOrganisers(): ClubOrganiser[] {
-  const [clubs, setClubs] = useState<ClubOrganiser[]>([]);
+// Every club (the Clubs page, a club's page): null while loading, and
+// whether it failed - so a club page doesn't say "Nothing at this address"
+// just because the list didn't arrive
+export function useClubOrganisers(): { organisers: ClubOrganiser[] | null; failed: boolean } {
+  const [organisers, setOrganisers] = useState<ClubOrganiser[] | null>(null);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     let cancelled = false;
     loadClubOrganisers()
-      .then((c) => !cancelled && setClubs(c))
-      .catch(() => {});
+      .then((c) => !cancelled && setOrganisers(c))
+      .catch(() => !cancelled && setFailed(true));
     return () => {
       cancelled = true;
     };
   }, []);
-  return clubs;
+  return { organisers, failed };
 }

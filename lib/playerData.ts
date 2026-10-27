@@ -2,7 +2,7 @@
 // played and won (put together by lib/playerRecord.ts). Someone who's asked
 // to be taken off the site can't be read here, so their page doesn't exist.
 import { supabase } from "@/lib/supabaseClient";
-import { loadPublicCompetitions } from "@/lib/publicData";
+import { loadPublicCompetitionsShared } from "@/lib/publicData";
 import { todayIso, type PublicCompetition } from "@/lib/publicCompetitions";
 import {
   buildPlayerRecord,
@@ -36,7 +36,7 @@ export async function loadPlayer(id: string): Promise<PlayerPage | { mergedInto:
 
   const [{ data: entryRows, error: entryError }, all, { data: honourRows }] = await Promise.all([
     supabase.from("entries").select("id, competition_id, person_id, partner_id, status").or(`person_id.eq.${id},partner_id.eq.${id}`),
-    loadPublicCompetitions(),
+    loadPublicCompetitionsShared(),
     supabase
       .from("honours_history")
       .select(

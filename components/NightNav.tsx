@@ -3,92 +3,42 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { sessionsShown } from "@/lib/sessionsShown";
 import type { Night } from "@/lib/types";
 
-const WEEKDAY_NAME = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b\s*(.*)$/i;
-const WEEKDAY_ANYWHERE = /(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b\s*(.*)$/i;
-const FINALS_LABEL = "Finals Day";
-
-// Splits "Monday 12th October" into a bold day + a smaller muted date line.
-// Finals Day always shows that fixed label as the title, with whatever date
-// text the admin entered (however it's worded) pulled out as the subtitle -
-// driven by the night's kind rather than guessing from its exact wording.
-// Falls back to null (a single line) for anything else that doesn't start
-// with a weekday.
-export function splitNightName(night: Night): { day: string; rest: string } | null {
-  if (night.kind === "finals") {
-    const match = night.name.match(WEEKDAY_ANYWHERE);
-    const rest = (match ? `${match[1]} ${match[2]}` : night.name).trim();
-    return rest && rest !== FINALS_LABEL ? { day: FINALS_LABEL, rest } : null;
-  }
-  const match = night.name.match(WEEKDAY_NAME);
-  if (!match || !match[2].trim()) return null;
-  return { day: match[1], rest: match[2].trim() };
-}
-
-const WEEKDAY_ABBR: Record<string, string> = {
-  Monday: "Mon",
-  Tuesday: "Tue",
-  Wednesday: "Wed",
-  Thursday: "Thu",
-  Friday: "Fri",
-  Saturday: "Sat",
-  Sunday: "Sun",
-};
-
-// A short label for the tab bar, e.g. "Mon 12" or "Finals" - derived from
-// the same split used for the full title, so the two never drift apart.
-function shortNightLabel(night: Night): string {
-  if (night.kind === "finals") return "Finals";
-  const split = splitNightName(night);
-  if (!split) return night.name;
-  const dayNum = split.rest.match(/\d+/)?.[0];
-  const abbr = WEEKDAY_ABBR[split.day] ?? split.day.slice(0, 3);
-  return dayNum ? `${abbr} ${dayNum}` : split.day;
-}
-
-export default function NightNav({
-  currentId,
-  hideSingle = false,
-}: {
-  currentId?: string;
-  // A one-session competition has nothing to switch between
-  hideSingle?: boolean;
-}) {
+// The tabs across a session page for moving between a competition's
+// sessions: "Session 1", "Session 2" ... "Finals Day". Only that competition's
+// sessions are loaded, and a one-session competition has no tabs at all.
+export default function NightNav({ competitionId, currentId }: { competitionId: string | null; currentId: string }) {
   const [nights, setNights] = useState<Night[]>([]);
 
   useEffect(() => {
+    if (!competitionId) return;
     let cancelled = false;
-    (async () => {
-      const { data } = await supabase.from("nights").select("*").order("sort_order").order("created_at");
-      const all = (data ?? []) as Night[];
-      // Only look up competitions once sessions belong to them (2027
-      // structure); a database not yet moved over shows every night.
-      let competitions: Array<{ id: string; status: "planned" | "active" | "archived"; year: number }> = [];
-      if (all.some((n) => n.competition_id)) {
-        const { data: comps } = await supabase.from("competitions").select("id, status, year");
-        competitions = comps ?? [];
-      }
-      if (!cancelled) setNights(sessionsShown(all, competitions, currentId));
-    })();
+    supabase
+      .from("nights")
+      .select("*")
+      .eq("competition_id", competitionId)
+      .order("session_number")
+      .then(({ data }) => {
+        if (!cancelled) setNights((data ?? []) as Night[]);
+      });
     return () => {
       cancelled = true;
     };
-  }, [currentId]);
+  }, [competitionId]);
 
-  if (nights.length === 0 || (hideSingle && nights.length === 1)) return null;
-
+  if (nights.length < 2) return null;
 
   return (
-    <nav className="night-nav">
+    <nav className="night-nav" aria-label="This competition's sessions">
       {nights.map((n) => (
         <Link
           key={n.id}
           href={`/night/${n.id}`}
           className={`night-pill night-pill-${n.kind} ${n.id === currentId ? "active" : ""}`}
+          aria-current={n.id === currentId ? "page" : undefined}
         >
-          {shortNightLabel(n)}
+          {n.kind === "qualifier" ? `Session ${n.session_number ?? ""}`.trim() : n.kind === "finals" ? "Finals Day" : n.kind === "final" ? "Final" : "One day"}
         </Link>
       ))}
     </nav>

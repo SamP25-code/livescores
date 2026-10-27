@@ -51,7 +51,7 @@ export default function ViewerLog({ nightId }: { nightId: string }) {
     <section className="card viewer-log">
       <h2>Viewers</h2>
       {failed && counts === null ? (
-        <p className="hint">Couldn&rsquo;t load the viewer log. Try refreshing.</p>
+        <p className="hint">Couldn&rsquo;t load the viewer log &ndash; try refreshing</p>
       ) : counts === null ? (
         <p className="hint">Loading&hellip;</p>
       ) : (

@@ -38,7 +38,7 @@ export default function ChoosePasswordPage() {
   }
 
   return (
-    <div className="page page-photo" style={{ maxWidth: 420 }}>
+    <div className="page page-photo page-narrow">
       <h1>Choose your password</h1>
       <form onSubmit={handleSubmit} className="card">
         <p style={{ marginTop: 0 }}>

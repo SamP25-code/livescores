@@ -12,12 +12,12 @@ import PublicPage from "@/components/PublicPage";
 // competitions; "Map" opens Google Maps for directions to its green.
 export default function ClubsPage() {
   const { competitions, failed } = usePublicCompetitions();
-  const organisers = useClubOrganisers();
-  const list = useMemo(() => clubs(competitions ?? [], organisers), [competitions, organisers]);
+  const { organisers, failed: clubsFailed } = useClubOrganisers();
+  const list = useMemo(() => clubs(competitions ?? [], organisers ?? []), [competitions, organisers]);
   const venues = useVenues(list.map((c) => c.venueId));
 
   return (
-    <PublicPage title="Clubs" loading={competitions === null} failed={failed}>
+    <PublicPage title="Clubs" loading={competitions === null || (organisers === null && !clubsFailed)} failed={failed || clubsFailed}>
       {competitions !== null && list.length === 0 && <p className="quiet-line">No clubs yet</p>}
       {list.length > 0 && (
         <div className="card home-rows">

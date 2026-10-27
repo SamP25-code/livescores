@@ -63,7 +63,7 @@ export default function LoginPage() {
 
   if (mode === "forgot") {
     return (
-      <div className="page page-photo" style={{ maxWidth: 420 }}>
+      <div className="page page-photo page-narrow">
         <SiteHeader compact />
         <h1 className="public-page-title">Reset password</h1>
         <div className="card">
@@ -112,7 +112,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="page page-photo" style={{ maxWidth: 420 }}>
+    <div className="page page-photo page-narrow">
       <SiteHeader compact />
       <h1 className="public-page-title">Sign in</h1>
       <div className="card">

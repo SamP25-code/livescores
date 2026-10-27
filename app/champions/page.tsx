@@ -2,12 +2,11 @@
 
 import { useMemo } from "react";
 import { usePublicCompetitions } from "@/lib/usePublicCompetitions";
-import { competitionPath } from "@/lib/publicCompetitions";
+import { competitionPath, organiserPill } from "@/lib/publicCompetitions";
 import PublicPage from "@/components/PublicPage";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import MonthGroups from "@/components/home/MonthGroups";
 import PlayerLinks from "@/components/PlayerLinks";
-import { organiserPill } from "@/components/home/HomeLists";
 
 // Every winner, newest first, a box for each year
 export default function ChampionsPage() {

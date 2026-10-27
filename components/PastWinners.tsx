@@ -157,7 +157,7 @@ export default function PastWinners({ seriesId, seriesName, doubles }: { seriesI
 
       <div className="venue-cards">
         {rows === null && <p className="quiet-line">Loading&hellip;</p>}
-        {rows?.length === 0 && <p className="quiet-line">No past years added yet.</p>}
+        {rows?.length === 0 && <p className="quiet-line">No past years added yet</p>}
         {rows?.map((r) => (
           <div key={r.id} className="card venue-admin-card">
             <span className="comp-list-main">

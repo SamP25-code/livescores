@@ -13,11 +13,11 @@ import {
   sortForList,
   type ListFilter,
   type PublicCompetition,
+  organiserPill,
 } from "@/lib/publicCompetitions";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import MonthGroups from "@/components/home/MonthGroups";
 import RowLine from "@/components/home/RowLine";
-import { organiserPill } from "@/components/home/HomeLists";
 import LivePill from "@/components/home/LivePill";
 
 // Every competition in the chosen year: live first, then coming up, planned,
@@ -134,7 +134,7 @@ export default function CompetitionList({
       )}
 
       {shown.length === 0 && (
-        <p className="quiet-line">{query.trim() ? `Nothing matches “${query.trim()}” in ${year}` : "No competitions yet"}</p>
+        <p className="quiet-line">{query.trim() ? `Nothing matches “${query.trim()}”` : "No competitions yet"}</p>
       )}
       <MonthGroups
         items={dated}

@@ -45,29 +45,6 @@ async function logMatchEvent(
   });
 }
 
-export async function createNight(name: string, kind: "qualifier" | "finals") {
-  const { data: last } = await supabase
-    .from("nights")
-    .select("sort_order")
-    .order("sort_order", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const nextSortOrder = (last?.sort_order ?? -1) + 1;
-
-  const { data, error } = await supabase
-    .from("nights")
-    .insert({ name, kind, sort_order: nextSortOrder, draw_published: kind === "finals" })
-    .select()
-    .single();
-  if (error) throw error;
-
-  if (kind === "finals") {
-    await generateBracket(data.id, [], "finals");
-  }
-
-  return data;
-}
-
 export async function addPlayer(nightId: string, name: string) {
   const { data: last } = await supabase
     .from("players")
@@ -154,7 +131,7 @@ export async function generateBracket(
     .select("id", { count: "exact", head: true })
     .eq("night_id", nightId);
   if (count && count > 0) {
-    throw new Error("This night already has a bracket. Reset it first if you need to redo it.");
+    throw new Error("This session already has a draw. Clear the draw first if you need to make it again.");
   }
 
   const slots: Array<Player | null> =

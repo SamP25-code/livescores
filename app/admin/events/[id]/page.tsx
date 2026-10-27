@@ -90,7 +90,7 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
   if (isSuper === false) {
     return (
       <div className="page page-photo">
-        <p className="hint">Only Sam (Super) can change an event&rsquo;s page.</p>
+        <p className="hint">Only the site admin can change an event&rsquo;s page.</p>
       </div>
     );
   }
@@ -114,7 +114,7 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
 
       <h2>Competitions{year ? ` ${year}` : ""}</h2>
       <div className="card comp-list">
-        {comps.length === 0 && <p className="hint">None yet.</p>}
+        {comps.length === 0 && <p className="hint">No competitions yet</p>}
         {comps.map((c) => (
           <Link key={c.id} href={`/admin/competitions/${c.id}`} className="comp-list-row">
             <span className="comp-list-main">
@@ -238,9 +238,9 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
         </button>
       )}
 
-      <div className="card comp-list" style={{ marginTop: 12 }}>
+      <div className="card comp-list">
         {posts === null && <p className="hint">Loading&hellip;</p>}
-        {posts?.length === 0 && <p className="hint">No posts yet.</p>}
+        {posts?.length === 0 && <p className="hint">No posts yet</p>}
         {posts?.map((p) =>
           editing === p.id && event && year !== null ? (
             <PostForm

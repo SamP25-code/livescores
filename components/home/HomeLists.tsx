@@ -2,26 +2,17 @@ import PlayerLinks from "@/components/PlayerLinks";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import MonthGroups from "@/components/home/MonthGroups";
 import {
-  competitionPath,
   isTrophyDay,
-  organiserPath,
   sessionLabel,
-  sessionTimes,
+  sessionPath,
+  startTime,
+  organiserPill,
   sessionTitle,
   type PublicCompetition,
   type PublicSession,
 } from "@/lib/publicCompetitions";
 
 type Pick = { competition: PublicCompetition; session: PublicSession };
-
-// Who runs it, as the pill under its name
-export function organiserPill(c: PublicCompetition, all: PublicCompetition[]) {
-  return { label: c.organiser.kind === "event" ? c.organiser.name : c.organiser.short_name, href: organiserPath(c, all) };
-}
-
-function sessionHref({ competition: c, session: s }: Pick, all: PublicCompetition[]): string {
-  return s.draw_published || s.status !== "upcoming" ? `/night/${s.id}` : competitionPath(c, all);
-}
 
 // What's coming up, a box for each month with the month above it
 export function ComingUp({ picks, all }: { picks: Pick[]; all: PublicCompetition[] }) {
@@ -39,9 +30,9 @@ export function ComingUp({ picks, all }: { picks: Pick[]; all: PublicCompetition
             key={p.competition.id}
             date={p.session.date}
             title={p.competition.name}
-            href={sessionHref(p, all)}
+            href={sessionPath(p.competition, p.session, all)}
             pill={organiserPill(p.competition, all)}
-            line={[sessionLabel(p.competition, p.session), sessionTimes(p.session)?.replace(/^.*Start /, "")].filter(Boolean).join(" · ")}
+            line={[sessionLabel(p.competition, p.session), startTime(p.session)].filter(Boolean).join(" · ")}
           />
         )}
       />
@@ -66,7 +57,7 @@ export function LatestResults({ picks, all }: { picks: Pick[]; all: PublicCompet
               key={p.competition.id}
               date={p.session.date}
               title={p.competition.name}
-              href={sessionHref(p, all)}
+              href={sessionPath(p.competition, p.session, all)}
               pill={organiserPill(p.competition, all)}
               line={
                 champion ? (

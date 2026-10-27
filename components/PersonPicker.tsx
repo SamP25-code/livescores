@@ -183,7 +183,7 @@ export default function PersonPicker({
               </button>
             );
           })}
-          {!searching && results.length === 0 && <p className="hint person-results-none">Nobody called that yet.</p>}
+          {!searching && results.length === 0 && <p className="hint person-results-none">Nobody called that yet</p>}
           {allowNew && (
             <button type="button" className="person-result person-result-new" disabled={busy || !typed} onClick={startNew}>
               + Add &ldquo;{typed}&rdquo; as a new person

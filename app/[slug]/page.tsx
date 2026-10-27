@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { settingsSummary } from "@/lib/competitionSetup";
-import { loadHonours, loadPublicCompetitions, type HonoursRow } from "@/lib/publicData";
+import { loadHonours, loadPublicCompetitionsShared, type HonoursRow } from "@/lib/publicData";
 import {
   eventPath,
   competitionPath,
@@ -22,6 +22,7 @@ import {
 import { SITE_NAME } from "@/lib/site";
 import { originalDateLabel, postponedLabel } from "@/lib/venues";
 import PlayerLinks from "@/components/PlayerLinks";
+import CompetitionRow from "@/components/home/CompetitionRow";
 import { SponsorPanel } from "@/components/Sponsors";
 import HowToQualify from "@/components/HowToQualify";
 import EventPage from "@/components/event/EventPage";
@@ -53,7 +54,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
     let cancelled = false;
     (async () => {
       try {
-        const comps = await loadPublicCompetitions();
+        const comps = await loadPublicCompetitionsShared();
         if (cancelled) return;
         setAll(comps);
         const c = resolveCompetition(comps, slug);
@@ -167,26 +168,28 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
           <div className="home-section-head">
             <h2>Honours board</h2>
           </div>
-          <div className="card honours">
+          <div className="card home-rows">
             {honours.map((h) => {
               const year = all.find((x) => x.slug === c.slug && x.year === h.year);
               return (
-                <div key={h.year} className="honours-row">
-                  <span className="honours-year">{h.year}</span>
-                  <span className="honours-winner">
-                    <PlayerLinks name={h.winner} ids={h.winnerIds} />
-                    {year && (
-                      <Link href={competitionPath(year, all)} className="honours-results">
-                        Results
-                      </Link>
-                    )}
-                  </span>
-                  {h.runnerUp && (
-                    <span className="honours-runner">
-                      runner-up <PlayerLinks name={h.runnerUp} ids={h.runnerUpIds} className="" />
-                    </span>
-                  )}
-                </div>
+                <CompetitionRow
+                  key={h.year}
+                  date={false}
+                  title={String(h.year)}
+                  // Opens that year's results, when they're on the site
+                  href={year ? competitionPath(year, all) : undefined}
+                  line={
+                    <>
+                      Won by <PlayerLinks name={h.winner} ids={h.winnerIds} className="home-row-champion" />
+                      {h.runnerUp && (
+                        <>
+                          {" "}
+                          &middot; runner-up <PlayerLinks name={h.runnerUp} ids={h.runnerUpIds} className="" />
+                        </>
+                      )}
+                    </>
+                  }
+                />
               );
             })}
           </div>
@@ -261,7 +264,6 @@ function ScheduleRow({
   else details.push("Date to be confirmed");
   if (s.status === "complete") details.push("played");
   if (s.status === "complete" && s.kind === "qualifier" && c.qualifiers_per_night) details.push(`${c.qualifiers_per_night} through`);
-  else if (s.status === "live") details.push(s.date === today ? "tonight" : "in play");
   if (finals && s.status === "upcoming" && c.draw_size) details.push(`${c.draw_size} qualifiers`);
   // Where it's played, only when the competition moves between greens (a
   // county one) - otherwise the venue row underneath says it

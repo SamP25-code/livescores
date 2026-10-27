@@ -48,6 +48,10 @@ Tick each one on a phone (iPhone and Android) as well as a computer.
 - [ ] Make a draw at random and one by recording numbers; publish it
 - [ ] One-day competition: set start times; they show on the public draw
 
+**Full sessions**
+- [ ] Try to enter a 17th into a session of 16 (new, moved and reinstated) and a 33rd into a
+      one-day draw of 32 - each is refused with a message
+
 **On the day**
 - [ ] Score live with the buttons, and with "Type the score"
 - [ ] A results-only session: type a result
@@ -59,8 +63,12 @@ Tick each one on a phone (iPhone and Android) as well as a computer.
       computer)
 
 **Public pages**
-- [ ] Home: live scores (something live), Coming up and Latest results by month, the buttons,
-      the event strip
+- [ ] A competition page: sessions, qualifying list and wildcards, honours board, Share, then
+      the venue at the bottom
+- [ ] The Blackpool Masters page: "N days to go" in the title line, its days, the Qualifying
+      card (next final, places decided), adverts and every news post
+- [ ] Home: live scores (something live), the four buttons, Coming up and Latest results by
+      month, Sign in at the bottom (and nowhere else but the menu)
 - [ ] Menu: search (competition, club, event), Clubs, Find a player, County, Events
 - [ ] A competition's page: schedule, venue, sponsors, honours board, qualifying list
 - [ ] A session page: times, sponsors, the draw (list and bracket), venue
@@ -79,7 +87,7 @@ Anything that needs changing gets fixed on the branch first.
 - [ ] C: write **Part 0** for live only (removes the old `clubs` and `competitions` tables and the
       empty `nights.competition_id` column left from the earlier attempt)
 - [ ] In the **live** project's SQL Editor, run in order: **Part 0**, then every file in
-      `supabase/migrations` from `2027_01` to `2027_17`, checking each says "Success"
+      `supabase/migrations` from `2027_01` to `2027_18`, checking each says "Success"
 - [ ] Make your live login Super (the same one-line update used on test)
 - [ ] C: **copy the real competitions from test to live** - a script run on test produces the
       data, which is then run on live: clubs and their greens, events and the county,

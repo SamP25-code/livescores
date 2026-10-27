@@ -5,9 +5,9 @@ import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, computeNightStatus, isWalkover, roundLabel } from "@/lib/bracket";
 import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
 import { originalDateLabel, postponedLabel } from "@/lib/venues";
-import { sessionTimes, sessionTitle, shortDate, timeOfDay } from "@/lib/publicCompetitions";
+import { sessionTimes, sessionTitle, shortDate } from "@/lib/publicCompetitions";
 import { startViewerPings } from "@/lib/viewerLog";
-import NightNav, { splitNightName } from "@/components/NightNav";
+import NightNav from "@/components/NightNav";
 import { SponsorStrip, type SponsorShown } from "@/components/Sponsors";
 import Avatar from "@/components/Avatar";
 import PlayerName from "@/components/PlayerName";
@@ -74,22 +74,32 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
 
       // First-round start times (2027 sessions). Not there on a database
       // that hasn't been moved over yet - that's fine, there are none.
-      const { data: slotData } = await supabase
+      const { data: slotData, error: slotError } = await supabase
         .from("time_slots")
         .select("from_number, to_number, start_time")
         .eq("night_id", nightId);
-      if (!cancelled) setTimeSlots((slotData ?? []) as TimeSlot[]);
+      if (cancelled) return;
+      // A missing piece shows as "Couldn't load", not as a page without it
+      if (slotError) {
+        setLoadError(true);
+        return;
+      }
+      setTimeSlots((slotData ?? []) as TimeSlot[]);
 
       // Where it's played: this session's own venue, or the competition's
       let venueId = nightData?.venue_id ?? null;
       if (nightData?.competition_id) {
-        const { data: comp } = await supabase
+        const { data: comp, error: compError } = await supabase
           .from("competitions")
           .select(
             "venue_id, year, series_id, format, draw_size, background_url, series:series_id(name, slug, organiser:organiser_id(background_image)), sponsors:competition_sponsors(*)"
           )
           .eq("id", nightData.competition_id)
           .single();
+        if (compError) {
+          if (!cancelled) setLoadError(true);
+          return;
+        }
         if (comp) {
           venueId = venueId ?? comp.venue_id ?? null;
           const series = comp.series as unknown as { name: string; slug: string; organiser: { background_image: string | null } | null };
@@ -288,23 +298,6 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
     return players[finalMatch.winner_id] ?? null;
   }, [night, knockout, rounds, players, showDraw]);
 
-  const titleSplit = night ? splitNightName(night) : null;
-  // The title shrinks to a slim strip, like the sponsor line, whenever
-  // there's a list below it worth the space. Over the field of players
-  // before the draw it slims right down to just the start time - the
-  // highlighted night tab already says which night it is.
-  const showField = !showDraw && (finalsSlots.length > 0 || qualifierPlayers.length > 0);
-  const slimHeader = showDraw || showField;
-  // Finals Day's strip shows its date, since there's no date in the Finals
-  // tab: "Saturday 17th October" over the qualifiers, then "Saturday 17th
-  // Oct" once the draw is up.
-  const finalsDraw = night?.kind === "finals" && showDraw;
-  const finalsField = night?.kind === "finals" && showField;
-  // A qualifying night's draw page drops the strip altogether - the night
-  // tab says which night it is - leaving only the watcher count.
-  const qualifierDraw = night?.kind === "qualifier" && showDraw;
-  const hideName = (showField && !finalsField) || qualifierDraw;
-
   return (
     <div className="page page-photo public-draw">
       <div className="public-background" aria-hidden="true" />
@@ -312,22 +305,23 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         compact
         back={competition ? (competition.latest ? `/${competition.slug}` : `/${competition.slug}-${competition.year}`) : "/"}
       />
-      {/* The competition's own sponsors; a night from before the 2027 move
-          keeps the October Singles sponsor it always had */}
+      {/* The competition's own sponsors */}
       {competition && <SponsorStrip sponsors={competition.sponsors} />}
 
-      <NightNav currentId={nightId} hideSingle={Boolean(competition)} />
+      <NightNav competitionId={night?.competition_id ?? null} currentId={nightId} />
 
       <div className="night-header-card">
-        {competition && night ? (
-          // A competition's session: one line - which session, when, and how
-          // many are watching. The back link above already names the competition.
+        {night && (
+          // One line: which session, when, and how many are watching. The
+          // competition's name sits small above it.
           <div className={`night-header-simple ${night.kind === "finals" ? "night-header-simple-finals" : ""}`}>
-            <p className="night-header-simple-comp">
-              {competition.name} {competition.year}
-            </p>
+            {competition && (
+              <p className="night-header-simple-comp">
+                {competition.name} {competition.year}
+              </p>
+            )}
             <h1>
-              <strong>{sessionTitle(night as Parameters<typeof sessionTitle>[0])}</strong>{" "}
+              <strong>{competition ? sessionTitle(night as Parameters<typeof sessionTitle>[0]) : night.name}</strong>{" "}
               &middot;{" "}
               {[
                 night.date ? shortDate(night.date) : "Date to be confirmed",
@@ -338,50 +332,10 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
                 .join(" · ")}
             </h1>
           </div>
-        ) : (
-          <>
-          <div
-            className={`night-header-title ${slimHeader ? "night-header-title-slim" : ""} ${
-              showField ? "night-header-title-field" : ""
-            } ${night?.kind === "finals" ? "night-header-title-finals" : ""} ${
-              qualifierDraw ? "night-header-title-bare" : ""
-            }`}
-          >
-            {/* Kept for screen readers wherever it's hidden on screen. */}
-            <span className={hideName ? "visually-hidden" : "night-header-name"}>
-              {titleSplit && (finalsDraw || finalsField) ? (
-                <>
-                  <span className="visually-hidden">{titleSplit.day}</span>
-                  <span className="night-header-day">
-                    {finalsDraw ? shortenMonth(titleSplit.rest) : titleSplit.rest}
-                  </span>
-                </>
-              ) : titleSplit ? (
-                <>
-                  <span className="night-header-day">{titleSplit.day}</span>
-                  <span className="night-header-date">{titleSplit.rest}</span>
-                </>
-              ) : (
-                <span className="night-header-day">{night?.name ?? "Loading…"}</span>
-              )}
-            </span>
-            {!loadError && night && !playStarted && !showDraw && !finalsField && headerTimes(night, showField) && (
-              <span className="night-header-times">{headerTimes(night, showField)}</span>
-            )}
-            {/* Only once the draw is up - before that it's the field of
-                players that needs the room. Finals Day waits for the first
-                scores, so the strip stays one line until play begins. */}
-            {!loadError && showDraw && (night?.kind !== "finals" || playStarted) && viewerCount > 0 && (
-              <span className="night-header-viewers">{viewerCount} watching now</span>
-            )}
-          </div>
-          </>
         )}
 
         {loadError && (
-          <p className="night-header-hint">
-            Couldn&rsquo;t load &ndash; check your signal and refresh.
-          </p>
+          <p className="night-header-hint">Couldn&rsquo;t load &ndash; check your signal and refresh</p>
         )}
 
         {!loadError && connectionLost && (
@@ -409,7 +363,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         <div className="champion-banner">
           <PlayerName name={champion.name} />
           <span className="hint">
-            {competition ? `${competition.name} ${competition.year} champion` : night?.kind === "finals" ? "October Singles champion" : "Champion"}
+            {competition ? `${competition.name} ${competition.year} champion` : "Champion"}
           </span>
         </div>
       )}
@@ -449,6 +403,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
           <button
             type="button"
             className={viewMode === "list" ? "" : "secondary"}
+            aria-pressed={viewMode === "list"}
             onClick={() => setViewMode("list")}
           >
             List
@@ -456,6 +411,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
           <button
             type="button"
             className={viewMode === "bracket" ? "" : "secondary"}
+            aria-pressed={viewMode === "bracket"}
             onClick={() => setViewMode("bracket")}
           >
             Bracket
@@ -518,6 +474,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
               <button
                 key={p?.id ?? `slot-${i}`}
                 type="button"
+                aria-pressed={Boolean(p && highlightPlayerId === p.id)}
                 className={`qualifier-row ${p && highlightPlayerId === p.id ? "selected" : ""} ${
                   p ? "" : "qualifier-row-empty"
                 }`}
@@ -564,28 +521,4 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
       <PublicFooter />
     </div>
   );
-}
-
-// The times under the title: the session's own practice and start times.
-// Over the field of players it's just the start and "Draw to follow". A night
-// from before the 2027 move has no times stored, so it keeps the October
-// Singles times it always showed.
-function headerTimes(night: Night, overField: boolean): string | null {
-  if (!night.competition_id && !night.start_time) {
-    if (overField) return "Start 7pm · Draw to follow";
-    return night.kind === "finals" ? "Practice 12:30pm · Start 1pm" : "Practice 6:30pm · Start 7pm";
-  }
-  if (overField) {
-    const start = timeOfDay(night.start_time ?? null);
-    return start ? `Start ${start} · Draw to follow` : "Draw to follow";
-  }
-  return sessionTimes(night);
-}
-
-const MONTHS =
-  /\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/;
-
-// "Saturday 17th October" -> "Saturday 17th Oct"
-function shortenMonth(date: string): string {
-  return date.replace(MONTHS, (month) => month.slice(0, 3));
 }

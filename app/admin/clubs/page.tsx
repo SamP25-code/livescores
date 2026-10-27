@@ -104,7 +104,7 @@ export default function ClubsAdminPage() {
     return (
       <div className="page page-photo">
         <h1>Clubs</h1>
-        <p className="hint">Only Sam (Super) can change clubs.</p>
+        <p className="hint">Only the site admin can change clubs.</p>
       </div>
     );
   }
@@ -166,7 +166,7 @@ export default function ClubsAdminPage() {
       {/* Each club its own card - the one being changed outlined in green */}
       <div className="venue-cards">
         {clubs === null && <p className="quiet-line">Loading&hellip;</p>}
-        {clubs?.length === 0 && <p className="quiet-line">No clubs yet - add the first one.</p>}
+        {clubs?.length === 0 && <p className="quiet-line">No clubs yet - add the first one</p>}
         {clubs?.map((c) => {
           const uses = c.venue_id ? (used.get(c.venue_id) ?? 0) : 0;
           return editing === c.id ? (

@@ -92,7 +92,7 @@ export default function PeoplePage() {
     return (
       <div className="page page-photo">
         <h1>People</h1>
-        <p className="hint">Only Sam (Super) can change people.</p>
+        <p className="hint">Only the site admin can change people.</p>
       </div>
     );
   }

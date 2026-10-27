@@ -23,6 +23,7 @@ const SECTIONS: { id: string; title: string; steps: string[] }[] = [
       "If you type a name that's already on the site and add it as new, it asks whether it's the same person. Say no only if it really is someone else, and give their club (or a note like \"Snr\").",
       "Doubles: enter both partners together under Enter a pair.",
       "With qualifying sessions, choose the session each entry plays in. Entries can be moved, changed or removed until their session's draw is made.",
+      "A full session (or a full one-day draw) takes no more - it says so. Move someone or withdraw an entry to make room.",
     ],
   },
   {

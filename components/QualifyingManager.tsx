@@ -106,7 +106,7 @@ export default function QualifyingManager({ competitionId }: { competitionId: st
           <i style={{ width: `${(counts.qualified / total) * 100}%`, background: "var(--green-deep)" }} />
           <i style={{ width: `${(counts.wildcards / total) * 100}%`, background: "var(--gold)" }} />
         </div>
-        <p className="hint" style={{ margin: 0 }}>
+        <p className="hint hint-flush">
           {counts.qualified} qualified · {counts.wildcards} wildcard{counts.wildcards === 1 ? "" : "s"} · {counts.open} still
           to be decided
         </p>

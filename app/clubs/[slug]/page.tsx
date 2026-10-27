@@ -19,7 +19,8 @@ export default function ClubPage() {
   const [listYear, setListYear] = useState<number | null>(null);
   const [filter, setFilter] = useState<ListFilter>("all");
   const all = useMemo(() => competitions ?? [], [competitions]);
-  const organisers = useClubOrganisers();
+  const { organisers: loadedOrganisers, failed: clubsFailed } = useClubOrganisers();
+  const organisers = useMemo(() => loadedOrganisers ?? [], [loadedOrganisers]);
   const summary = useMemo(() => clubs(all, organisers).find((x) => x.href === `/clubs/${slug}`), [all, organisers, slug]);
   const club = summary ? { id: summary.id, venueId: organisers.find((o) => o.id === summary.id)?.venue_id ?? null } : null;
   const belongs = (c: (typeof all)[number]) => (club ? playedByOrAt(club, c) : false);
@@ -30,8 +31,8 @@ export default function ClubPage() {
   const venue = useVenues([venueId]).get(venueId ?? "");
 
   return (
-    <PublicPage title={summary?.name ?? "Club"} loading={competitions === null} failed={failed} back="/clubs">
-      {competitions !== null && organisers.length > 0 && !summary && <p className="quiet-line">Nothing at this address</p>}
+    <PublicPage title={summary?.name ?? "Club"} loading={competitions === null || (loadedOrganisers === null && !clubsFailed)} failed={failed || clubsFailed} back="/clubs">
+      {competitions !== null && loadedOrganisers !== null && !summary && <p className="quiet-line">Nothing at this address</p>}
       {venue && <VenueCard venue={venue} />}
       {club && years.length === 0 && <p className="quiet-line">No competitions yet</p>}
       {club && years.length > 0 && (

@@ -4,11 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { loadPlayer, type PlayerPage } from "@/lib/playerData";
-import { clubPath, competitionPath } from "@/lib/publicCompetitions";
+import { clubPath, competitionPath, organiserPill } from "@/lib/publicCompetitions";
 import PublicPage from "@/components/PublicPage";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import RowLine from "@/components/home/RowLine";
-import { organiserPill } from "@/components/home/HomeLists";
 import PlayerLinks from "@/components/PlayerLinks";
 
 const RESULT: Record<string, string> = { won: "Won", lost: "Lost", walkover: "Walkover", live: "Live", upcoming: "To play" };
@@ -71,20 +70,24 @@ export default function PlayerPage() {
                 <h2>Honours</h2>
               </div>
               <div className="card home-rows">
-                {record.titles.map((t, i) => (
-                  <div key={i} className={`player-title ${t.place === "Winner" ? "player-title-won" : ""}`}>
-                    <strong>{t.place}</strong>
-                    <span>
-                      {(() => {
-                        // Linked only when its results are on the site
-                        const comp = t.href ? page.all.find((c) => c.id === t.href) : undefined;
-                        return comp ? <Link href={competitionPath(comp, page.all)}>{t.name}</Link> : t.name;
-                      })()}{" "}
-                      {t.year}
-                      {t.partner ? ` · with ${t.partner}` : ""}
-                    </span>
-                  </div>
-                ))}
+                {record.titles.map((t, i) => {
+                  // Opens that year's results only when they're on the site
+                  const comp = t.href ? page.all.find((c) => c.id === t.href) : undefined;
+                  return (
+                    <CompetitionRow
+                      key={i}
+                      date={false}
+                      title={`${t.name} ${t.year}`}
+                      href={comp ? competitionPath(comp, page.all) : undefined}
+                      line={
+                        <>
+                          <strong className={t.place === "Winner" ? "home-row-champion" : undefined}>{t.place}</strong>
+                          {t.partner ? ` · with ${t.partner}` : ""}
+                        </>
+                      }
+                    />
+                  );
+                })}
               </div>
             </section>
           )}

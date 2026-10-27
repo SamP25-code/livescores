@@ -399,7 +399,7 @@ export default function EntriesManager({ competition, sessions }: { competition:
       {error && <p className="error">{error}</p>}
       {message && !error && <p className="hint">{message}</p>}
 
-      {entries === null && <p className="hint">Loading&hellip;</p>}
+      {entries === null && <p className="quiet-line">Loading&hellip;</p>}
       {entries !== null &&
         groups.map((g) => (
           <div key={g.key} className="entries-group">
@@ -423,7 +423,7 @@ export default function EntriesManager({ competition, sessions }: { competition:
               </div>
             )}
             <div className="card comp-list">
-              {g.list.length === 0 ? <p className="hint">Nobody entered yet.</p> : g.list.map(entryRow)}
+              {g.list.length === 0 ? <p className="hint">Nobody entered yet</p> : g.list.map(entryRow)}
             </div>
           </div>
         ))}

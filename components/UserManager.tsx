@@ -168,7 +168,7 @@ export default function UserManager({ competitionId: only }: { competitionId?: s
   if (notConfigured) {
     return (
       <div className="card">
-        <p className="hint" style={{ margin: 0 }}>
+        <p className="hint hint-flush">
           To add and manage users here, the site needs your Supabase service role key. In Vercel, add it under
           Settings &rarr; Environment Variables as <code>SUPABASE_SERVICE_ROLE_KEY</code>, then redeploy.
         </p>
@@ -201,7 +201,7 @@ export default function UserManager({ competitionId: only }: { competitionId?: s
 
       <div className="card user-list">
         {users === null && !error && <p className="hint">Loading&hellip;</p>}
-        {users !== null && shown.length === 0 && <p className="hint">Nobody assigned yet.</p>}
+        {users !== null && shown.length === 0 && <p className="hint">Nobody assigned yet</p>}
         {shown.map((user) => {
           const isYou = user.id === callerId;
           const busy = busyId === user.id;

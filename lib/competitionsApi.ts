@@ -240,13 +240,6 @@ export async function uploadSponsorLogo(file: File): Promise<string> {
   return supabase.storage.from("sponsor-logos").getPublicUrl(path).data.publicUrl;
 }
 
-// Super: every venue, A to Z
-export async function listVenues(): Promise<Venue[]> {
-  const { data, error } = await supabase.from("venues").select("*").order("name");
-  if (error) throw error;
-  return data ?? [];
-}
-
 // How many competitions and sessions use each venue
 export async function venueUsage(): Promise<Map<string, number>> {
   const [{ data: comps }, { data: nights }] = await Promise.all([
@@ -295,14 +288,6 @@ export async function deleteClub(club: ClubWithGreen): Promise<void> {
   }
   await deleteOrganiser(club.id);
   if (club.venue_id) await supabase.from("venues").delete().eq("id", club.venue_id);
-}
-
-// Super: removes a venue nothing uses any more
-export async function deleteVenue(id: string): Promise<void> {
-  const used = (await venueUsage()).get(id) ?? 0;
-  if (used > 0) throw new Error("A competition or session still uses this venue - choose another for it first.");
-  const { error } = await supabase.from("venues").delete().eq("id", id);
-  if (error) throw error;
 }
 
 // Super: renames a competition - every year of it, and its honours board.
