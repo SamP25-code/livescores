@@ -163,71 +163,73 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
 
       {c.entry_method === "qualification" && <HowToQualify competitionId={c.id} all={all} />}
 
-      {honours.length > 0 && (
-        <section className="home-section">
-          <div className="home-section-head">
-            <h2>Honours board</h2>
-          </div>
-          <div className="card home-rows">
-            {honours.map((h) => {
-              const year = all.find((x) => x.slug === c.slug && x.year === h.year);
-              return (
-                <CompetitionRow
-                  key={h.year}
-                  date={false}
-                  title={String(h.year)}
-                  // Opens that year's results, when they're on the site
-                  href={year ? competitionPath(year, all) : undefined}
-                  line={
-                    <>
-                      Won by <PlayerLinks name={h.winner} ids={h.winnerIds} className="home-row-champion" />
-                      {h.runnerUp && (
-                        <>
-                          {" "}
-                          &middot; runner-up <PlayerLinks name={h.runnerUp} ids={h.runnerUpIds} className="" />
-                        </>
-                      )}
-                    </>
-                  }
-                />
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {/* At the foot, clear of the list above: honours, other years, where
+          it's played and Share */}
+      <div className="comp-page-foot">
+        {honours.length > 0 && (
+          <section className="home-section">
+            <div className="home-section-head">
+              <h2>Honours board</h2>
+            </div>
+            <div className="card home-rows">
+              {honours.map((h) => {
+                const year = all.find((x) => x.slug === c.slug && x.year === h.year);
+                return (
+                  <CompetitionRow
+                    key={h.year}
+                    date={false}
+                    title={String(h.year)}
+                    // Opens that year's results, when they're on the site
+                    href={year ? competitionPath(year, all) : undefined}
+                    line={
+                      <>
+                        Won by <PlayerLinks name={h.winner} ids={h.winnerIds} className="home-row-champion" />
+                        {h.runnerUp && (
+                          <>
+                            {" "}
+                            &middot; runner-up <PlayerLinks name={h.runnerUp} ids={h.runnerUpIds} className="" />
+                          </>
+                        )}
+                      </>
+                    }
+                  />
+                );
+              })}
+            </div>
+          </section>
+        )}
 
-      {otherYears.length > 0 && (
-        <p className="comp-page-years">
-          Other years:{" "}
-          {otherYears.map((y, i) => (
-            <span key={y.id}>
-              {i > 0 && " · "}
-              <Link href={competitionPath(y, all)}>{y.year}</Link>
-            </span>
-          ))}
-        </p>
-      )}
+        {otherYears.length > 0 && (
+          <p className="comp-page-years">
+            Other years:{" "}
+            {otherYears.map((y, i) => (
+              <span key={y.id}>
+                {i > 0 && " · "}
+                <Link href={competitionPath(y, all)}>{y.year}</Link>
+              </span>
+            ))}
+          </p>
+        )}
 
-      <ShareButton
-        label="Share"
-        title={`${c.name} ${c.year}`}
-        text={() => {
-          const next = nextSession(c, today);
-          return competitionShareText({
-            title: `${c.name} ${c.year}`,
-            runBy,
-            champion: c.champion?.name ?? null,
-            runnerUp: c.champion?.runnerUp ?? null,
-            next: next ? [sessionTitle(next), next.date ? shortDate(next.date) : null, sessionTimes(next)].filter(Boolean).join(" · ") : null,
-            url: window.location.href,
-          });
-        }}
-      />
-
-      {/* Where it's played, at the bottom of the page */}
-      {venues.map((v, i) => (
-        <VenueCard key={v.id} venue={v} spaced={i === 0} />
-      ))}
+        {venues.map((v, i) => (
+          <VenueCard key={v.id} venue={v} spaced={i === 0} />
+        ))}
+        <ShareButton
+          label="Share"
+          title={`${c.name} ${c.year}`}
+          text={() => {
+            const next = nextSession(c, today);
+            return competitionShareText({
+              title: `${c.name} ${c.year}`,
+              runBy,
+              champion: c.champion?.name ?? null,
+              runnerUp: c.champion?.runnerUp ?? null,
+              next: next ? [sessionTitle(next), next.date ? shortDate(next.date) : null, sessionTimes(next)].filter(Boolean).join(" · ") : null,
+              url: window.location.href,
+            });
+          }}
+        />
+      </div>
     </Shell>
   );
 }

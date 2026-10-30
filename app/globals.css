@@ -4453,6 +4453,60 @@ a.info-pill-club:focus-visible {
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
 }
 
+/* A qualification competition: its places filling in as each is won */
+.qualify-progress {
+  margin-bottom: 4px;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+.qualify-progress-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 12px;
+  margin: 0 0 6px;
+}
+
+.qualify-bar {
+  display: flex;
+  gap: 2px;
+}
+
+.qualify-bar span {
+  flex: 1;
+  min-width: 0;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.qualify-bar .qualify-bar-won {
+  background: var(--gold);
+}
+
+.qualify-progress-by {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+}
+
+/* A competition's page: honours, other years, where it's played and Share
+   together at the foot, well clear of the list above (which grows as
+   qualifying competitions are added) */
+.comp-page-foot {
+  margin-top: calc(var(--section-gap) * 2.5);
+  padding-top: var(--section-gap);
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.comp-page-foot > :first-child {
+  margin-top: 0;
+}
+
+.comp-page-foot .share-results {
+  justify-content: center;
+}
+
 /* Choosing a background photo */
 .background-picker-row {
   display: flex;

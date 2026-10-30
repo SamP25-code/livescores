@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import PlayerName from "@/components/PlayerName";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import { loadPublicQualifying, type PublicPlace } from "@/lib/publicQualifying";
-import { competitionPath, shortDate, type PublicCompetition } from "@/lib/publicCompetitions";
+import { competitionPath, shortDate, todayIso, type PublicCompetition } from "@/lib/publicCompetitions";
 import MonthGroups from "@/components/home/MonthGroups";
 
 // How to get into a competition entered by qualification (the Masters
-// Invitation): each qualifying competition as a row - the date of its final,
-// where it's played, and its winner once decided - soonest first, so it's
-// clear when every place will be in. Then the wildcards, dates to follow.
+// Invitation): a bar of its places, filling in as each is won, then each
+// qualifying competition as a row - the date of its final, where it's
+// played, and its winner once decided - soonest first, so it's clear when
+// every place will be in. Then the wildcards, dates to follow.
 export default function HowToQualify({ competitionId, all }: { competitionId: string; all: PublicCompetition[] }) {
   const [places, setPlaces] = useState<PublicPlace[] | null>(null);
 
@@ -39,6 +40,12 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
   const decided = qualifying.filter((p) => p.who).length;
   const dates = qualifying.map((p) => p.finalDate).filter((d): d is string => Boolean(d));
   const last = qualifying.length > 0 && dates.length === qualifying.length ? dates.sort().at(-1)! : null;
+  const today = todayIso();
+  const next = qualifying.find((p) => !p.who && p.finalDate && p.finalDate >= today)?.finalDate ?? null;
+  const allDecided = decided === qualifying.length;
+  const placesLine = allDecided
+    ? `All ${qualifying.length} place${qualifying.length === 1 ? "" : "s"} decided`
+    : `${decided} of ${qualifying.length} place${qualifying.length === 1 ? "" : "s"} decided`;
 
   function href(p: PublicPlace): string | undefined {
     if (!p.link) return undefined;
@@ -55,15 +62,19 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
           <div className="home-section-head">
             <h2>Qualifying competitions</h2>
           </div>
-          <p className="public-page-intro">
-            {[
-              `${qualifying.length} competition${qualifying.length === 1 ? "" : "s"}`,
-              `${decided} winner${decided === 1 ? "" : "s"} so far`,
-              last ? `all decided by ${shortDate(last)}` : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
+          <div className="qualify-progress">
+            <p className="qualify-progress-head">
+              <strong>{placesLine}</strong>
+              {!allDecided && next && <span>Next: {shortDate(next)}</span>}
+            </p>
+            {/* One small segment per place - still clear with 32 */}
+            <div className="qualify-bar" role="img" aria-label={placesLine}>
+              {qualifying.map((p) => (
+                <span key={p.number} className={p.who ? "qualify-bar-won" : undefined} />
+              ))}
+            </div>
+            {!allDecided && last && <p className="qualify-progress-by">All decided by {shortDate(last)}</p>}
+          </div>
           <MonthGroups
             items={qualifying}
             dateOf={(p) => p.finalDate}
