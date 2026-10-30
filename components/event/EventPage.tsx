@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import HowToQualify from "@/components/HowToQualify";
 import PublicPage from "@/components/PublicPage";
-import { SponsorPanel } from "@/components/Sponsors";
+import { SponsorPanel, type SponsorShown } from "@/components/Sponsors";
+import { listEventSponsors } from "@/lib/competitionsApi";
 import { listPosts, POST_KIND_LABEL, type EventPost } from "@/lib/postsApi";
 import {
   PALETTE,
@@ -33,6 +34,8 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
   // The event's own background on its page
   usePageBackground(event.organiser.background_image ?? null);
   const [posts, setPosts] = useState<EventPost[]>([]);
+  // Sponsors of the whole event (set up on its admin page)
+  const [eventSponsors, setEventSponsors] = useState<SponsorShown[]>([]);
   // Qualifying for the event: places decided so far, and the next final
   const [qualified, setQualified] = useState<{
     done: number;
@@ -53,6 +56,9 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
       // Only what's published and due (Super also sees drafts from the database)
       .then((list) => setPosts(list.filter((p) => p.published && p.show_from <= today)))
       .catch(() => setPosts([]));
+    listEventSponsors(event.organiser.id, event.year)
+      .then(setEventSponsors)
+      .catch(() => setEventSponsors([]));
     if (qualifyingComps[0]) {
       loadPublicQualifying(qualifyingComps[0].id)
         .then((places) => {
@@ -70,9 +76,9 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event.organiser.id, event.year]);
 
-  // The event's sponsors: everyone sponsoring any of its competitions, once
-  const sponsors = comps
-    .flatMap((c) => c.sponsors)
+  // The event's sponsors: its own first, then everyone sponsoring any of its
+  // competitions, once each
+  const sponsors = [...eventSponsors, ...comps.flatMap((c) => c.sponsors)]
     .filter((s, i, list) => list.findIndex((x) => x.name === s.name) === i);
   const adverts = posts.filter((p) => p.kind === "advert");
   const news = posts.filter((p) => p.kind !== "advert");
@@ -94,7 +100,7 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
             .filter(Boolean)
             .join(" · ")}
         </p>
-        <SponsorPanel sponsors={sponsors} />
+        <SponsorPanel sponsors={sponsors} bare />
       </header>
 
           <div className="event-days">

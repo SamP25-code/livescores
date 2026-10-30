@@ -65,6 +65,18 @@ export type CompetitionSponsor = {
   created_at: string;
 };
 
+// Part 21: a sponsor of a whole event (an organiser in a year)
+export type EventSponsor = {
+  id: string;
+  organiser_id: string;
+  year: number;
+  position: number;
+  name: string;
+  url: string | null;
+  logo_url: string | null;
+  created_at: string;
+};
+
 export type Competition = {
   id: string;
   series_id: string;

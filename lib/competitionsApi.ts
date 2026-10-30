@@ -3,7 +3,7 @@
 // a Super login can do any of this.
 import { supabase } from "@/lib/supabaseClient";
 import { planSessions, sessionName, slugify, type SessionKind } from "@/lib/competitionSetup";
-import type { Competition, CompetitionSponsor, Night, Organiser, Series, Venue } from "@/lib/types";
+import type { Competition, CompetitionSponsor, EventSponsor, Night, Organiser, Series, Venue } from "@/lib/types";
 
 export type CompetitionWithSeries = Competition & {
   series: Series & { organiser: Organiser };
@@ -113,15 +113,46 @@ export type CompetitionInput = Omit<Competition, "id" | "created_at" | "structur
 
 // Replaces a competition's sponsors with this list, in this order. Rows with
 // no name are left out.
-export async function saveSponsors(competitionId: string, sponsors: SponsorInput[]): Promise<void> {
-  const rows = sponsors
+function sponsorRows(sponsors: SponsorInput[]) {
+  return sponsors
     .map((s) => ({ name: s.name.trim(), url: s.url.trim() || null, logo_url: s.logo_url || null }))
     .filter((s) => s.name)
-    .map((s, i) => ({ ...s, competition_id: competitionId, position: i + 1 }));
+    .map((s, i) => ({ ...s, position: i + 1 }));
+}
+
+export async function saveSponsors(competitionId: string, sponsors: SponsorInput[]): Promise<void> {
+  const rows = sponsorRows(sponsors).map((s) => ({ ...s, competition_id: competitionId }));
   const { error: removeError } = await supabase.from("competition_sponsors").delete().eq("competition_id", competitionId);
   if (removeError) throw removeError;
   if (rows.length === 0) return;
   const { error } = await supabase.from("competition_sponsors").insert(rows);
+  if (error) throw error;
+}
+
+// A whole event's sponsors (an organiser in a year, e.g. the Blackpool
+// Masters 2027), in the order shown
+export async function listEventSponsors(organiserId: string, year: number): Promise<EventSponsor[]> {
+  const { data, error } = await supabase
+    .from("event_sponsors")
+    .select("*")
+    .eq("organiser_id", organiserId)
+    .eq("year", year)
+    .order("position");
+  if (error) throw error;
+  return (data ?? []) as EventSponsor[];
+}
+
+// Replaces an event's sponsors for the year with this list, in this order
+export async function saveEventSponsors(organiserId: string, year: number, sponsors: SponsorInput[]): Promise<void> {
+  const rows = sponsorRows(sponsors).map((s) => ({ ...s, organiser_id: organiserId, year }));
+  const { error: removeError } = await supabase
+    .from("event_sponsors")
+    .delete()
+    .eq("organiser_id", organiserId)
+    .eq("year", year);
+  if (removeError) throw removeError;
+  if (rows.length === 0) return;
+  const { error } = await supabase.from("event_sponsors").insert(rows);
   if (error) throw error;
 }
 

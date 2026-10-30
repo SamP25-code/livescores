@@ -20,7 +20,6 @@ import {
   listChoices,
   saveSponsors,
   updateCompetition,
-  uploadSponsorLogo,
   type CompetitionInput,
   type CompetitionWithSeries,
   type SessionDetails,
@@ -33,6 +32,7 @@ import { addMinutes } from "@/lib/timeSlots";
 import type { Night, Organiser, Series, Venue } from "@/lib/types";
 import { useIsSuper } from "@/lib/auth";
 import BackgroundPicker from "@/components/BackgroundPicker";
+import SponsorFields, { EMPTY_SPONSOR } from "@/components/SponsorFields";
 
 const DEFAULT_START: Record<SessionKind, string> = {
   qualifier: "19:00",
@@ -117,7 +117,7 @@ export default function CompetitionForm({
   const [sponsors, setSponsors] = useState<SponsorInput[]>(() =>
     c?.sponsors?.length
       ? c.sponsors.map((s) => ({ name: s.name, url: s.url ?? "", logo_url: s.logo_url ?? null }))
-      : [{ name: "", url: "", logo_url: null }]
+      : [EMPTY_SPONSOR]
   );
 
   // Venue
@@ -221,26 +221,6 @@ export default function CompetitionForm({
     if (!venueId) {
       const last = pastVenues.filter((p) => p.organiserId === id).sort((a, b) => b.year - a.year)[0];
       if (last) setVenueId(last.venueId);
-    }
-  }
-
-  function setSponsor(i: number, field: keyof SponsorInput, value: string | null) {
-    setSponsors((current) => current.map((s, j) => (j === i ? { ...s, [field]: value } : s)));
-  }
-
-  // Logos upload straight away (so they can be seen) and are saved against
-  // the sponsor with the rest of the form
-  const [uploading, setUploading] = useState<number | null>(null);
-  async function chooseLogo(i: number, file: File | undefined) {
-    if (!file) return;
-    setError(null);
-    setUploading(i);
-    try {
-      setSponsor(i, "logo_url", await uploadSponsorLogo(file));
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setUploading(null);
     }
   }
 
@@ -820,68 +800,7 @@ export default function CompetitionForm({
           value={background}
           onChange={setBackground}
         />
-        <div className="comp-form-sponsors">
-          <span className="comp-form-sponsors-title">Sponsors (optional)</span>
-          {sponsors.map((sponsor, i) => (
-            <div key={i} className="comp-form-sponsor">
-              <div className="field">
-                <label htmlFor={`cf-sponsor-${i}`}>{sponsors.length > 1 ? `Sponsor ${i + 1}` : "Sponsor"}</label>
-                <input id={`cf-sponsor-${i}`} value={sponsor.name} onChange={(e) => setSponsor(i, "name", e.target.value)} />
-              </div>
-              <div className="field">
-                <label htmlFor={`cf-sponsor-url-${i}`}>Website</label>
-                <input
-                  id={`cf-sponsor-url-${i}`}
-                  type="url"
-                  placeholder="https://"
-                  value={sponsor.url}
-                  onChange={(e) => setSponsor(i, "url", e.target.value)}
-                />
-              </div>
-              {sponsors.length > 1 && (
-                <button
-                  type="button"
-                  className="link-button comp-form-remove"
-                  onClick={() => setSponsors((current) => current.filter((_, j) => j !== i))}
-                  aria-label={`Remove ${sponsor.name || `sponsor ${i + 1}`}`}
-                >
-                  Remove
-                </button>
-              )}
-              <div className="comp-form-logo">
-                {sponsor.logo_url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={sponsor.logo_url} alt={`${sponsor.name || "Sponsor"} logo`} className="comp-form-logo-img" />
-                )}
-                <label className="link-button comp-form-logo-pick">
-                  {uploading === i ? "Uploading…" : sponsor.logo_url ? "Change logo" : "Add a logo (optional)"}
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
-                    className="visually-hidden"
-                    disabled={uploading !== null}
-                    onChange={(e) => {
-                      chooseLogo(i, e.target.files?.[0]);
-                      e.target.value = "";
-                    }}
-                  />
-                </label>
-                {sponsor.logo_url && (
-                  <button type="button" className="link-button" onClick={() => setSponsor(i, "logo_url", null)}>
-                    Remove logo
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-          <button
-            type="button"
-            className="link-button"
-            onClick={() => setSponsors((current) => [...current, { name: "", url: "", logo_url: null }])}
-          >
-            + Add another sponsor
-          </button>
-        </div>
+        <SponsorFields id="cf-sponsor" sponsors={sponsors} onChange={setSponsors} onError={setError} />
       </section>
 
       {error && <p className="error">{error}</p>}

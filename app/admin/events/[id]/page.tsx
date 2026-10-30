@@ -10,11 +10,19 @@ import { SITE_NAME } from "@/lib/site";
 import { supabase } from "@/lib/supabaseClient";
 import PostForm from "@/components/PostForm";
 import BackgroundPicker from "@/components/BackgroundPicker";
-import { deleteOrganiser, listChoices, moveSeries } from "@/lib/competitionsApi";
+import SponsorFields, { EMPTY_SPONSOR } from "@/components/SponsorFields";
+import {
+  deleteOrganiser,
+  listChoices,
+  listEventSponsors,
+  moveSeries,
+  saveEventSponsors,
+  type SponsorInput,
+} from "@/lib/competitionsApi";
 import type { Organiser, Series } from "@/lib/types";
 
-// An event's page, behind the scenes (Super): its web address, and its posts
-// for the year - news, qualifier updates and adverts. Its competitions are
+// An event's page, behind the scenes (Super): its web address, its sponsors
+// and its posts for the year - news, qualifier updates and adverts. Its competitions are
 // set up as usual; this is the page that brings them together.
 export default function AdminEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -27,6 +35,9 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
   // This year's competitions in the event
   const [comps, setComps] = useState<{ id: string; name: string }[]>([]);
   const [editing, setEditing] = useState<string | null>(null); // post id, or "new"
+  // The whole event's sponsors for the year (each competition has its own too)
+  const [sponsors, setSponsors] = useState<SponsorInput[]>([EMPTY_SPONSOR]);
+  const [savingSponsors, setSavingSponsors] = useState(false);
   // Competitions already set up elsewhere, to bring into this event
   const [others, setOthers] = useState<{ series: Series; organiser: string }[]>([]);
   const [bringIn, setBringIn] = useState("");
@@ -60,6 +71,10 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
     if (year === null) return;
     try {
       setPosts(await listPosts(id, year));
+      const saved = await listEventSponsors(id, year);
+      setSponsors(
+        saved.length ? saved.map((s) => ({ name: s.name, url: s.url ?? "", logo_url: s.logo_url })) : [EMPTY_SPONSOR]
+      );
       const { data: comps } = await supabase
         .from("competitions")
         .select("id, series:series_id!inner(organiser_id, name)")
@@ -170,6 +185,37 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
             }}
           />
         </div>
+      )}
+
+      {event && year !== null && (
+        <form
+          className="card"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setError(null);
+            setSavingSponsors(true);
+            try {
+              await saveEventSponsors(event.id, year, sponsors);
+              setMessage("Sponsors saved.");
+              await load();
+            } catch (err) {
+              setError(errorMessage(err));
+            } finally {
+              setSavingSponsors(false);
+            }
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>
+            Sponsors of the {event.name} {year}
+          </h2>
+          <p className="hint">
+            Shown at the top of the event&rsquo;s page. A competition&rsquo;s own sponsors are set up in its settings.
+          </p>
+          <SponsorFields id="event-sponsor" sponsors={sponsors} onChange={setSponsors} onError={setError} />
+          <button type="submit" disabled={savingSponsors}>
+            {savingSponsors ? "Saving…" : "Save sponsors"}
+          </button>
+        </form>
       )}
 
       {others.length > 0 && (

@@ -2950,6 +2950,25 @@ label {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
 }
 
+/* An event's page: just the logos, straight on the photo */
+.sponsor-panel-bare {
+  padding: 0;
+  max-width: none;
+  background: none;
+  box-shadow: none;
+}
+
+.sponsor-panel-bare .sponsor-panel-item {
+  color: #fff;
+}
+
+.sponsor-panel-bare .sponsor-panel-logo {
+  max-height: 72px;
+  max-width: 220px;
+  border-radius: 4px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
 .sponsor-panel-label {
   font-size: 0.8rem;
   font-weight: 700;

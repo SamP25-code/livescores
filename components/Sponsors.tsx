@@ -32,12 +32,13 @@ export function SponsorStrip({ sponsors }: { sponsors: SponsorShown[] }) {
 }
 
 // On a competition's page: logos on a light panel (logos often have dark
-// writing), or the names where there's no logo
-export function SponsorPanel({ sponsors }: { sponsors: SponsorShown[] }) {
+// writing), or the names where there's no logo. "bare" (an event's page)
+// shows just the logos on the page's photo, with no panel or heading.
+export function SponsorPanel({ sponsors, bare = false }: { sponsors: SponsorShown[]; bare?: boolean }) {
   if (sponsors.length === 0) return null;
   return (
-    <div className="sponsor-panel">
-      <span className="sponsor-panel-label">Sponsored by</span>
+    <div className={bare ? "sponsor-panel sponsor-panel-bare" : "sponsor-panel"}>
+      {!bare && <span className="sponsor-panel-label">Sponsored by</span>}
       <div className="sponsor-panel-list">
         {sponsors.map((s) => (
           <Linked key={s.name} sponsor={s} className="sponsor-panel-item">
