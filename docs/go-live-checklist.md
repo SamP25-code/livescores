@@ -104,19 +104,21 @@ pictures to upload again.)
 Claude does the steps marked with C, Sam the rest.
 
 **Before the day**
-- [ ] Supabase plan: the test project must not pause once it's live (a paid plan, or kept in
-      use). Rename it to `bowls-live` in its settings if you like - the public never sees it
+- [x] Supabase plan: staying on the free plan (decided 2026-11-02). The daily keep-alive
+      (`/api/keepalive`, the cron in vercel.json) reads from whichever database Production
+      uses, so after the switch it keeps the test project awake. The free plan has no
+      backups to restore from, so take one by hand before the switch and now and then (C
+      gives the steps). Rename the project to `bowls-live` if you like - the public never sees it
 - [ ] Check the October Singles 2026 matches on both: 80 players and 63 matches on each (C gives
       the one-line check)
 - [ ] Logins: everyone who'll run or score in 2027 has a login on the test project (only
       Wayne and the organisers - test logins are removed on the Users page)
 - [ ] Rehearse `supabase/scripts/go-live-tidy.sql` on test (it ends with rollback, so nothing
       changes) and check the list it shows
-- [ ] The new address, `crowngreenlive.co.uk` (bought 2026-11-02): Vercel -> Settings ->
-      Domains -> add `www.crowngreenlive.co.uk`, and `crowngreenlive.co.uk` redirecting to it.
-      Add the DNS records Vercel shows at GoDaddy (the same steps as for `pssc-bowls.co.uk`).
-      Until the switch it just shows the current site - that's fine, and gives the DNS time
-      to settle
+- [x] The new address, `crowngreenlive.co.uk` (bought 2026-11-02): in Vercel's Domains,
+      `www.crowngreenlive.co.uk` on Production and `crowngreenlive.co.uk` redirecting to it;
+      GoDaddy has A `@` 216.198.79.1 and CNAME `www` to Vercel. Both valid 2026-11-02. Until
+      the switch it just shows the current site
 
 **On the day** (a quiet day - nothing live, nobody needing the admin side for an hour)
 - [ ] Back up both projects - Supabase -> Database -> Backups (or download one)
@@ -124,10 +126,11 @@ Claude does the steps marked with C, Sam the rest.
       test scores and test change logs; keeps all the set-up and entries
 - [ ] On test: Authentication -> URL Configuration - Site URL `https://www.crowngreenlive.co.uk`,
       and the same address in Redirect URLs (or password-reset emails open a preview)
-- [ ] Vercel -> Settings -> Domains: set `www.pssc-bowls.co.uk` and `pssc-bowls.co.uk` to
-      redirect to `www.crowngreenlive.co.uk`, so posters and old shared links still work
-      (`pssc-bowls.co.uk/anything` opens the same page on the new address). Keep
-      `pssc-bowls.co.uk` on auto-renew for a season or two
+- [x] `pssc-bowls.co.uk` and `www.pssc-bowls.co.uk` redirect (308) to `www.crowngreenlive.co.uk`
+      - done early, 2026-11-02, so the current site already shows on the new address. (If it
+      ever needs doing again: Edit the plain `pssc-bowls.co.uk` first, then the www one -
+      Vercel won't redirect a domain another one still redirects to.) Keep `pssc-bowls.co.uk`
+      on auto-renew for a season or two
 - [ ] Vercel -> Settings -> Environment Variables, **Production**: set
       `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`
       to the test project's values (Project Settings -> API)
