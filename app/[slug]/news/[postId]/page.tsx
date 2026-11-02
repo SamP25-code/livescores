@@ -47,13 +47,17 @@ export default function PostPage({ params }: { params: Promise<{ slug: string; p
       {post === null && <p className="quiet-line">This post isn&rsquo;t available</p>}
       {post && (
         <article className="card event-article">
-          {post.image_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={post.image_url} alt="" className="event-article-image" />
-          )}
           <span className={`event-post-tag event-post-tag-${post.kind}`}>{POST_KIND_LABEL[post.kind]}</span>
           <h1 className="event-article-title">{post.title}</h1>
           <p className="hint">{longDate(post.show_from)}</p>
+          {/* Under the headline, so the first screen says what it is; tap for full size */}
+          {post.image_url && (
+            <a href={post.image_url} target="_blank" rel="noopener noreferrer" className="event-article-image-link">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={post.image_url} alt="" className="event-article-image" />
+              <span className="event-article-image-hint">Tap the picture to see it full size</span>
+            </a>
+          )}
           {(post.body ?? "")
             .split(/\n\s*\n/)
             .filter((para) => para.trim())

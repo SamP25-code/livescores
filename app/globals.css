@@ -3596,18 +3596,30 @@ label {
 }
 
 /* A post */
-/* The whole picture, never cropped - posters and flyers have words right to
-   the edges. A very tall one is kept to the screen's height, with the
-   green either side. */
+/* Under the headline: the whole picture, never cropped (posters and flyers
+   have words right to the edges), across the card's full width. A tall one
+   is kept to 60% of the screen, with the green either side, so the first
+   lines of the post still show; tapping opens it full size. */
+.event-article-image-link {
+  display: block;
+  margin: 10px -16px 14px;
+  text-decoration: none;
+}
+
 .event-article-image {
   display: block;
-  width: calc(100% + 28px);
+  width: 100%;
   height: auto;
-  max-height: 85vh;
-  margin: -14px -14px 12px;
+  max-height: 60vh;
   object-fit: contain;
   background: var(--green-deep);
-  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.event-article-image-hint {
+  display: block;
+  padding: 4px 16px 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
 }
 
 .page-photo .card .event-article-title {
