@@ -13,10 +13,10 @@ function Linked({ sponsor, className, children }: { sponsor: SponsorShown; class
   );
 }
 
-// At the top of a session page, under the competition's name: a light card
-// like the October Singles' sponsor card - "Sponsored by", then each
-// sponsor's name written out large and clear, with a small logo beside it
-// when there is one (a full logo's wording is too small to read here)
+// At the top of a session page, under the competition's name, straight on
+// the photo: "Sponsored by", then each sponsor's name written out large and
+// clear, with a small logo beside it when there is one (a full logo's
+// wording is too small to read here)
 export function SponsorStrip({ sponsors }: { sponsors: SponsorShown[] }) {
   if (sponsors.length === 0) return null;
   return (

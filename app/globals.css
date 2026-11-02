@@ -4814,9 +4814,11 @@ a.info-pill-club:focus-visible {
 }
 
 /* A session page's title: its competition's name, as on the competition's
-   own page, a little smaller */
+   own page (the same heading font), a little smaller */
 .night-comp-title {
-  margin: 0 0 10px;
+  margin: 0 0 6px;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
   font-size: 1.8rem;
   line-height: 1.05;
   text-align: center;
@@ -4824,50 +4826,53 @@ a.info-pill-club:focus-visible {
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
 }
 
-/* The competition's sponsors at the top of a session page: a light card so
-   the names read clearly over any photo */
+/* The competition's sponsors under the title, straight on the photo: a small
+   "Sponsored by" over the names written out large and bold, with a strong
+   shadow so they read over any background */
 .sponsor-card {
-  margin: 0 0 var(--gap);
-  padding: 8px 14px 10px;
+  margin: 0 0 14px;
   text-align: center;
-  background: var(--cream);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
 }
 
 .sponsor-card-label {
   display: block;
-  margin-bottom: 4px;
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
 }
 
 .sponsor-card-list {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px 22px;
+  gap: 4px 20px;
 }
 
 .sponsor-card-item {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--green-deep);
+  color: #fff;
   text-decoration: none;
 }
 
 .sponsor-card-item strong {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.6);
 }
 
+/* A logo keeps its own light background, so its wording stays readable */
 .sponsor-card-logo {
-  height: 28px;
+  height: 26px;
   width: auto;
   max-width: 80px;
   object-fit: contain;
-  mix-blend-mode: multiply;
+  border-radius: 3px;
+  background: #fff;
+  padding: 2px 4px;
 }
