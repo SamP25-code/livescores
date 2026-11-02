@@ -186,9 +186,6 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
         </section>
       )}
 
-      {venues.map((v, i) => (
-        <VenueCard key={v.id} venue={v} spaced={i === 0} />
-      ))}
       <ShareButton
         label="Share"
         title={`${event.organiser.name} ${event.year}`}
@@ -202,6 +199,13 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
             .join("\n")
         }
       />
+      {venues.length > 0 && (
+        <div className="venue-pills">
+          {venues.map((v) => (
+            <VenueCard key={v.id} venue={v} slim />
+          ))}
+        </div>
+      )}
     </PublicPage>
   );
 }

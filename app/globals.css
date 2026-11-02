@@ -4785,3 +4785,71 @@ a.info-pill-club:focus-visible {
 .session-settings-fold[open] > summary {
   margin-bottom: 12px;
 }
+
+/* Where it's played, at the foot of a competition, event or session page:
+   a small pill that opens Google Maps */
+.venue-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 18px 0 8px;
+}
+
+.venue-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.venue-pill svg {
+  flex: none;
+  color: var(--green-mid);
+}
+
+.venue-pill-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.venue-pill-postcode {
+  flex: none;
+  color: var(--ink-soft);
+}
+
+.venue-pill-map {
+  flex: none;
+  font-weight: 700;
+  color: var(--green-mid);
+}
+
+/* A dated session tab: the day small above the date, in the same height */
+.night-pill:has(.night-pill-dated) {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.night-pill-dated {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.night-pill-dated small {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.85;
+}

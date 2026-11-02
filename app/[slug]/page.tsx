@@ -211,9 +211,6 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
           </p>
         )}
 
-        {venues.map((v, i) => (
-          <VenueCard key={v.id} venue={v} spaced={i === 0} />
-        ))}
         <ShareButton
           label="Share"
           title={`${c.name} ${c.year}`}
@@ -229,6 +226,14 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
             });
           }}
         />
+        {/* Where it's played: small, at the foot, out of the way */}
+        {venues.length > 0 && (
+          <div className="venue-pills">
+            {venues.map((v) => (
+              <VenueCard key={v.id} venue={v} slim />
+            ))}
+          </div>
+        )}
       </div>
     </Shell>
   );

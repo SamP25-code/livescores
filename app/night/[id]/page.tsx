@@ -23,23 +23,53 @@ import ShareButton from "@/components/ShareButton";
 import { sessionShareText } from "@/lib/shareResults";
 import { longDate } from "@/lib/competitionSetup";
 
+type SessionCompetition = {
+  name: string;
+  year: number;
+  slug: string;
+  latest: boolean;
+  sponsors: SponsorShown[];
+  finalsSize: number;
+  background: string | null;
+};
+
+// Sessions already seen in this visit, to show at once on the way back
+const seenSessions = new Map<
+  string,
+  {
+    night: Night;
+    players: Record<string, Player>;
+    matches: MatchRow[];
+    timeSlots: TimeSlot[];
+    venue: Venue | null;
+    competition: SessionCompetition | null;
+  }
+>();
+
+// The session's competition, as it comes back with the session
+type CompetitionRow = {
+  venue_id: string | null;
+  year: number;
+  series_id: string;
+  format: string;
+  draw_size: number | null;
+  background_url: string | null;
+  series: { name: string; slug: string; organiser: { background_image: string | null } | null };
+  sponsors: (SponsorShown & { position: number })[] | null;
+};
+
 export default function NightPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: nightId } = use(params);
-  const [night, setNight] = useState<Night | null>(null);
-  const [players, setPlayers] = useState<Record<string, Player>>({});
-  const [matches, setMatches] = useState<MatchRow[]>([]);
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [venue, setVenue] = useState<Venue | null>(null);
+  // A session seen already shows straight away (then refreshes), so going
+  // back and forth between a competition's tabs is instant
+  const before = seenSessions.get(nightId);
+  const [night, setNight] = useState<Night | null>(before?.night ?? null);
+  const [players, setPlayers] = useState<Record<string, Player>>(before?.players ?? {});
+  const [matches, setMatches] = useState<MatchRow[]>(before?.matches ?? []);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>(before?.timeSlots ?? []);
+  const [venue, setVenue] = useState<Venue | null>(before?.venue ?? null);
   // The competition this session belongs to, for the back link and banner
-  const [competition, setCompetition] = useState<{
-    name: string;
-    year: number;
-    slug: string;
-    latest: boolean;
-    sponsors: SponsorShown[];
-    finalsSize: number;
-    background: string | null;
-  } | null>(null);
+  const [competition, setCompetition] = useState<SessionCompetition | null>(before?.competition ?? null);
   usePageBackground(competition?.background);
   const [viewerCount, setViewerCount] = useState(0);
   const [loadError, setLoadError] = useState(false);
@@ -53,80 +83,78 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
     let cancelled = false;
 
     async function load() {
+      // Everything about the session in one go - its competition (name,
+      // sponsors, background) comes with it - so moving between a
+      // competition's tabs is two trips to the database, not five
       const [
         { data: nightData, error: nightErr },
         { data: playerData, error: playersErr },
         { data: matchData, error: matchesErr },
+        { data: slotData, error: slotError },
       ] = await Promise.all([
-        supabase.from("nights").select("*").eq("id", nightId).single(),
+        supabase
+          .from("nights")
+          .select(
+            "*, competition:competition_id(venue_id, year, series_id, format, draw_size, background_url, series:series_id(name, slug, organiser:organiser_id(background_image)), sponsors:competition_sponsors(*))"
+          )
+          .eq("id", nightId)
+          .single(),
         supabase.from("players").select("*").eq("night_id", nightId),
         supabase.from("matches").select("*").eq("night_id", nightId).order("round").order("slot"),
+        // First-round start times (2027 sessions)
+        supabase.from("time_slots").select("from_number, to_number, start_time").eq("night_id", nightId),
       ]);
       if (cancelled) return;
-      if (nightErr || playersErr || matchesErr) {
+      // A missing piece shows as "Couldn't load", not as a page without it
+      if (nightErr || playersErr || matchesErr || slotError) {
         setLoadError(true);
         return;
       }
+      const { competition: comp, ...nightRow } = nightData as Night & { competition: CompetitionRow | null };
       setLoadError(false);
-      setNight(nightData ?? null);
+      setNight(nightRow as Night);
       setPlayers(Object.fromEntries((playerData ?? []).map((p) => [p.id, p])));
       setMatches(matchData ?? []);
-
-      // First-round start times (2027 sessions). Not there on a database
-      // that hasn't been moved over yet - that's fine, there are none.
-      const { data: slotData, error: slotError } = await supabase
-        .from("time_slots")
-        .select("from_number, to_number, start_time")
-        .eq("night_id", nightId);
-      if (cancelled) return;
-      // A missing piece shows as "Couldn't load", not as a page without it
-      if (slotError) {
-        setLoadError(true);
-        return;
-      }
       setTimeSlots((slotData ?? []) as TimeSlot[]);
 
-      // Where it's played: this session's own venue, or the competition's
-      let venueId = nightData?.venue_id ?? null;
-      if (nightData?.competition_id) {
-        const { data: comp, error: compError } = await supabase
-          .from("competitions")
-          .select(
-            "venue_id, year, series_id, format, draw_size, background_url, series:series_id(name, slug, organiser:organiser_id(background_image)), sponsors:competition_sponsors(*)"
-          )
-          .eq("id", nightData.competition_id)
-          .single();
-        if (compError) {
-          if (!cancelled) setLoadError(true);
-          return;
-        }
-        if (comp) {
-          venueId = venueId ?? comp.venue_id ?? null;
-          const series = comp.series as unknown as { name: string; slug: string; organiser: { background_image: string | null } | null };
-          const { data: years } = await supabase.from("competitions").select("year").eq("series_id", comp.series_id);
-          const latest = Math.max(...(years ?? []).map((y) => y.year), comp.year) === comp.year;
-          const sponsors = [
-            ...((comp.sponsors as unknown as (SponsorShown & { position: number })[]) ?? []),
-          ]
-            .sort((a, b) => a.position - b.position)
-            .map((s) => ({ name: s.name, url: s.url ?? null, logo_url: s.logo_url ?? null }));
-          const finalsSize = comp.format === "qualifying_and_finals" && comp.draw_size ? comp.draw_size : 16;
-          if (!cancelled)
-            setCompetition({
-              name: series.name,
-              year: comp.year,
-              slug: series.slug,
-              latest,
-              sponsors,
-              finalsSize,
-              background: comp.background_url ?? series.organiser?.background_image ?? null,
-            });
-        }
+      // Where it's played (this session's own venue, or the competition's),
+      // and whether this is the competition's latest year (for Back)
+      const venueId = nightRow.venue_id ?? comp?.venue_id ?? null;
+      const [{ data: years }, { data: venueData }] = await Promise.all([
+        comp
+          ? supabase.from("competitions").select("year").eq("series_id", comp.series_id)
+          : Promise.resolve({ data: [] as { year: number }[] }),
+        venueId
+          ? supabase.from("venues").select("*").eq("id", venueId).single()
+          : Promise.resolve({ data: null }),
+      ]);
+      if (cancelled) return;
+      setVenue((venueData as Venue | null) ?? null);
+      let shown: SessionCompetition | null = null;
+      if (comp) {
+        const series = comp.series;
+        const sponsors = [...(comp.sponsors ?? [])]
+          .sort((a, b) => a.position - b.position)
+          .map((sp) => ({ name: sp.name, url: sp.url ?? null, logo_url: sp.logo_url ?? null }));
+        shown = {
+          name: series.name,
+          year: comp.year,
+          slug: series.slug,
+          latest: Math.max(...(years ?? []).map((y) => y.year), comp.year) === comp.year,
+          sponsors,
+          finalsSize: comp.format === "qualifying_and_finals" && comp.draw_size ? comp.draw_size : 16,
+          background: comp.background_url ?? series.organiser?.background_image ?? null,
+        };
+        setCompetition(shown);
       }
-      if (venueId) {
-        const { data: venueData } = await supabase.from("venues").select("*").eq("id", venueId).single();
-        if (!cancelled) setVenue((venueData as Venue | null) ?? null);
-      }
+      seenSessions.set(nightId, {
+        night: nightRow as Night,
+        players: Object.fromEntries((playerData ?? []).map((p) => [p.id, p])),
+        matches: matchData ?? [],
+        timeSlots: (slotData ?? []) as TimeSlot[],
+        venue: (venueData as Venue | null) ?? null,
+        competition: shown,
+      });
     }
 
     load();
@@ -520,7 +548,11 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         />
       )}
 
-      {!loadError && venue && <VenueCard venue={venue} spaced />}
+      {!loadError && venue && (
+        <div className="venue-pills">
+          <VenueCard venue={venue} slim />
+        </div>
+      )}
 
       <PublicFooter />
     </div>
