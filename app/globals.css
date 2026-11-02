@@ -3596,12 +3596,17 @@ label {
 }
 
 /* A post */
+/* The whole picture, never cropped - posters and flyers have words right to
+   the edges. A very tall one is kept to the screen's height, with the
+   green either side. */
 .event-article-image {
   display: block;
   width: calc(100% + 28px);
-  max-height: 320px;
+  height: auto;
+  max-height: 85vh;
   margin: -14px -14px 12px;
-  object-fit: cover;
+  object-fit: contain;
+  background: var(--green-deep);
   border-radius: var(--radius) var(--radius) 0 0;
 }
 
