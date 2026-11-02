@@ -153,27 +153,6 @@ a {
   text-decoration: none;
 }
 
-/* One-line sponsor credit on the night pages - same cream surface as the
-   home page's sponsor card, a fraction of the height. */
-.sponsor-strip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: var(--gap);
-  padding: 2px 0;
-  font-size: 0.92rem;
-  color: rgba(255, 255, 255, 0.85);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
-  text-align: center;
-  text-decoration: none;
-}
-
-.sponsor-strip strong {
-  font-weight: 600;
-  color: #fff;
-}
-
 .link-button {
   background: none;
   border: none;
@@ -2932,20 +2911,7 @@ label {
   font-weight: 700;
 }
 
-/* Sponsors: slim strip on session pages, panel on a competition's page */
-.sponsor-strip-list {
-  flex-wrap: wrap;
-  gap: 4px 8px;
-}
-
-.sponsor-strip-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #fff;
-  text-decoration: none;
-}
-
+/* Sponsors: a card on session pages (.sponsor-card), a panel on a competition's page */
 .sponsor-panel {
   display: flex;
   flex-direction: column;
@@ -4197,13 +4163,6 @@ a.info-pill-club:focus-visible {
   background: rgba(201, 151, 44, 0.15);
 }
 
-.night-header-simple-comp {
-  margin: 0 0 2px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--ink-soft);
-}
-
 .club-row-map {
   position: relative;
   z-index: 1;
@@ -4852,4 +4811,63 @@ a.info-pill-club:focus-visible {
   font-size: 0.75rem;
   font-weight: 600;
   opacity: 0.85;
+}
+
+/* A session page's title: its competition's name, as on the competition's
+   own page, a little smaller */
+.night-comp-title {
+  margin: 0 0 10px;
+  font-size: 1.8rem;
+  line-height: 1.05;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+/* The competition's sponsors at the top of a session page: a light card so
+   the names read clearly over any photo */
+.sponsor-card {
+  margin: 0 0 var(--gap);
+  padding: 8px 14px 10px;
+  text-align: center;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.sponsor-card-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.sponsor-card-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 22px;
+}
+
+.sponsor-card-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--green-deep);
+  text-decoration: none;
+}
+
+.sponsor-card-item strong {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.sponsor-card-logo {
+  height: 28px;
+  width: auto;
+  max-width: 80px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
 }

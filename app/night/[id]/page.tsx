@@ -333,21 +333,21 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         compact
         back={competition ? (competition.latest ? `/${competition.slug}` : `/${competition.slug}-${competition.year}`) : "/"}
       />
-      {/* The competition's own sponsors */}
+      {/* The competition's name, as on its own page, then its sponsors */}
+      {competition && (
+        <p className="comp-page-title night-comp-title">
+          {competition.name} {competition.year}
+        </p>
+      )}
       {competition && <SponsorStrip sponsors={competition.sponsors} />}
 
       <NightNav competitionId={night?.competition_id ?? null} currentId={nightId} />
 
       <div className="night-header-card">
         {night && (
-          // One line: which session, when, and how many are watching. The
-          // competition's name sits small above it.
+          // One line: which session, when, and how many are watching (the
+          // competition's name is the page's title above)
           <div className={`night-header-simple ${night.kind === "finals" ? "night-header-simple-finals" : ""}`}>
-            {competition && (
-              <p className="night-header-simple-comp">
-                {competition.name} {competition.year}
-              </p>
-            )}
             <h1>
               <strong>{competition ? sessionTitle(night as Parameters<typeof sessionTitle>[0]) : night.name}</strong>{" "}
               &middot;{" "}

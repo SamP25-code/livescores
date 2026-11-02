@@ -13,20 +13,26 @@ function Linked({ sponsor, className, children }: { sponsor: SponsorShown; class
   );
 }
 
-// The slim line at the top of a session page, where the scores need the room:
-// a small logo and the name written out (a full logo's wording is too small
-// to read at this size)
+// At the top of a session page, under the competition's name: a light card
+// like the October Singles' sponsor card - "Sponsored by", then each
+// sponsor's name written out large and clear, with a small logo beside it
+// when there is one (a full logo's wording is too small to read here)
 export function SponsorStrip({ sponsors }: { sponsors: SponsorShown[] }) {
   if (sponsors.length === 0) return null;
   return (
-    <div className="sponsor-strip sponsor-strip-list">
-      <span>Sponsored by</span>
-      {sponsors.map((s, i) => (
-        <Linked key={s.name} sponsor={s} className="sponsor-strip-item">
-          <strong>{s.name}</strong>
-          {i < sponsors.length - 1 && <span aria-hidden="true">{i === sponsors.length - 2 ? " and" : ","}</span>}
-        </Linked>
-      ))}
+    <div className="sponsor-card">
+      <span className="sponsor-card-label">Sponsored by</span>
+      <div className="sponsor-card-list">
+        {sponsors.map((s) => (
+          <Linked key={s.name} sponsor={s} className="sponsor-card-item">
+            {s.logo_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={s.logo_url} alt="" className="sponsor-card-logo" />
+            )}
+            <strong>{s.name}</strong>
+          </Linked>
+        ))}
+      </div>
     </div>
   );
 }
