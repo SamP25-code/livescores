@@ -8,7 +8,7 @@ import { originalDateLabel, postponedLabel } from "@/lib/venues";
 import { sessionTimes, sessionTitle, shortDate } from "@/lib/publicCompetitions";
 import { startViewerPings } from "@/lib/viewerLog";
 import NightNav from "@/components/NightNav";
-import { SponsorStrip, type SponsorShown } from "@/components/Sponsors";
+import { SponsorPanel, type SponsorShown } from "@/components/Sponsors";
 import Avatar from "@/components/Avatar";
 import PlayerName from "@/components/PlayerName";
 import MatchCard from "@/components/MatchCard";
@@ -339,7 +339,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
           {competition.name} {competition.year}
         </p>
       )}
-      {competition && <SponsorStrip sponsors={competition.sponsors} />}
+      {competition && <SponsorPanel sponsors={competition.sponsors} />}
 
       <NightNav competitionId={night?.competition_id ?? null} currentId={nightId} />
 

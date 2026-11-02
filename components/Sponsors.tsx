@@ -13,33 +13,13 @@ function Linked({ sponsor, className, children }: { sponsor: SponsorShown; class
   );
 }
 
-// At the top of a session page, under the competition's name, straight on
-// the photo: "Sponsored by", then each sponsor's name written out large and
-// clear, with a small logo beside it when there is one (a full logo's
-// wording is too small to read here)
-export function SponsorStrip({ sponsors }: { sponsors: SponsorShown[] }) {
-  if (sponsors.length === 0) return null;
-  return (
-    <div className="sponsor-card">
-      <span className="sponsor-card-label">Sponsored by</span>
-      <div className="sponsor-card-list">
-        {sponsors.map((s) => (
-          <Linked key={s.name} sponsor={s} className="sponsor-card-item">
-            {s.logo_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={s.logo_url} alt="" className="sponsor-card-logo" />
-            )}
-            <strong>{s.name}</strong>
-          </Linked>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// On a competition's page: logos on a light panel (logos often have dark
-// writing), or the names where there's no logo. "bare" (an event's page)
-// shows just the logos on the page's photo, with no panel or heading.
+// A competition's or an event's sponsors, the same on every public page
+// (competition, session and event pages) - change them here and in the
+// .sponsor-panel styles and every page follows. Straight on the photo:
+// "Sponsored by" small, then each sponsor's name in white, with its logo
+// on a small white backing of its own when there is one (logos often have
+// dark writing). "bare" (an event's page) shows just the logos, with no
+// heading.
 export function SponsorPanel({ sponsors, bare = false }: { sponsors: SponsorShown[]; bare?: boolean }) {
   if (sponsors.length === 0) return null;
   return (
@@ -48,12 +28,11 @@ export function SponsorPanel({ sponsors, bare = false }: { sponsors: SponsorShow
       <div className="sponsor-panel-list">
         {sponsors.map((s) => (
           <Linked key={s.name} sponsor={s} className="sponsor-panel-item">
-            {s.logo_url ? (
+            {s.logo_url && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={s.logo_url} alt={s.name} className="sponsor-panel-logo" />
-            ) : (
-              <strong>{s.name}</strong>
+              <img src={s.logo_url} alt={bare ? s.name : ""} className="sponsor-panel-logo" />
             )}
+            {(!bare || !s.logo_url) && <strong>{s.name}</strong>}
           </Linked>
         ))}
       </div>

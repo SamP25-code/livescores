@@ -2911,43 +2911,26 @@ label {
   font-weight: 700;
 }
 
-/* Sponsors: a card on session pages (.sponsor-card), a panel on a competition's page */
+/* Sponsors, the same on every public page (components/Sponsors.tsx):
+   straight on the photo (no box), "Sponsored by" small, then each name in
+   white bold with a strong shadow, with its logo on a white backing that
+   hugs the logo - logos often have dark writing. An event's page ("bare")
+   shows just the logos. */
 .sponsor-panel {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   margin: 0 auto var(--gap);
-  padding: 10px 16px;
-  max-width: 420px;
-  border-radius: var(--radius);
-  background: var(--cream);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-}
-
-/* An event's page: just the logos, straight on the photo */
-.sponsor-panel-bare {
-  padding: 0;
-  max-width: none;
-  background: none;
-  box-shadow: none;
-}
-
-.sponsor-panel-bare .sponsor-panel-item {
-  color: #fff;
-}
-
-.sponsor-panel-bare .sponsor-panel-logo {
-  max-height: 72px;
-  max-width: 220px;
-  border-radius: 4px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
 }
 
 .sponsor-panel-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--ink-soft);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
 }
 
 .sponsor-panel-list {
@@ -2955,22 +2938,37 @@ label {
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 10px 20px;
+  gap: 8px 20px;
 }
 
 .sponsor-panel-item {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  color: var(--green-deep);
-  font-size: 1.05rem;
+  gap: 8px;
+  min-height: 36px;
+  color: #fff;
+  font-size: 1.15rem;
+  text-decoration: none;
+}
+
+.sponsor-panel-item strong {
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.6);
 }
 
 .sponsor-panel-logo {
-  max-height: 56px;
-  max-width: 180px;
+  max-height: 36px;
+  max-width: 120px;
   width: auto;
   object-fit: contain;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.sponsor-panel-bare .sponsor-panel-logo {
+  max-height: 72px;
+  max-width: 220px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
 }
 
 /* Set-up form: a sponsor's logo */
@@ -4824,55 +4822,4 @@ a.info-pill-club:focus-visible {
   text-align: center;
   color: #fff;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
-}
-
-/* The competition's sponsors under the title, straight on the photo: a small
-   "Sponsored by" over the names written out large and bold, with a strong
-   shadow so they read over any background */
-.sponsor-card {
-  margin: 0 0 14px;
-  text-align: center;
-}
-
-.sponsor-card-label {
-  display: block;
-  margin-bottom: 2px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.85);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
-}
-
-.sponsor-card-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px 20px;
-}
-
-.sponsor-card-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #fff;
-  text-decoration: none;
-}
-
-.sponsor-card-item strong {
-  font-size: 1.15rem;
-  font-weight: 700;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.6);
-}
-
-/* A logo keeps its own light background, so its wording stays readable */
-.sponsor-card-logo {
-  height: 26px;
-  width: auto;
-  max-width: 80px;
-  object-fit: contain;
-  border-radius: 3px;
-  background: #fff;
-  padding: 2px 4px;
 }
