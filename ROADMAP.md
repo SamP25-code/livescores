@@ -217,33 +217,29 @@ happens all the time, so it's a quick action on the player's row, available at a
 
 ## Web address
 
-**A new, neutral website** for everything (agreed 2026-10-16, details TBC). `pssc-bowls.co.uk` is
-kept as Penwortham's shortcut - specifically to its **October** competition.
+**`crowngreenlive.co.uk`** is the new, neutral website for everything (bought 2026-11-02). It goes
+live at the switch (docs/go-live-checklist.md, section 3); until then `pssc-bowls.co.uk` carries
+on exactly as now.
 
 **Year-less competition addresses** - each competition has two:
 - `/october-singles` - always opens **the latest year** of that competition
 - `/october-singles-2026` - that specific year, for the archive
 
 So one link on posters, the Facebook page and the noticeboard never goes out of date - true for
-every competition (Blackpool Masters, St Anne's...), not just Penwortham's. **`pssc-bowls.co.uk`
-forwards to `/october-singles`**, so it's right every October without anyone touching it.
+every competition (Blackpool Masters, St Anne's...), not just Penwortham's.
 
-**Choosing the name** (not chosen yet):
-- **Neutral** - no club, sponsor or town in it, so any club is happy to use it.
-- **Says what it is** - someone seeing it on a poster knows it's live bowls scores.
-- **Easy to say aloud and type on a phone** - short, no hyphens if possible, hard to misspell.
-- **`.co.uk` free**, and ideally the matching Facebook / Instagram names too.
-- Directions to check (availability not checked): crowngreenlive, crowngreenscores, livebowls,
-  bowlslive (the working name), greenscores.
+**`pssc-bowls.co.uk` redirects to `crowngreenlive.co.uk`** from the switch, page for page
+(`pssc-bowls.co.uk/anything` opens the same page on the new address), set in Vercel's Domains -
+no code. (Changed 2026-11-02 from forwarding it to `/october-singles`, which was never built:
+old shared links to players, sessions and competitions keep working this way.) **Keep it on
+auto-renew** for a season or two while it's still on posters and in shared links; let it lapse
+once it's no longer in use.
 
-**Buy early, switch over with the pilot** - secure the domain as soon as it's picked (a few pounds
-a year, and stops anyone else taking it once word spreads); point it at the site when the
-multi-competition version goes live. Until then `pssc-bowls.co.uk` carries on exactly as now.
-**Keep `pssc-bowls.co.uk` on auto-renew** - it's on posters and in shared links, so the forwarding
-stays for as long as it's in use.
+Choosing the name, for the record: neutral (no club, sponsor or town), says what it is, easy to
+say aloud and type on a phone, `.co.uk` free. `bowlslive.co.uk` was already taken.
 
-Setting a new domain up is the same GoDaddy + Vercel steps used for `pssc-bowls.co.uk`;
-`metadataBase` in `app/layout.tsx` then needs the new domain.
+The live address is in `metadataBase` in `app/layout.tsx`. The site's name is **Crown Green Live**
+(`SITE_NAME` in lib/site.ts; chosen 2026-11-02 to match), with phone icons to match.
 
 The separate website that currently links here (not Penwortham's own club site) will change
 address at some point - nothing changes on this side, it just needs its link updated.
@@ -569,9 +565,8 @@ competition's.
 
 ## Branding and backgrounds (agreed 2026-10-19)
 
-- The site's name, tagline, link-preview description and phone icon are neutral for now ("Bowls
-  Live", a "BL" icon) and all live in `lib/site.ts` / the icon files - Sam will change them when
-  the real name and domain are chosen.
+- The site's name, tagline, link-preview description and phone icon all live in `lib/site.ts` /
+  the icon files. The name is **Crown Green Live** (2026-11-02), matching `crowngreenlive.co.uk`.
 - **Background photo** - the Penwortham fireworks photo will be replaced with a **general
   background**, and each competition can have **its own background**, uploaded by the user (like
   sponsor logos), shown on that competition's pages.
@@ -685,10 +680,10 @@ January and February for additions and changes, the dry run, and plenty of slack
 | **Sat 13 March 2027** | First competition |
 
 Parked until Sam decides: the **privacy notice** (written, kept off the site for now -
-`SHOW_PRIVACY` in lib/site.ts), **"Get in touch"** (needs an address), and the **new domain**.
+`SHOW_PRIVACY` in lib/site.ts) and **"Get in touch"** (needs an address).
 
-The new domain is switched over whenever Sam has picked the name (the year-less addresses already
-work).
+The new domain, `crowngreenlive.co.uk` (bought 2026-11-02), goes live at the switch, with
+`pssc-bowls.co.uk` redirecting to it (see "Web address").
 
 **The real competitions stay (Sam, 2026-10-19)** - the competitions being set up on the test
 database (Floodlit Singles, the March doubles, the Blackpool Masters, ...) are definitely happening,
@@ -731,9 +726,9 @@ People -> Privacy), and the go-live checklist brought up to date (docs/go-live-c
 
 Still to do, in order:
 1. **Winter testing** on the test database (the checklist's section 2)
-2. Decisions: "Get in touch" address, privacy notice and juniors, the name and domain
+2. Decisions: "Get in touch" address, privacy notice and juniors, the site's name
 3. Go live: merge, live database, copy the real competitions across
-4. New domain when the name is chosen; pilot with other clubs, then open up
+4. `crowngreenlive.co.uk` live at the switch; pilot with other clubs, then open up
 5. After the pilot: shareable results images, sponsor reports, follow a player
 
 Throughout: the "Easy to read for every age" rules apply to every screen.

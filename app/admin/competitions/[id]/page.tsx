@@ -255,7 +255,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ id: stri
               {!editing ? (
                 <>
                   <button type="button" className="secondary" onClick={() => setEditing(true)}>
-                    Change settings or dates
+                    Change settings, dates, sponsors or background
                   </button>
                   {/* Set up by mistake: take it away again, while nothing's happened in it */}
                   <div className="card admin-remove">

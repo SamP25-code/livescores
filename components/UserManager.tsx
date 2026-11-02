@@ -6,6 +6,7 @@ import { forgetAccess } from "@/lib/access";
 import { canAssign, canResetPassword, type CompetitionChoice, type StaffUser } from "@/lib/staffUsers";
 import { SITE_NAME } from "@/lib/site";
 import { startViewingAs } from "@/lib/viewAs";
+import { useScrollIntoView } from "@/lib/useScrollIntoView";
 
 // Calls one of the /api/admin/users routes as the signed-in admin.
 async function callApi<T>(path: string, method: string, body?: unknown): Promise<T> {
@@ -51,12 +52,14 @@ export default function UserManager({ competitionId: only }: { competitionId?: s
 
   const [login, setLogin] = useState("");
   const [competitionId, setCompetitionId] = useState("");
-  const [role, setRole] = useState<Role>("scorer");
+  // Super mostly adds organisers; admins can only add scorers
+  const [role, setRole] = useState<Role>("admin");
   const [adding, setAdding] = useState(false);
   // "+ Add to a competition" on one person's row
   const [assigningId, setAssigningId] = useState<string | null>(null);
   const [assignComp, setAssignComp] = useState("");
   const [assignRole, setAssignRole] = useState<Role>("admin");
+  const errorRef = useScrollIntoView<HTMLParagraphElement>(error);
 
   async function refresh() {
     try {
@@ -183,7 +186,11 @@ export default function UserManager({ competitionId: only }: { competitionId?: s
   return (
     <>
       {handover && <PasswordHandover handover={handover} onDone={() => setHandover(null)} />}
-      {error && <p className="error">{error}</p>}
+      {error && (
+        <p className="error" ref={errorRef}>
+          {error}
+        </p>
+      )}
 
       {competitions.length > 1 && !only && (
         <div className="field user-filter">
@@ -327,26 +334,28 @@ export default function UserManager({ competitionId: only }: { competitionId?: s
               onChange={(e) => setLogin(e.target.value)}
             />
           </div>
-          <div className="field">
-            <label htmlFor="new-user-competition">Competition</label>
-            <select
-              id="new-user-competition"
-              value={chosenCompetition}
-              onChange={(e) => setCompetitionId(e.target.value)}
-            >
-              {competitions.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title}
-                </option>
-              ))}
-            </select>
-          </div>
+          {!only && (
+            <div className="field">
+              <label htmlFor="new-user-competition">Competition</label>
+              <select
+                id="new-user-competition"
+                value={chosenCompetition}
+                onChange={(e) => setCompetitionId(e.target.value)}
+              >
+                {competitions.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           {isSuper && (
             <div className="field">
               <label htmlFor="new-user-role">Role</label>
               <select id="new-user-role" value={role} onChange={(e) => setRole(e.target.value as Role)}>
-                <option value="scorer">Scorer - scores matches once the draw is published</option>
                 <option value="admin">Admin - runs the competition and adds its scorers</option>
+                <option value="scorer">Scorer - scores matches once the draw is published</option>
               </select>
             </div>
           )}
@@ -367,7 +376,9 @@ export default function UserManager({ competitionId: only }: { competitionId?: s
 // ready-to-send message.
 function PasswordHandover({ handover, onDone }: { handover: Handover; onDone: () => void }) {
   const [copied, setCopied] = useState(false);
-  const message = `${SITE_NAME} admin login - name: ${handover.name}, password: ${handover.password}`;
+  const ref = useScrollIntoView<HTMLDivElement>(handover);
+  // Where to sign in: this site's own address (the live one, or a preview's)
+  const message = `${SITE_NAME} admin login - sign in at ${window.location.origin}/admin - name: ${handover.name}, password: ${handover.password}`;
 
   async function copy() {
     try {
@@ -379,7 +390,7 @@ function PasswordHandover({ handover, onDone }: { handover: Handover; onDone: ()
   }
 
   return (
-    <div className="card password-handover" role="status">
+    <div className="card password-handover" role="status" ref={ref}>
       <strong>
         {handover.isNew ? `${handover.name} has been added.` : `${handover.name} has a new password.`}
       </strong>

@@ -34,6 +34,10 @@ describe("new passwords", () => {
     expect(canResetPassword(otherAdmin, wayne)).toBe(false);
     expect(canResetPassword({ id: "sam", isSuper: true, assignments: [] }, wayne)).toBe(false);
     expect(canResetPassword({ id: "wayne", isSuper: false, assignments: [] }, wayne)).toBe(true);
+    // An email login resets its own by email
+    expect(
+      canResetPassword({ id: "e", isSuper: false, email: "a@b.com", assignments: [{ competition_id: "march", role: "scorer" }] }, wayne)
+    ).toBe(false);
   });
 
   test("Super can reset anyone", () => {

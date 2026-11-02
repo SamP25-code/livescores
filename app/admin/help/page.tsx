@@ -30,10 +30,11 @@ const SECTIONS: { id: string; title: string; steps: string[] }[] = [
     id: "draw",
     title: "Making the draw",
     steps: [
-      "Choose Open the draw on the admin home page (or open the session from the competition's Overview tab) - it has a Set up the draw box.",
-      "Draw at random lets the site draw it. Record a physical draw is for when you've drawn numbers from a hat - enter the number each player drew.",
-      "One-day competitions: set the start times for the first round so players know when they're on.",
-      "Check the draw, then Publish draw. Until it's published, nobody else sees it - you can Redraw or Unpublish if something's wrong.",
+      "Choose Make the draw on the admin home page (or open the session from the competition's Overview tab) - it has a Make the draw box.",
+      "Draw at random lets the site draw it - Redraw at random if you want another go. Or, if you've drawn numbers from a hat, pick the number each player drew.",
+      "Check the draw, then Confirm and publish - it goes on the public page. Confirm without publishing keeps it hidden until you choose Publish draw.",
+      "Once it's confirmed, the draw can't be redrawn. If it really has to be done again, Clear the draw is in Session settings at the bottom of the session - you type the session's name to be sure.",
+      "One-day competitions: set the first round's start times (in Session settings at the bottom, once the draw is made) so players know when they're on.",
     ],
   },
   {
@@ -42,7 +43,7 @@ const SECTIONS: { id: string; title: string; steps: string[] }[] = [
     steps: [
       "On the competition's Admins & scorers tab, choose Add a scorer and enter their full name.",
       "Copy name and password, and pass it on - by text or WhatsApp. They choose their own password the first time they sign in.",
-      "Scorers can score once the draw is published - nothing else.",
+      "Scorers can score once the draw is published - nothing else. If a finished result is wrong, they ask you to correct it.",
     ],
   },
   {
@@ -50,8 +51,9 @@ const SECTIONS: { id: string; title: string; steps: string[] }[] = [
     title: "Scoring on the day",
     steps: [
       "Open the session (Score now on the admin home page) and find the match.",
-      "Live scoring: tap +1 or +2 for the player who scored, and - to undo a mistake. Missed a few ends? Type the score puts the whole score in at once.",
-      "When someone reaches the winning score, the match finishes and the winner goes through to their next match by themselves.",
+      "Live scoring: tap +1 or +2 for the player who scored, and - to take one off. Missed a few ends? Type the score puts the whole score in at once.",
+      "When someone reaches the winning score, the match finishes and the winner goes through to their next match by themselves. It stays on screen for a moment, so a wrong last shot can be put right.",
+      "A match finished by mistake: Reopen it, fix the score, then Mark complete.",
       "Results only: type both scores and Save result.",
       "Poor signal: keep scoring. Every score is kept on the phone and sent as soon as there's signal - even if the page is closed. A bar at the top says when scores are waiting.",
     ],
@@ -60,11 +62,20 @@ const SECTIONS: { id: string; title: string; steps: string[] }[] = [
     id: "problems",
     title: "When something goes wrong",
     steps: [
-      "Someone hasn't turned up (first round): open their match and mark that they didn't turn up - their opponent goes through. If they arrive after all, undo it.",
-      "A player can't play: Replace puts someone else in their place, before the match starts.",
-      "A wrong result: open the finished match and Correct the result. If it changes who won, the next match is changed too.",
-      "Rained off: in the session's settings, give it a new date and a reason - the reason is shown publicly. Entries and the draw stay as they are.",
+      "Someone hasn't turned up (first round): on their match, tap Someone not here?, then choose who didn't turn up - their opponent goes through. If they arrive after all, undo it.",
+      "A player can't play: Someone not here?, then Replace, puts someone else in their place before the match starts.",
+      "A wrong result (admins): on the finished match, Correct result. It tells you what else will change - if it changes who won, the next match is changed too - and asks before going ahead. Scorers ask an admin to do this.",
+      "Rained off: Postpone, at the top of the session (or in Session settings at the bottom once the draw is made) - give a reason and a new date if you have one. The reason is shown publicly. Entries and the draw stay as they are.",
       "Anything else - ring or message Sam.",
+    ],
+  },
+  {
+    id: "finals",
+    title: "Qualifying sessions and Finals Day",
+    steps: [
+      "At the end of a qualifying session, Through to Finals Day lists who qualified - pick the number each one drew for Finals Day.",
+      "Finals Day fills in by itself from those numbers. To change someone's number there, pick a new one beside their name.",
+      "Competitions entered by qualification (like the Blackpool Masters) have a Qualifying tab: each place, the qualifying competition that fills it, and its results.",
     ],
   },
 ];

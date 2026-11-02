@@ -6,6 +6,7 @@ import { deleteClub, listClubsWithGreens, saveClub, venueUsage, type ClubWithGre
 import { errorMessage } from "@/lib/errors";
 import { SITE_NAME } from "@/lib/site";
 import { checkMapUrl, directionsUrl } from "@/lib/venues";
+import { useScrollIntoView } from "@/lib/useScrollIntoView";
 
 type Form = { name: string; short_name: string; address: string; postcode: string; notes: string; map_url: string };
 const EMPTY: Form = { name: "", short_name: "", address: "", postcode: "", notes: "", map_url: "" };
@@ -32,6 +33,7 @@ export default function ClubsAdminPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const messageRef = useScrollIntoView<HTMLParagraphElement>(message);
 
   async function load() {
     try {
@@ -153,7 +155,11 @@ export default function ClubsAdminPage() {
         Every club and its green. A competition picks where it&rsquo;s played from here - and so can a single session
         played somewhere else. Correcting a club changes it everywhere it&rsquo;s used.
       </p>
-      {message && !error && <p className="hint">{message}</p>}
+      {message && !error && (
+        <p className="hint" ref={messageRef}>
+          {message}
+        </p>
+      )}
       {error && editing === null && <p className="error">{error}</p>}
 
       {editing === "new" && (

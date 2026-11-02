@@ -397,7 +397,11 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         </div>
       )}
 
-
+      {!loadError && knockout && showDraw && (
+        <p className="hint draw-hint">
+          {highlightPlayerId ? "Tap the name again to stop following them." : "Tap a name to follow that player through the draw."}
+        </p>
+      )}
       {!loadError && knockout && showDraw && (
         <div className="view-toggle">
           <button

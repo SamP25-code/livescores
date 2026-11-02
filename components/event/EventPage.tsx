@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import HowToQualify from "@/components/HowToQualify";
 import PublicPage from "@/components/PublicPage";
+import ShareButton from "@/components/ShareButton";
+import VenueCard from "@/components/VenueCard";
 import { SponsorPanel, type SponsorShown } from "@/components/Sponsors";
 import { listEventSponsors } from "@/lib/competitionsApi";
 import { listPosts, POST_KIND_LABEL, type EventPost } from "@/lib/postsApi";
@@ -14,6 +15,7 @@ import {
   daysUntil,
   isTrophyDay,
   publicStatus,
+  sessionTitle,
   shortDate,
   todayIso,
   type EventRef,
@@ -21,15 +23,14 @@ import {
 } from "@/lib/publicCompetitions";
 import { loadPublicQualifying } from "@/lib/publicQualifying";
 import { SITE_NAME } from "@/lib/site";
+import { supabase } from "@/lib/supabaseClient";
 import { usePageBackground } from "@/lib/backgrounds";
-import CompetitionRow from "@/components/home/CompetitionRow";
-import MonthGroups from "@/components/home/MonthGroups";
-import RowLine from "@/components/home/RowLine";
+import type { Venue } from "@/lib/types";
 
 // An event with several competitions (the Blackpool Masters), all on one
 // page: how long to go, its days (each opens that competition - the
 // Invitation's page lists its qualifying competitions), who's qualified so
-// far, adverts and every news post.
+// far, adverts and every news post - then where it's played, and Share.
 export default function EventPage({ event, all }: { event: EventRef; all: PublicCompetition[] }) {
   // The event's own background on its page
   usePageBackground(event.organiser.background_image ?? null);
@@ -42,6 +43,8 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
     total: number;
     next: { name: string; date: string } | null;
   } | null>(null);
+  // Where it's played: each competition's green, once each
+  const [venues, setVenues] = useState<Venue[]>([]);
   const today = todayIso();
   const comps = [...event.competitions].sort((a, b) =>
     (a.sessions.find((s) => s.date)?.date ?? "9").localeCompare(b.sessions.find((s) => s.date)?.date ?? "9")
@@ -73,6 +76,16 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
         })
         .catch(() => {});
     }
+    const venueIds = [...new Set(comps.map((c) => c.venue_id).filter((v): v is string => Boolean(v)))];
+    if (venueIds.length) {
+      supabase
+        .from("venues")
+        .select("*")
+        .in("id", venueIds)
+        .then(({ data }) =>
+          setVenues(venueIds.map((id) => (data ?? []).find((v) => v.id === id)).filter((v): v is Venue => Boolean(v)))
+        );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event.organiser.id, event.year]);
 
@@ -83,6 +96,8 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
   const adverts = posts.filter((p) => p.kind === "advert");
   const news = posts.filter((p) => p.kind !== "advert");
   const live = comps.some((c) => publicStatus(c, today) === "live");
+  // What's being played right now, straight to its scores
+  const liveSessions = comps.flatMap((c) => c.sessions.filter((s) => s.status === "live").map((s) => ({ c, s })));
   const days = firstDate ? daysUntil(today, firstDate) : null;
   const slug = event.organiser.slug ?? "";
 
@@ -103,62 +118,90 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
         <SponsorPanel sponsors={sponsors} bare />
       </header>
 
-          <div className="event-days">
-            {comps.map((c, i) => {
-              const day = c.sessions.find((s) => isTrophyDay(s.kind) && s.date) ?? c.sessions.find((s) => s.date);
-              const status = publicStatus(c, today);
-              return (
-                <Link key={c.id} href={competitionPath(c, all)} className={`event-day ${day?.date === today ? "event-day-today" : ""}`}>
-                  <span className="event-day-label">{day?.date ? shortDate(day.date).split(" ").slice(0, 2).join(" ") : "TBC"}</span>
-                  <span className="cal-trophy event-day-ring" style={{ background: PALETTE[i % PALETTE.length] }}>
-                    {day?.date ? Number(day.date.slice(8)) : "?"}
-                  </span>
-                  <span className="event-day-name">{c.name}</span>
-                  {status === "live" && <span className="cal-live">&bull; Live</span>}
-                </Link>
-              );
-            })}
+      {liveSessions.map(({ c, s }) => (
+        <Link key={s.id} href={`/night/${s.id}`} className="home-live-banner">
+          <span className="live-dot" />
+          <span>
+            <strong>Live now &middot; {c.name}</strong>
+            <span>
+              {sessionTitle(s)} &middot; {s.liveCount} match{s.liveCount === 1 ? "" : "es"} live
+            </span>
+          </span>
+        </Link>
+      ))}
+
+      <div className="event-days">
+        {comps.map((c, i) => {
+          const day = c.sessions.find((s) => isTrophyDay(s.kind) && s.date) ?? c.sessions.find((s) => s.date);
+          const status = publicStatus(c, today);
+          return (
+            <Link key={c.id} href={competitionPath(c, all)} className={`event-day ${day?.date === today ? "event-day-today" : ""}`}>
+              <span className="event-day-label">{day?.date ? shortDate(day.date).split(" ").slice(0, 2).join(" ") : "TBC"}</span>
+              <span className="cal-trophy event-day-ring" style={{ background: PALETTE[i % PALETTE.length] }}>
+                {day?.date ? Number(day.date.slice(8)) : "?"}
+              </span>
+              <span className="event-day-name">{c.name}</span>
+              {status === "live" && <span className="cal-live">&bull; Live</span>}
+            </Link>
+          );
+        })}
+      </div>
+
+      {qualified && qualified.total > 0 && (
+        <section className="home-section">
+          <div className="home-section-head">
+            <h2>Qualifying</h2>
+            {qualifyingComps[0] && (
+              <Link href={competitionPath(qualifyingComps[0], all)} className="link-button event-more">
+                How to qualify
+              </Link>
+            )}
           </div>
+          <div className="card">
+            {qualified.next && (
+              <strong className="event-next-final">
+                Next final: {qualified.next.name} &middot; {shortDate(qualified.next.date)}
+              </strong>
+            )}
+            <span className="event-places">
+              {qualified.done} of {qualified.total} place{qualified.total === 1 ? "" : "s"} decided
+            </span>
+            <div className="qualifying-meter" aria-hidden="true">
+              <i style={{ width: `${(qualified.done / qualified.total) * 100}%` }} />
+            </div>
+          </div>
+        </section>
+      )}
 
-          {qualified && qualified.total > 0 && (
-            <section className="home-section">
-              <div className="home-section-head">
-                <h2>Qualifying</h2>
-                {qualifyingComps[0] && (
-                  <Link href={competitionPath(qualifyingComps[0], all)} className="link-button event-more">
-                    See all
-                  </Link>
-                )}
-              </div>
-              <div className="card">
-                {qualified.next && (
-                  <strong className="event-next-final">
-                    Next final: {qualified.next.name} &middot; {shortDate(qualified.next.date)}
-                  </strong>
-                )}
-                <span className="event-places">
-                  {qualified.done} of {qualified.total} place{qualified.total === 1 ? "" : "s"} decided
-                </span>
-                <div className="qualifying-meter" aria-hidden="true">
-                  <i style={{ width: `${(qualified.done / qualified.total) * 100}%` }} />
-                </div>
-              </div>
-            </section>
-          )}
+      {adverts.map((a) => (
+        <Advert key={a.id} post={a} />
+      ))}
 
-          {adverts.map((a) => (
-            <Advert key={a.id} post={a} />
-          ))}
+      {news.length > 0 && (
+        <section className="home-section">
+          <div className="home-section-head">
+            <h2>News</h2>
+          </div>
+          <PostList posts={news} slug={slug} year={event.year} all={all} />
+        </section>
+      )}
 
-          {news.length > 0 && (
-            <section className="home-section">
-              <div className="home-section-head">
-                <h2>News</h2>
-              </div>
-              <PostList posts={news} slug={slug} year={event.year} all={all} />
-            </section>
-          )}
-
+      {venues.map((v, i) => (
+        <VenueCard key={v.id} venue={v} spaced={i === 0} />
+      ))}
+      <ShareButton
+        label="Share"
+        title={`${event.organiser.name} ${event.year}`}
+        text={() =>
+          [
+            `${event.organiser.name} ${event.year}`,
+            firstDate ? `${dateRange(firstDate, dates[dates.length - 1])} ${event.year}` : null,
+            window.location.href,
+          ]
+            .filter(Boolean)
+            .join("\n")
+        }
+      />
     </PublicPage>
   );
 }

@@ -41,7 +41,7 @@ export const viewport: Viewport = {
 // deployments keep using their own Vercel address.
 const siteUrl =
   process.env.VERCEL_ENV === "production"
-    ? "https://www.pssc-bowls.co.uk"
+    ? "https://www.crowngreenlive.co.uk"
     : `https://${process.env.VERCEL_URL ?? "localhost:3000"}`;
 
 export const metadata: Metadata = {

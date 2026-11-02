@@ -1,4 +1,4 @@
-# Bowls Live
+# Crown Green Live
 
 A small live-scoring site for a knockout bowls competition:
 

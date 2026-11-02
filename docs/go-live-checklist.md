@@ -52,8 +52,20 @@ Tick each one on a phone (iPhone and Android) as well as a computer.
 - [ ] Try to enter a 17th into a session of 16 (new, moved and reinstated) and a 33rd into a
       one-day draw of 32 - each is refused with a message
 
+**Who can change what** (after migration 2027_20)
+- [ ] As a Penwortham admin: the Blackpool Masters isn't in your list, and its sessions,
+      entries and draw can't be changed (open its session page - no admin buttons)
+- [ ] As a scorer: scoring, Reopen and Didn't turn up all work; there's no way to change the
+      draw, entries or settings, or to correct a finished result (scorers ask an admin)
+- [ ] Signed out: a draw that isn't published yet doesn't show its pairings
+
 **On the day**
-- [ ] Score live with the buttons, and with "Type the score"
+- [ ] Score live with the buttons, and with "Type the score" - on an upright phone each name
+      shows in full above its buttons
+- [ ] As a scorer on Live: the shot that finishes a match - it stays on screen for about 30
+      seconds, so Reopen can be tapped
+- [ ] Once the draw is made, the matches come straight after the title; Postpone, the venue,
+      start times and Clear the draw are under "Session settings" at the bottom
 - [ ] A results-only session: type a result
 - [ ] Score in airplane mode, then reconnect - "All scores sent", public page updates
 - [ ] Didn't turn up (and undo); Replace one partner of a pair
@@ -77,36 +89,67 @@ Tick each one on a phone (iPhone and Android) as well as a computer.
 - [ ] Backgrounds: the general one, and a competition's own
 - [ ] October Singles 2026 pages still look right
 - [ ] Text size follows the phone's setting (iPhone); pinch to zoom works
-- [ ] A shared link (WhatsApp) shows "Bowls Live" and the North Lancs & Fylde description
+- [ ] A shared link (WhatsApp) shows "Crown Green Live" and the North Lancs & Fylde description
 
 Anything that needs changing gets fixed on the branch first.
 
-## 3. The switch (Claude does the steps marked with C, Sam the rest)
+## 3. The switch - the test database becomes the live one
 
-- [ ] **Back up the live database** - Supabase (live) -> Database -> Backups, or download one
-- [ ] C: write **Part 0** for live only (removes the old `clubs` and `competitions` tables and the
-      empty `nights.competition_id` column left from the earlier attempt)
-- [ ] In the **live** project's SQL Editor, run in order: **Part 0**, then every file in
-      `supabase/migrations` from `2027_01` to `2027_18`, checking each says "Success"
-- [ ] Make your live login Super (the same one-line update used on test)
-- [ ] C: **copy the real competitions from test to live** - a script run on test produces the
-      data, which is then run on live: clubs and their greens, events and the county,
-      competition names, competitions and settings, sessions, sponsors, people and entries,
-      past winners, qualifying places, posts, admins and scorers. Test scores and practice
-      draws are left behind. (Kept out of the repository, as it holds people's names.)
-- [ ] Pictures: sponsor logos, event images and backgrounds are stored on the test database -
-      upload them again on live (or C copies them across)
-- [ ] Settings -> Site background on live
-- [ ] C: merge `qualifying-events` into `main` - Vercel deploys the live site
-- [ ] Check the live site: home page, a competition, October Singles 2026, a player page, admin
-      sign-in
-- [ ] Users (live): assign existing logins (e.g. Wayne) to their competitions
-- [ ] Vercel: Production still points at the live database, and has
-      `SUPABASE_SERVICE_ROLE_KEY` (the Users page needs it)
+Nothing is copied. The test project already holds everything real - the 2027 competitions,
+clubs, people, entries, logos and backgrounds, and the October Singles 2026 (copied from live
+in October 2026) - so the live site is pointed at it, and the old live project is kept as a
+backup. (Decided 2026-10-29: simpler and safer than copying, with no names to match up and no
+pictures to upload again.)
+
+Claude does the steps marked with C, Sam the rest.
+
+**Before the day**
+- [ ] Supabase plan: the test project must not pause once it's live (a paid plan, or kept in
+      use). Rename it to `bowls-live` in its settings if you like - the public never sees it
+- [ ] Check the October Singles 2026 matches on both: 80 players and 63 matches on each (C gives
+      the one-line check)
+- [ ] Logins: everyone who'll run or score in 2027 has a login on the test project (only
+      Wayne and the organisers - test logins are removed on the Users page)
+- [ ] Rehearse `supabase/scripts/go-live-tidy.sql` on test (it ends with rollback, so nothing
+      changes) and check the list it shows
+- [ ] The new address, `crowngreenlive.co.uk` (bought 2026-11-02): Vercel -> Settings ->
+      Domains -> add `www.crowngreenlive.co.uk`, and `crowngreenlive.co.uk` redirecting to it.
+      Add the DNS records Vercel shows at GoDaddy (the same steps as for `pssc-bowls.co.uk`).
+      Until the switch it just shows the current site - that's fine, and gives the DNS time
+      to settle
+
+**On the day** (a quiet day - nothing live, nobody needing the admin side for an hour)
+- [ ] Back up both projects - Supabase -> Database -> Backups (or download one)
+- [ ] On test: run `go-live-tidy.sql` for real (last line `commit`) - clears practice draws,
+      test scores and test change logs; keeps all the set-up and entries
+- [ ] On test: Authentication -> URL Configuration - Site URL `https://www.crowngreenlive.co.uk`,
+      and the same address in Redirect URLs (or password-reset emails open a preview)
+- [ ] Vercel -> Settings -> Domains: set `www.pssc-bowls.co.uk` and `pssc-bowls.co.uk` to
+      redirect to `www.crowngreenlive.co.uk`, so posters and old shared links still work
+      (`pssc-bowls.co.uk/anything` opens the same page on the new address). Keep
+      `pssc-bowls.co.uk` on auto-renew for a season or two
+- [ ] Vercel -> Settings -> Environment Variables, **Production**: set
+      `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`
+      to the test project's values (Project Settings -> API)
+- [ ] C: merge `qualifying-events` into `main` - Vercel deploys the live site with the new
+      values
+- [ ] Check the live site: home page, a competition, October Singles 2026, a player page, a
+      logo and a background, admin sign-in, a password reset email, and an old
+      `pssc-bowls.co.uk` link opening on `crowngreenlive.co.uk`
+- [ ] Going back, if something's badly wrong: put the old Production values back in Vercel and
+      redeploy the previous deployment - the old live project is untouched
+
+**Previews afterwards**
+- [ ] Previews need their own database again. The old live project becomes it: C writes
+      Part 0 (removes the old `clubs` and `competitions` tables and the empty
+      `nights.competition_id` column from the earlier attempt), then run every file in
+      `supabase/migrations` from `2027_01` to the newest on it, and set Vercel's **Preview**
+      values to it. Create a Super login on it.
 
 ## 4. After the switch
 
-- The test database stays for trying things out and the February dry run
-  (previews keep using it).
+- The old live project is the test database from now on (see above). Hold the February dry
+  run on the test project **before** the switch, while it's still test.
 - Still to choose: the "Get in touch" contact, the privacy notice (written, hidden -
-  `SHOW_PRIVACY` in lib/site.ts) and how juniors are shown, and the site's real name and domain.
+  `SHOW_PRIVACY` in lib/site.ts) and how juniors are shown, and the site's real name (the
+  domain is `crowngreenlive.co.uk`).

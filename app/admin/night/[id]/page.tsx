@@ -142,6 +142,20 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   // Narrowing the matches down (null until chosen: scorers start on Live or Up next)
   const [chosenFilter, setFilter] = useState<MatchFilter | null>(null);
   const [matchQuery, setMatchQuery] = useState("");
+  // Matches scored on this phone in the last 30 seconds stay in view, even if
+  // the filter would hide them - so a wrong last shot that finishes a match
+  // can still be seen and put right
+  const [recent, setRecent] = useState<Set<string>>(new Set());
+  function keepInView(matchId: string) {
+    setRecent((r) => new Set(r).add(matchId));
+    setTimeout(() => {
+      setRecent((r) => {
+        const next = new Set(r);
+        next.delete(matchId);
+        return next;
+      });
+    }, 30_000);
+  }
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -322,7 +336,10 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   function handleAdjust(match: MatchRow, side: "a" | "b", delta: number) {
     setError(null);
     const next = tapResult(match, side, delta);
-    if (next) enqueue(makeOp(match, "tap", next));
+    if (next) {
+      keepInView(match.id);
+      enqueue(makeOp(match, "tap", next));
+    }
   }
 
   // A results-only score: checked here, then kept and sent like a tap
@@ -330,6 +347,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
     setError(null);
     try {
       enqueue(makeOp(match, "result", resultEntry(match, scoreA, scoreB)));
+      keepInView(match.id);
     } catch (err) {
       setError(errorMessage(err));
     }
@@ -392,7 +410,8 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
 
   const playerNames = useMemo(() => Object.fromEntries(players.map((p) => [p.id, p.name])), [players]);
   const matchFilter: MatchFilter = chosenFilter ?? startingFilter(matches, role === "scorer");
-  const shownCount = matches.filter((m) => showMatch(m, matchFilter, playerNames, matchQuery)).length;
+  const isShown = (m: MatchRow) => recent.has(m.id) || showMatch(m, matchFilter, playerNames, matchQuery);
+  const shownCount = matches.filter(isShown).length;
 
   const qualifiers = useMemo(() => {
     if (!night || night.kind !== "qualifier" || lastRound === 0) return [];
@@ -419,6 +438,68 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
   const sessionDrawSize = bracketExists ? roundOneMatches * 2 : drawSizeFor(activePlayers.length);
   const drawKind = night?.kind === "qualifier" ? "qualifier" : "knockout";
 
+
+  // Once the draw is made, the matches come first: the session's settings
+  // (postpone, venue, start times, clear the draw) fold away below them
+  const settingsBelow = role === "owner" && bracketExists && !night?.postponed;
+  const sessionSettings = night && context && (
+    <SessionSettings
+      session={night}
+      venues={context.venues}
+      competitionVenueId={context.competition.venue_id}
+      onPostpone={async (reason, newDate) => {
+        await postponeSession(night, reason, newDate);
+        await refresh();
+      }}
+      onCancelPostponement={async () => {
+        await cancelPostponement(night);
+        await refresh();
+      }}
+      onSetVenue={async (venueId) => {
+        await setSessionVenue(nightId, venueId);
+        await refresh();
+      }}
+    />
+  );
+  const drawStatus = night && !isFinals && (!newFlow || bracketExists) && (
+    <div
+      className="card"
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: 12,
+        borderColor: night.draw_published ? "var(--line)" : "var(--gold)",
+      }}
+    >
+      <div>
+        <strong>{night.draw_published ? "Draw is live" : "Draw is hidden"}</strong>
+        <p className="hint hint-flush">
+          {night.draw_published
+            ? "The public page shows the current bracket and scores."
+            : "The public page only shows the roster - the bracket stays private until you publish it."}
+        </p>
+      </div>
+      <button
+        className={night.draw_published ? "secondary" : ""}
+        onClick={withErrorHandling(async () => {
+          await setDrawPublished(nightId, !night.draw_published);
+        })}
+      >
+        {night.draw_published ? "Unpublish" : "Publish draw"}
+      </button>
+    </div>
+  );
+  const timeSlots = oneDay && context && (
+    <TimeSlotsEditor
+      slots={context.timeSlots}
+      drawSize={sessionDrawSize}
+      onSave={async (slots) => {
+        await saveTimeSlots(nightId, slots);
+        await reloadContext();
+      }}
+    />
+  );
 
   return (
     <div className="page page-photo">
@@ -451,55 +532,10 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
         <p className="hint">You&rsquo;re not assigned to this competition - ask its organiser if you should be.</p>
       )}
 
-      {role === "owner" && night && context && (
-        <SessionSettings
-          session={night}
-          venues={context.venues}
-          competitionVenueId={context.competition.venue_id}
-          onPostpone={async (reason, newDate) => {
-            await postponeSession(night, reason, newDate);
-            await refresh();
-          }}
-          onCancelPostponement={async () => {
-            await cancelPostponement(night);
-            await refresh();
-          }}
-          onSetVenue={async (venueId) => {
-            await setSessionVenue(nightId, venueId);
-            await refresh();
-          }}
-        />
-      )}
+      {role === "owner" && !settingsBelow && sessionSettings}
 
-      {role === "owner" && night && !isFinals && (!newFlow || bracketExists) && (
-        <div
-          className="card"
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 12,
-            borderColor: night.draw_published ? "var(--line)" : "var(--gold)",
-          }}
-        >
-          <div>
-            <strong>{night.draw_published ? "Draw is live" : "Draw is hidden"}</strong>
-            <p className="hint hint-flush">
-              {night.draw_published
-                ? "The public page shows the current bracket and scores."
-                : "The public page only shows the roster - the bracket stays private until you publish it."}
-            </p>
-          </div>
-          <button
-            className={night.draw_published ? "secondary" : ""}
-            onClick={withErrorHandling(async () => {
-              await setDrawPublished(nightId, !night.draw_published);
-            })}
-          >
-            {night.draw_published ? "Unpublish" : "Publish draw"}
-          </button>
-        </div>
-      )}
+      {/* A hidden draw stays at the top, so it isn't forgotten */}
+      {role === "owner" && (!settingsBelow || !night?.draw_published) && drawStatus}
 
       {role === "owner" && isFinals && (
         <section>
@@ -578,16 +614,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
         />
       )}
 
-      {role === "owner" && oneDay && context && (
-        <TimeSlotsEditor
-          slots={context.timeSlots}
-          drawSize={sessionDrawSize}
-          onSave={async (slots) => {
-            await saveTimeSlots(nightId, slots);
-            await reloadContext();
-          }}
-        />
-      )}
+      {role === "owner" && !settingsBelow && timeSlots}
 
       {role === "owner" && !isFinals && !bracketExists && !newFlow && (
         <BracketSetup
@@ -598,16 +625,6 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
         />
       )}
 
-      {role === "owner" && bracketExists && (
-        <div style={{ margin: "20px 0" }}>
-          <ResetBracketControl
-            nightName={night?.name ?? ""}
-            onReset={withErrorHandling(async () => {
-              await resetBracket(nightId);
-            })}
-          />
-        </div>
-      )}
 
       {role === "scorer" && bracketExists && !night?.draw_published && (
         <p className="quiet-line">This draw isn&rsquo;t published yet - nothing to score</p>
@@ -627,7 +644,7 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
             </p>
           )}
           {rounds.map(([round, roundMatches]) => {
-            const shownMatches = roundMatches.filter((m) => showMatch(m, matchFilter, playerNames, matchQuery));
+            const shownMatches = roundMatches.filter(isShown);
             if (shownMatches.length === 0) return null;
             return (
             <section key={round}>
@@ -692,6 +709,25 @@ export default function AdminNightPage({ params }: { params: Promise<{ id: strin
             </section>
           )}
         </>
+      )}
+
+      {settingsBelow && (
+        <details className="session-settings-fold">
+          <summary>
+            Session settings{oneDay ? " and start times" : ""} - postpone, venue, clear the draw
+          </summary>
+          {sessionSettings}
+          {night?.draw_published && drawStatus}
+          {timeSlots}
+          <div style={{ margin: "20px 0 0" }}>
+            <ResetBracketControl
+              nightName={night?.name ?? ""}
+              onReset={withErrorHandling(async () => {
+                await resetBracket(nightId);
+              })}
+            />
+          </div>
+        </details>
       )}
 
       {role === "owner" && <ViewerLog nightId={nightId} />}
@@ -1153,13 +1189,10 @@ function MatchEditor({
                 Live
               </span>
             ) : (
-              <span className={`status-pill ${match.status}`}>{match.status}</span>
+              <span className={`status-pill ${match.status}`}>{STATUS_TEXT[match.status] ?? match.status}</span>
             )}
-            {!complete && (
-              <button onClick={onComplete} disabled={!canComplete}>
-                Mark complete
-              </button>
-            )}
+            {/* Reaching the target finishes a match by itself; this is for after a Reopen */}
+            {canComplete && <button onClick={onComplete}>Mark complete</button>}
             {!complete && (
               <button type="button" className="link-button" disabled={pending} onClick={() => setTyping(true)}>
                 Type the score
@@ -1319,6 +1352,8 @@ function MatchTime({
     </div>
   );
 }
+
+const STATUS_TEXT: Record<string, string> = { upcoming: "Not started", live: "Live", complete: "Finished" };
 
 function ScoreLine({
   name,

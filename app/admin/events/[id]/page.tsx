@@ -8,6 +8,7 @@ import { POST_KIND_LABEL, deletePost, listPosts, savePost, type EventPost } from
 import { shortDate, todayIso } from "@/lib/publicCompetitions";
 import { SITE_NAME } from "@/lib/site";
 import { supabase } from "@/lib/supabaseClient";
+import { useScrollIntoView } from "@/lib/useScrollIntoView";
 import PostForm from "@/components/PostForm";
 import BackgroundPicker from "@/components/BackgroundPicker";
 import SponsorFields, { EMPTY_SPONSOR } from "@/components/SponsorFields";
@@ -21,9 +22,11 @@ import {
 } from "@/lib/competitionsApi";
 import type { Organiser, Series } from "@/lib/types";
 
-// An event's page, behind the scenes (Super): its web address, its sponsors
-// and its posts for the year - news, qualifier updates and adverts. Its competitions are
-// set up as usual; this is the page that brings them together.
+// An event's page, behind the scenes (Super): its competitions, its posts for
+// the year (news, qualifier updates and adverts), its sponsors and its
+// background - in that order, as posts are the job done most in the season.
+// Its competitions are set up as usual; this is the page that brings them
+// together.
 export default function AdminEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const isSuper = useIsSuper();
@@ -42,7 +45,11 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
   const [others, setOthers] = useState<{ series: Series; organiser: string }[]>([]);
   const [bringIn, setBringIn] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  // A new object each time, so the same words twice still scroll into view
+  const [message, setNotice] = useState<{ text: string } | null>(null);
+  const setMessage = (text: string) => setNotice({ text });
+  const errorRef = useScrollIntoView<HTMLParagraphElement>(error);
+  const messageRef = useScrollIntoView<HTMLParagraphElement>(message);
 
   useEffect(() => {
     if (!isSuper) return;
@@ -117,15 +124,35 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
       <Link href="/admin/events" className="page-back-link">
         <span aria-hidden="true">&lsaquo;</span> Events
       </Link>
-      <h1>{event?.name ?? "Loading…"}</h1>
+      <div className="comp-list-head">
+        <h1>{event?.name ?? "Loading…"}</h1>
+        {years.length > 1 && year !== null && (
+          <select aria-label="Year" className="home-year" value={year} onChange={(e) => setYear(Number(e.target.value))}>
+            {years.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
       {event?.slug && (
         <p className="hint">
           Its page: <Link href={`/${event.slug}`}>/{event.slug}</Link>
           {year ? ` · /${event.slug}-${year}` : ""}
+          {years.length > 1 ? " · everything below is for the year chosen above" : ""}
         </p>
       )}
-      {error && <p className="error">{error}</p>}
-      {message && !error && <p className="hint">{message}</p>}
+      {error && (
+        <p className="error" ref={errorRef}>
+          {error}
+        </p>
+      )}
+      {message && !error && (
+        <p className="hint" ref={messageRef}>
+          {message.text}
+        </p>
+      )}
 
       <h2>Competitions{year ? ` ${year}` : ""}</h2>
       <div className="card comp-list">
@@ -139,85 +166,11 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
           </Link>
         ))}
       </div>
-      {comps.length === 0 && years.length === 0 && event && (
-        <div className="card">
-          <p style={{ marginTop: 0 }}>
-            This event has no competitions. If it was made by mistake, it can be removed.
-          </p>
-          <button
-            type="button"
-            className="danger"
-            onClick={async () => {
-              if (!confirm(`Remove the event "${event.name}"?`)) return;
-              try {
-                await deleteOrganiser(event.id);
-                window.location.href = "/admin/events";
-              } catch (err) {
-                setError(errorMessage(err));
-              }
-            }}
-          >
-            Remove this event
-          </button>
-        </div>
-      )}
       <p>
         <Link href={`/admin/competitions/new?event=${id}`} className="button">
           + Add a competition to the {event?.name ?? "event"}
         </Link>
       </p>
-
-      {event && (
-        <div className="card">
-          <BackgroundPicker
-            id="event-background"
-            label="Its page's background (optional)"
-            hint="A photo behind the event's page and its competitions' pages, instead of the site's general one."
-            value={event.background_image ?? null}
-            onChange={async (url) => {
-              setError(null);
-              const { error: saveError } = await supabase.from("organisers").update({ background_image: url }).eq("id", event.id);
-              if (saveError) setError(errorMessage(saveError));
-              else {
-                setEvent({ ...event, background_image: url });
-                setMessage(url ? "Background saved." : "Background removed.");
-              }
-            }}
-          />
-        </div>
-      )}
-
-      {event && year !== null && (
-        <form
-          className="card"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setError(null);
-            setSavingSponsors(true);
-            try {
-              await saveEventSponsors(event.id, year, sponsors);
-              setMessage("Sponsors saved.");
-              await load();
-            } catch (err) {
-              setError(errorMessage(err));
-            } finally {
-              setSavingSponsors(false);
-            }
-          }}
-        >
-          <h2 style={{ marginTop: 0 }}>
-            Sponsors of the {event.name} {year}
-          </h2>
-          <p className="hint">
-            Shown at the top of the event&rsquo;s page. A competition&rsquo;s own sponsors are set up in its settings.
-          </p>
-          <SponsorFields id="event-sponsor" sponsors={sponsors} onChange={setSponsors} onError={setError} />
-          <button type="submit" disabled={savingSponsors}>
-            {savingSponsors ? "Saving…" : "Save sponsors"}
-          </button>
-        </form>
-      )}
-
       {others.length > 0 && (
         <div className="card">
           <div className="field">
@@ -252,18 +205,7 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
         </div>
       )}
 
-      <div className="comp-list-head">
-        <h2>Posts</h2>
-        {years.length > 1 && year !== null && (
-          <select aria-label="Year" className="home-year" value={year} onChange={(e) => setYear(Number(e.target.value))}>
-            {years.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-        )}
-      </div>
+      <h2>Posts{year ? ` ${year}` : ""}</h2>
 
       {editing === "new" && event && year !== null ? (
         <PostForm
@@ -340,6 +282,80 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
           )
         )}
       </div>
+
+      {event && year !== null && (
+        <form
+          className="card"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setError(null);
+            setSavingSponsors(true);
+            try {
+              await saveEventSponsors(event.id, year, sponsors);
+              setMessage("Sponsors saved.");
+              await load();
+            } catch (err) {
+              setError(errorMessage(err));
+            } finally {
+              setSavingSponsors(false);
+            }
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>
+            Sponsors of the {event.name} {year}
+          </h2>
+          <p className="hint">
+            Shown at the top of the event&rsquo;s page. A competition&rsquo;s own sponsors are set up in its settings.
+          </p>
+          <SponsorFields id="event-sponsor" sponsors={sponsors} onChange={setSponsors} onError={setError} />
+          <button type="submit" disabled={savingSponsors}>
+            {savingSponsors ? "Saving…" : "Save sponsors"}
+          </button>
+        </form>
+      )}
+
+      {event && (
+        <div className="card">
+          <BackgroundPicker
+            id="event-background"
+            label="Its page's background (optional)"
+            hint="A photo behind the event's page and its competitions' pages, instead of the site's general one."
+            value={event.background_image ?? null}
+            onChange={async (url) => {
+              setError(null);
+              const { error: saveError } = await supabase.from("organisers").update({ background_image: url }).eq("id", event.id);
+              if (saveError) setError(errorMessage(saveError));
+              else {
+                setEvent({ ...event, background_image: url });
+                setMessage(url ? "Background saved." : "Background removed.");
+              }
+            }}
+          />
+        </div>
+      )}
+
+      {comps.length === 0 && years.length === 0 && event && (
+        <div className="card">
+          <p style={{ marginTop: 0 }}>
+            This event has no competitions. If it was made by mistake, it can be removed.
+          </p>
+          <button
+            type="button"
+            className="danger"
+            onClick={async () => {
+              if (!confirm(`Remove the event "${event.name}"?`)) return;
+              try {
+                await deleteOrganiser(event.id);
+                window.location.href = "/admin/events";
+              } catch (err) {
+                setError(errorMessage(err));
+              }
+            }}
+          >
+            Remove this event
+          </button>
+        </div>
+      )}
     </div>
   );
 }

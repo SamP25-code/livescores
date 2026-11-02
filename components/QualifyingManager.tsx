@@ -32,6 +32,7 @@ import {
   type QualifyingData,
 } from "@/lib/qualifyingApi";
 import type { Organiser } from "@/lib/types";
+import { useScrollIntoView } from "@/lib/useScrollIntoView";
 
 // The Qualifying tab of a competition entered by qualification: its places,
 // each filled by a qualifying competition's winner or as a wildcard. Add
@@ -45,6 +46,8 @@ export default function QualifyingManager({ competitionId }: { competitionId: st
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const messageRef = useScrollIntoView<HTMLParagraphElement>(message);
+  const errorRef = useScrollIntoView<HTMLParagraphElement>(error);
 
   async function load(fill = false) {
     try {
@@ -112,8 +115,16 @@ export default function QualifyingManager({ competitionId }: { competitionId: st
         </p>
       </div>
 
-      {message && !error && <p className="hint">{message}</p>}
-      {error && <p className="error">{error}</p>}
+      {message && !error && (
+        <p className="hint" ref={messageRef}>
+          {message}
+        </p>
+      )}
+      {error && (
+        <p className="error" ref={errorRef}>
+          {error}
+        </p>
+      )}
 
       <div className="card comp-list">
         {data.places.length === 0 && <p className="hint">No places yet - add a qualifying competition or a wildcard.</p>}

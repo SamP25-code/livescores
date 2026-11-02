@@ -809,33 +809,42 @@ label {
 .score-stepper {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .score-line .score-stepper {
   flex: none;
 }
 
-/* A phone held upright doesn't have room for full names beside the score
-   buttons, so just the avatar shows. The name is hidden visually but kept
-   for screen readers, and comes back when the phone is turned sideways. */
+/* A phone held upright doesn't have room for a full name beside the score
+   buttons, so the name goes on its own line above them - never just
+   initials, which two players can share. Sideways, they sit side by side. */
 @media (orientation: portrait) and (max-width: 640px) {
-  .score-line .name {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
+  .score-line {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .score-line .name-cell {
+    flex: 1 0 100%;
+  }
+
+  .score-line .score-stepper {
+    margin-left: auto;
   }
 }
 
+/* Big enough for a finger outdoors (44px), with − kept further from +1 */
 .score-stepper button {
-  min-width: 36px;
-  height: 36px;
-  padding: 0 6px;
-  font-size: 1.1rem;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 8px;
+  font-size: 1.15rem;
   line-height: 1;
+}
+
+.score-stepper button:first-child {
+  margin-right: 6px;
 }
 
 .score-stepper .value {
@@ -4740,4 +4749,22 @@ a.info-pill-club:focus-visible {
 
 .setup-item-done .setup-item-state {
   color: var(--green-mid);
+}
+
+/* A session's settings, folded away below its matches once the draw is made */
+.session-settings-fold {
+  margin: 24px 0;
+}
+
+.session-settings-fold > summary {
+  cursor: pointer;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--cream);
+  font-weight: 600;
+}
+
+.session-settings-fold[open] > summary {
+  margin-bottom: 12px;
 }

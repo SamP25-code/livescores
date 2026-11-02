@@ -68,9 +68,12 @@ export default function LiveScores({
               </Link>
             );
           })}
-          <Link href={`/night/${shown[0].nightId}`} className="home-live-all">
-            {matches.length > MAX_SHOWN ? `See all ${matches.length} live scores` : "See the full draw"}
-          </Link>
+          {/* With several sessions live, the banners above link to each one */}
+          {new Set(matches.map((m) => m.nightId)).size === 1 && (
+            <Link href={`/night/${shown[0].nightId}`} className="home-live-all">
+              {matches.length > MAX_SHOWN ? `See all ${matches.length} live scores` : "See the full draw"}
+            </Link>
+          )}
         </div>
       )}
     </>

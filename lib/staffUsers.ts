@@ -41,14 +41,15 @@ export function visibleTo(
 }
 
 // Whether the viewer can give this login a new password: Super can for
-// anyone; an admin only for someone who just scores in their competitions
-// (not another admin, and not Super).
+// anyone; an admin only for a name login that just scores in their
+// competitions (not another admin, not Super, and not an email login - those
+// reset their own by email, so an admin can't take one over).
 export function canResetPassword(
-  target: { id: string; isSuper: boolean; assignments: StaffAssignment[] },
+  target: { id: string; isSuper: boolean; email?: string | null; assignments: StaffAssignment[] },
   viewer: { id: string; isSuper: boolean; adminOf: Set<string> }
 ): boolean {
   if (viewer.isSuper || target.id === viewer.id) return true;
-  if (target.isSuper || target.assignments.length === 0) return false;
+  if (target.isSuper || target.email || target.assignments.length === 0) return false;
   return target.assignments.every((a) => a.role === "scorer" && viewer.adminOf.has(a.competition_id));
 }
 
