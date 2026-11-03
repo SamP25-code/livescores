@@ -5,7 +5,7 @@ import { SITE_NAME } from "@/lib/site";
 import { newPasswordProblem, saveOwnPassword } from "@/lib/choosePassword";
 import { errorMessage } from "@/lib/errors";
 import { useIsSuper } from "@/lib/auth";
-import { loadSiteBackground, saveSiteBackground } from "@/lib/backgrounds";
+import { loadSiteBackground, saveSiteBackground, showSiteBackground } from "@/lib/backgrounds";
 import BackgroundPicker from "@/components/BackgroundPicker";
 
 export default function AdminSettingsPage() {
@@ -103,8 +103,8 @@ function SiteBackgroundSetting() {
     try {
       await saveSiteBackground(next);
       setUrl(next);
-      document.documentElement.style[next ? "setProperty" : "removeProperty"]("--site-background", next ? `url("${next}")` : "");
-      setMessage(next ? "Background changed." : "Back to plain green.");
+      showSiteBackground(next);
+      setMessage(next ? "Background changed." : "Back to the plain light page.");
     } catch (err) {
       setError(errorMessage(err));
     }

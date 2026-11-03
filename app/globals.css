@@ -6,7 +6,8 @@
   --green-mid: #3d6b4a;
   --green-pale: #e4ecdf;
   --green-highlight: #cfe0c4;
-  --cream: #efebdd;
+  /* Cards and panels: white on the light page, cream over a photo (below) */
+  --cream: #fff;
   --wood: #7a5230;
   --maroon: #7a2e2e;
   --ink: #1b211c;
@@ -16,10 +17,23 @@
   --gold: #c9972c;
   --gold-deep: #8a6a12;
   --gold-pale: #fbf1d6;
-  /* The page behind everything: the county flag's green, mown into stripes */
+  /* The light page behind everything, under a band of county-flag green
+     mown into stripes at the top */
+  --page-light: #eef1ec;
   --lawn-light: #2f8a5f;
-  --lawn-dark: #22704c;
-  --lawn-stripe: rgba(255, 255, 255, 0.05);
+  --lawn-dark: #2a7f57;
+  /* Things sitting straight on the page rather than in a card: titles,
+     month labels, filter chips, the footer. Dark on the light page; white
+     with a shadow over a photo (below) */
+  --on-page: var(--green-deep);
+  --on-page-soft: var(--ink-soft);
+  --on-page-shadow: none;
+  --on-page-line: var(--line);
+  --chip: var(--surface);
+  --chip-line: var(--line);
+  --chip-on: var(--green-fill);
+  --chip-on-line: var(--green-fill);
+  --chip-on-text: #fff;
   /* Colours that fill a shape (buttons, pills, bars) rather than colour
      text - the same as their text colour for now, but kept apart so a dark
      look could lighten the text without washing out the buttons */
@@ -30,10 +44,27 @@
   --on-green: #efebdd;
   /* White panels, and the page behind admin */
   --surface: #fff;
-  --page: var(--cream);
+  --page: var(--page-light);
   /* The space between blocks on a page, and between sections */
   --gap: 12px;
   --section-gap: 24px;
+}
+
+/* A competition's, an event's or the site's own photo behind the page
+   (lib/backgrounds.ts marks which): white text with a shadow, and dark
+   see-through chips, so it all reads over the picture */
+:root[data-site-photo],
+:root[data-page-photo] {
+  --cream: #efebdd;
+  --on-page: #fff;
+  --on-page-soft: rgba(255, 255, 255, 0.85);
+  --on-page-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+  --on-page-line: rgba(255, 255, 255, 0.35);
+  --chip: rgba(20, 40, 28, 0.85);
+  --chip-line: rgba(255, 255, 255, 0.25);
+  --chip-on: var(--cream);
+  --chip-on-line: var(--on-green);
+  --chip-on-text: var(--green-deep);
 }
 
 
@@ -83,17 +114,9 @@ body {
   inset: 0;
   z-index: -1;
   /* A competition's or event's own background, else the site's general one
-     (chosen in admin), else county-flag green mown into stripes like a
-     bowling green (lib/backgrounds.ts) */
-  background-color: var(--lawn-dark);
-  background-image: var(
-    --page-background,
-    var(
-      --site-background,
-      repeating-linear-gradient(90deg, var(--lawn-stripe) 0 80px, transparent 80px 160px),
-      linear-gradient(180deg, var(--lawn-light), var(--lawn-dark))
-    )
-  );
+     (chosen in admin), else the plain light page (lib/backgrounds.ts) */
+  background-color: var(--page-light);
+  background-image: var(--page-background, var(--site-background, none));
   background-size: cover;
   background-position: center 20%;
   background-repeat: no-repeat;
@@ -108,8 +131,8 @@ body {
 .page-photo .count,
 .page-photo .round-col .round-title,
 .page-photo .champion-col .round-title {
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+  color: var(--on-page);
+  text-shadow: var(--on-page-shadow);
 }
 
 .page-photo .champion-banner .hint {
@@ -175,8 +198,8 @@ a {
   margin-bottom: 2px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--on-green);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  color: var(--on-page);
+  text-shadow: var(--on-page-shadow);
   text-decoration: none;
 }
 
@@ -945,8 +968,8 @@ label {
 }
 
 .night-header-hint {
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+  color: var(--on-page);
+  text-shadow: var(--on-page-shadow);
   font-size: 0.95rem;
   margin: 12px 0 0;
 }
@@ -1001,7 +1024,7 @@ label {
   margin-bottom: 14px;
   padding: 9px 12px;
   border-radius: var(--radius);
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--chip);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
 }
@@ -1014,11 +1037,11 @@ label {
   border: none;
   border-radius: 0;
   background: none;
-  color: #fff;
+  color: var(--on-page);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: rgba(255, 255, 255, 0.45);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  text-decoration-color: var(--on-page-line);
+  text-shadow: var(--on-page-shadow);
   cursor: pointer;
 }
 
@@ -1490,8 +1513,8 @@ label {
   justify-content: center;
   gap: 8px;
   margin: 0 0 10px;
-  color: #fff;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  color: var(--on-page);
+  text-shadow: var(--on-page-shadow);
   font-size: 0.9rem;
 }
 
@@ -1554,8 +1577,8 @@ label {
 .admin-nav-extra a,
 .admin-nav-extra .link-button {
   font-size: 0.85rem;
-  color: #fff;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  color: var(--on-page);
+  text-shadow: var(--on-page-shadow);
 }
 
 /* The page below the menu doesn't need its own gap for the status bar. */
@@ -2789,17 +2812,17 @@ label {
   flex: none;
   min-height: 44px;
   padding: 6px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--chip-line);
   border-radius: 999px;
-  background: rgba(20, 40, 28, 0.85);
-  color: #fff;
+  background: var(--chip);
+  color: var(--on-page);
   font-weight: 600;
 }
 
 .home-filter-on {
-  background: var(--cream);
-  color: var(--green-deep);
-  border-color: var(--on-green);
+  background: var(--chip-on);
+  border-color: var(--chip-on-line);
+  color: var(--chip-on-text);
 }
 
 .comp-rows {
@@ -2843,12 +2866,12 @@ label {
 
 .comp-page-by {
   margin: 0 0 var(--gap);
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+  color: var(--on-page);
+  text-shadow: var(--on-page-shadow);
 }
 
 .comp-page-by a {
-  color: #fff;
+  color: var(--on-page);
   font-weight: 700;
 }
 
@@ -2929,12 +2952,12 @@ label {
 .comp-page-years {
   margin-top: var(--section-gap);
   text-align: center;
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+  color: var(--on-page);
+  text-shadow: var(--on-page-shadow);
 }
 
 .comp-page-years a {
-  color: #fff;
+  color: var(--on-page);
   font-weight: 700;
 }
 
@@ -2956,8 +2979,8 @@ label {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.85);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  color: var(--on-page-soft);
+  text-shadow: var(--on-page-shadow);
 }
 
 .sponsor-panel-list {
@@ -2973,13 +2996,13 @@ label {
   align-items: center;
   gap: 8px;
   min-height: 36px;
-  color: #fff;
+  color: var(--on-page);
   font-size: 1.15rem;
   text-decoration: none;
 }
 
 .sponsor-panel-item strong {
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.6);
+  text-shadow: var(--on-page-shadow);
 }
 
 .sponsor-panel-logo {
@@ -3049,8 +3072,8 @@ label {
   bottom: calc(8px + env(safe-area-inset-bottom));
   text-align: center;
   font-size: 0.8rem;
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+  color: var(--on-page);
+  text-shadow: var(--on-page-shadow);
 }
 
 .public-footer p {
@@ -3072,11 +3095,11 @@ label {
   padding: 0 12px;
   border: none;
   background: transparent;
-  color: #fff;
+  color: var(--on-page);
   font: inherit;
   font-weight: 600;
   text-decoration: underline;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  text-shadow: var(--on-page-shadow);
   cursor: pointer;
 }
 
@@ -3245,19 +3268,19 @@ label {
   flex: none;
   min-height: 40px;
   padding: 6px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid var(--chip-line);
   border-radius: 999px;
-  background: rgba(20, 40, 28, 0.55);
-  color: #fff;
+  background: var(--chip);
+  color: var(--on-page);
   font: inherit;
   font-size: 0.95rem;
   font-weight: 600;
 }
 
 .comp-tab-on {
-  background: var(--cream);
-  border-color: var(--on-green);
-  color: var(--green-deep);
+  background: var(--chip-on);
+  border-color: var(--chip-on-line);
+  color: var(--chip-on-text);
 }
 
 /* Session page: narrowing the matches down */
@@ -3278,16 +3301,16 @@ label {
   flex: 1 0 auto;
   min-height: 44px;
   padding: 6px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(20, 40, 28, 0.85);
-  color: #fff;
+  border: 1px solid var(--chip-line);
+  background: var(--chip);
+  color: var(--on-page);
   font-weight: 700;
 }
 
 .match-filter-on {
-  background: var(--cream);
-  border-color: var(--on-green);
-  color: var(--green-deep);
+  background: var(--chip-on);
+  border-color: var(--chip-on-line);
+  color: var(--chip-on-text);
 }
 
 .match-filter-find {
@@ -3475,9 +3498,9 @@ label {
 }
 
 .event-more {
-  color: #fff;
+  color: var(--on-page);
   font-weight: 700;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  text-shadow: var(--on-page-shadow);
 }
 
 .event-post {
@@ -3664,15 +3687,15 @@ label {
 
 .comp-group-head h3 {
   margin: 4px 0 6px;
-  color: #fff;
+  color: var(--on-page);
   font-size: 1.15rem;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+  text-shadow: var(--on-page-shadow);
 }
 
 .comp-group-link {
-  color: #fff;
+  color: var(--on-page);
   font-weight: 700;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  text-shadow: var(--on-page-shadow);
 }
 
 /* Admin Events page */
@@ -3690,11 +3713,19 @@ label {
    big buttons, and the pages reached from the menu
    =========================================================================== */
 
+/* Sits in a band of county-flag green, mown into stripes, running the full
+   width of the screen and up to its top (over the page's top padding). A
+   border image paints outside the header without widening the page. */
 .site-header {
   display: flex;
   align-items: center;
   gap: 12px;
   margin: 0 0 var(--gap);
+  padding-bottom: 12px;
+  border-image-source: repeating-linear-gradient(90deg, var(--lawn-light) 0 80px, var(--lawn-dark) 80px 160px);
+  border-image-slice: 0 fill;
+  border-image-width: 0;
+  border-image-outset: 20px 100vmax 0;
 }
 
 .site-header-compact {
@@ -3936,14 +3967,14 @@ label {
 
 .public-page-title {
   margin: var(--gap) 0 4px;
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+  color: var(--on-page);
+  text-shadow: var(--on-page-shadow);
 }
 
 .public-page-intro {
   margin: 0 0 8px;
-  color: #fff;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  color: var(--on-page);
+  text-shadow: var(--on-page-shadow);
 }
 
 /* Who runs a competition and what it is, as pills under its name */
@@ -3992,9 +4023,9 @@ a.info-pill-club:focus-visible {
 /* A gap with nothing in it yet: one quiet line on the photo, not a box */
 .quiet-line {
   margin: 4px 0 var(--gap);
-  color: #fff;
+  color: var(--on-page);
   font-size: 0.95rem;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+  text-shadow: var(--on-page-shadow);
 }
 
 /* A competition's session page: one line under the session's name */
@@ -4316,10 +4347,10 @@ a.info-pill-club:focus-visible {
 /* Coming up: a box for each month, its name on the photo above it */
 .home-month-label {
   margin: 10px 0 4px;
-  color: #fff;
+  color: var(--on-page);
   font-size: 0.9rem;
   font-weight: 700;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  text-shadow: var(--on-page-shadow);
 }
 
 .home-section-head + .home-month .home-month-label {
@@ -4343,8 +4374,8 @@ a.info-pill-club:focus-visible {
   align-items: center;
   gap: 6px 10px;
   margin: 0 0 var(--gap);
-  color: #fff;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  color: var(--on-page);
+  text-shadow: var(--on-page-shadow);
 }
 
 .player-meta .info-pill {
@@ -4458,16 +4489,16 @@ a.info-pill-club:focus-visible {
 }
 
 .share-results-done {
-  color: #fff;
+  color: var(--on-page);
   font-size: 0.9rem;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  text-shadow: var(--on-page-shadow);
 }
 
 /* A qualification competition: its places filling in as each is won */
 .qualify-progress {
   margin-bottom: 4px;
-  color: #fff;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  color: var(--on-page);
+  text-shadow: var(--on-page-shadow);
 }
 
 .qualify-progress-head {
@@ -4488,7 +4519,7 @@ a.info-pill-club:focus-visible {
   min-width: 0;
   height: 6px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--on-page-line);
 }
 
 .qualify-bar .qualify-bar-won {
@@ -4506,7 +4537,7 @@ a.info-pill-club:focus-visible {
 .comp-page-foot {
   margin-top: calc(var(--section-gap) * 2.5);
   padding-top: var(--section-gap);
-  border-top: 1px solid rgba(255, 255, 255, 0.35);
+  border-top: 1px solid var(--on-page-line);
 }
 
 .comp-page-foot > :first-child {
@@ -4847,6 +4878,6 @@ a.info-pill-club:focus-visible {
   font-size: 1.8rem;
   line-height: 1.05;
   text-align: center;
-  color: #fff;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+  color: var(--on-page);
+  text-shadow: var(--on-page-shadow);
 }

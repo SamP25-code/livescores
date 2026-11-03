@@ -3,7 +3,7 @@
 // Backgrounds: the photo behind every public page. The site's general one is
 // chosen in admin (Settings); a competition or an event can have its own,
 // shown on its pages. Pages set theirs with usePageBackground; everything
-// else shows the general one (or, before one's chosen, plain green).
+// else shows the general one (or, before one's chosen, the plain light page).
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -29,7 +29,7 @@ export async function loadSiteBackground(): Promise<string | null> {
   return data?.value || null;
 }
 
-// Super: the general background (null: back to plain green)
+// Super: the general background (null: back to the plain light page)
 export async function saveSiteBackground(url: string | null): Promise<void> {
   const { error } = await supabase.from("site_settings").upsert({ key: "background_url", value: url });
   if (error) throw error;
@@ -39,12 +39,26 @@ function cssUrl(url: string): string {
   return `url("${url.replace(/["\\\n]/g, "")}")`;
 }
 
+// Puts the general background behind every page (null: back to the plain
+// light page), marking that there's a photo so text on it turns white
+// (globals.css)
+export function showSiteBackground(url: string | null) {
+  const root = document.documentElement;
+  if (url) {
+    root.style.setProperty("--site-background", cssUrl(url));
+    root.dataset.sitePhoto = "";
+  } else {
+    root.style.removeProperty("--site-background");
+    delete root.dataset.sitePhoto;
+  }
+}
+
 // The general background, set once for the visit
 export function useSiteBackground() {
   useEffect(() => {
     loadSiteBackground()
       .then((url) => {
-        if (url) document.documentElement.style.setProperty("--site-background", cssUrl(url));
+        if (url) showSiteBackground(url);
       })
       .catch(() => {});
   }, []);
@@ -57,8 +71,11 @@ export function usePageBackground(url: string | null | undefined) {
     if (!url) return;
     const root = document.documentElement;
     root.style.setProperty("--page-background", cssUrl(url));
+    // Marks a photo behind the page, so text on it turns white (globals.css)
+    root.dataset.pagePhoto = "";
     return () => {
       root.style.removeProperty("--page-background");
+      delete root.dataset.pagePhoto;
     };
   }, [url]);
 }
