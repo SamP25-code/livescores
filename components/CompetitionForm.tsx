@@ -33,6 +33,8 @@ import type { Night, Organiser, Series, Venue } from "@/lib/types";
 import { useIsSuper } from "@/lib/auth";
 import BackgroundPicker from "@/components/BackgroundPicker";
 import SponsorFields, { EMPTY_SPONSOR } from "@/components/SponsorFields";
+import PrizeFields from "@/components/PrizeFields";
+import { prizeRows, readPrizes, type PrizeInput } from "@/lib/prizes";
 
 const DEFAULT_START: Record<SessionKind, string> = {
   qualifier: "19:00",
@@ -52,7 +54,7 @@ const numberOrNull = (v: string) => (v.trim() === "" ? null : Number(v));
 
 // Set up a new competition, or change an existing one's settings. Super only.
 // Once a draw has been made the structure is locked and only the details
-// (status, label, sponsor, venue, dates) can change.
+// (status, label, sponsor, prize money, venue, dates) can change.
 export default function CompetitionForm({
   existing,
   presetOrganiserId,
@@ -119,6 +121,9 @@ export default function CompetitionForm({
       ? c.sponsors.map((s) => ({ name: s.name, url: s.url ?? "", logo_url: s.logo_url ?? null }))
       : [EMPTY_SPONSOR]
   );
+  // Prize money, if it's known yet - none to start with
+  const [prizes, setPrizes] = useState<PrizeInput[]>(() => prizeRows(c?.prizes));
+  const [prizeNote, setPrizeNote] = useState(c?.prize_note ?? "");
 
   // Venue
   const [venueId, setVenueId] = useState<string>(c?.venue_id ?? "");
@@ -248,6 +253,11 @@ export default function CompetitionForm({
       setError(problems[0]);
       return;
     }
+    const prizeMoney = readPrizes(prizes);
+    if ("problem" in prizeMoney) {
+      setError(prizeMoney.problem);
+      return;
+    }
     setSaving(true);
     try {
       const chosenVenueId: string | null = isCounty ? null : venueId || null;
@@ -258,6 +268,8 @@ export default function CompetitionForm({
         label: label.trim() || null,
         venue_id: chosenVenueId,
         background_url: background,
+        prizes: prizeMoney.prizes,
+        prize_note: prizeNote.trim() || null,
         ...(locked
           ? {}
           : {
@@ -605,7 +617,7 @@ export default function CompetitionForm({
         )}
         {locked && (
           <p className="comp-form-locked">
-            A draw has been made, so the format is locked. Dates, venue, sponsor and status can still change.
+            A draw has been made, so the format is locked. Dates, venue, sponsors, prize money and status can still change.
           </p>
         )}
         <fieldset className="comp-form-choice" disabled={locked}>
@@ -801,6 +813,11 @@ export default function CompetitionForm({
           onChange={setBackground}
         />
         <SponsorFields id="cf-sponsor" sponsors={sponsors} onChange={setSponsors} onError={setError} />
+      </section>
+
+      <section className="card">
+        <h2>Prize money (optional)</h2>
+        <PrizeFields id="cf-prize" prizes={prizes} note={prizeNote} onChange={setPrizes} onNoteChange={setPrizeNote} />
       </section>
 
       {error && <p className="error">{error}</p>}

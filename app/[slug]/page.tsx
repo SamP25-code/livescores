@@ -25,6 +25,7 @@ import PlayerLinks from "@/components/PlayerLinks";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import { SponsorPanel } from "@/components/Sponsors";
 import HowToQualify from "@/components/HowToQualify";
+import PrizeMoney from "@/components/PrizeMoney";
 import EventPage from "@/components/event/EventPage";
 import type { Venue } from "@/lib/types";
 import PublicPage from "@/components/PublicPage";
@@ -160,6 +161,8 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
           ))}
         </div>
       )}
+
+      <PrizeMoney prizes={c.prizes} note={c.prize_note} />
 
       {c.entry_method === "qualification" && <HowToQualify competitionId={c.id} all={all} />}
 

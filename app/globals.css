@@ -1906,6 +1906,62 @@ label {
   }
 }
 
+/* Prize money in the set-up form: a place and its amount on each line,
+   even on a phone (the amount is short) */
+.comp-form-prizes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.comp-form-prizes > .field {
+  align-self: stretch;
+  margin-top: 8px;
+}
+
+.comp-form-prize {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 6.5rem auto;
+  align-items: end;
+  gap: 0 10px;
+  width: 100%;
+}
+
+/* Prize money on a competition's page: place on the left, amount on the right */
+.prize-money-list {
+  margin: 0;
+}
+
+.prize-money-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.prize-money-row:last-child {
+  border-bottom: none;
+}
+
+.prize-money-row dt {
+  color: var(--ink);
+}
+
+.prize-money-row dd {
+  margin: 0;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+.prize-money .hint {
+  margin: 6px 0 0;
+}
+
 /* Entries and the name search */
 .entries h3 {
   margin: 0 0 10px;

@@ -1,3 +1,5 @@
+import type { Prize } from "@/lib/prizes";
+
 export type Night = {
   id: string;
   name: string;
@@ -103,6 +105,9 @@ export type Competition = {
   colour: string | null;
   // Its own background photo for its pages (migration 2027_17)
   background_url?: string | null;
+  // Prize money, if it's known yet, and anything else about it (migration 2027_22)
+  prizes?: Prize[] | null;
+  prize_note?: string | null;
   created_at: string;
 };
 

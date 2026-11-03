@@ -3,6 +3,8 @@
 // list, the calendar's month grid and colours, and the "Next up" pick.
 // All worked out from each competition's sessions - nothing entered twice.
 
+import type { Prize } from "@/lib/prizes";
+
 export type PublicSessionKind = "qualifier" | "finals" | "single_day" | "final";
 
 export type PublicSession = {
@@ -61,6 +63,9 @@ export type PublicCompetition = {
   };
   // Its own background, shown on its pages
   background_url?: string | null;
+  // Prize money, if it's known yet, and anything else about it
+  prizes?: Prize[] | null;
+  prize_note?: string | null;
   entry_method: "open" | "qualification" | "on_the_night";
   sponsors: { name: string; url: string | null; logo_url: string | null }[];
   sessions: PublicSession[];

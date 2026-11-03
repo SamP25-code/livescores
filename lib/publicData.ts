@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { roundLabel } from "@/lib/bracket";
 import type { Champion, PublicCompetition, PublicSession, PublicSessionKind } from "@/lib/publicCompetitions";
 import type { ClubOrganiser } from "@/lib/siteMenu";
+import type { Prize } from "@/lib/prizes";
 
 // Every row of a table, a page of 1,000 at a time - the database hands back
 // at most 1,000 at once, and a season soon has more than that
@@ -156,6 +157,8 @@ async function loadPublicCompetitionsFresh(): Promise<PublicCompetition[]> {
         background_image: (series.organiser as { background_image?: string | null }).background_image ?? null,
       },
       background_url: (c as { background_url?: string | null }).background_url ?? null,
+      prizes: (c as { prizes?: Prize[] | null }).prizes ?? null,
+      prize_note: (c as { prize_note?: string | null }).prize_note ?? null,
       sponsors: [
         ...((c.sponsors as { name: string; url: string | null; logo_url?: string | null; position: number }[]) ?? []),
       ]
