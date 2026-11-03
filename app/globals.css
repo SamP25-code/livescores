@@ -14,8 +14,8 @@
   --gold-deep: #8a6a12;
   --gold-pale: #fbf1d6;
   /* The page behind everything: the county flag's green, mown into stripes */
-  --lawn-light: #237350;
-  --lawn-dark: #174f37;
+  --lawn-light: #2f8a5f;
+  --lawn-dark: #22704c;
   --lawn-stripe: rgba(255, 255, 255, 0.05);
   /* Colours that fill a shape (buttons, pills, bars) rather than colour
      text - the same as their text colour here, but kept apart so dark mode
@@ -48,9 +48,9 @@
     --line: #34403a;
     --gold-deep: #e6c36e;
     --gold-pale: #3a2f15;
-    --lawn-light: #123323;
-    --lawn-dark: #0a1c13;
-    --lawn-stripe: rgba(255, 255, 255, 0.03);
+    --lawn-light: #1d4d35;
+    --lawn-dark: #143726;
+    --lawn-stripe: rgba(255, 255, 255, 0.04);
     --green-fill: #2b6646;
     --green-mid-fill: #4f8a63;
     --maroon-fill: #973838;
