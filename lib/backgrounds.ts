@@ -3,7 +3,7 @@
 // Backgrounds: the photo behind every public page. The site's general one is
 // chosen in admin (Settings); a competition or an event can have its own,
 // shown on its pages. Pages set theirs with usePageBackground; everything
-// else shows the general one (or, before one's chosen, the built-in photo).
+// else shows the general one (or, before one's chosen, plain green).
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -29,7 +29,7 @@ export async function loadSiteBackground(): Promise<string | null> {
   return data?.value || null;
 }
 
-// Super: the general background (null: back to the built-in photo)
+// Super: the general background (null: back to plain green)
 export async function saveSiteBackground(url: string | null): Promise<void> {
   const { error } = await supabase.from("site_settings").upsert({ key: "background_url", value: url });
   if (error) throw error;

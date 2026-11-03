@@ -104,7 +104,7 @@ function SiteBackgroundSetting() {
       await saveSiteBackground(next);
       setUrl(next);
       document.documentElement.style[next ? "setProperty" : "removeProperty"]("--site-background", next ? `url("${next}")` : "");
-      setMessage(next ? "Background changed." : "Back to the built-in photo.");
+      setMessage(next ? "Background changed." : "Back to plain green.");
     } catch (err) {
       setError(errorMessage(err));
     }
