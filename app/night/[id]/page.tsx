@@ -1,12 +1,14 @@
 "use client";
 
 import { use, useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, computeNightStatus, isWalkover, roundLabel } from "@/lib/bracket";
 import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
 import { originalDateLabel, postponedLabel } from "@/lib/venues";
 import { sessionTimes, sessionTitle, shortDate } from "@/lib/publicCompetitions";
 import { startViewerPings } from "@/lib/viewerLog";
+import { drawsBySession, sessionIdFromPath } from "@/lib/sessionTabs";
 import NightNav from "@/components/NightNav";
 import { SponsorPanel, type SponsorShown } from "@/components/Sponsors";
 import Avatar from "@/components/Avatar";
@@ -45,6 +47,41 @@ const seenSessions = new Map<
     competition: SessionCompetition | null;
   }
 >();
+// Competitions whose other sessions have been loaded ahead, once a visit
+const loadedAhead = new Set<string>();
+
+// Every other session of the competition loaded ahead in one go (four trips,
+// however many sessions), so the first tap on any tab shows straight away
+async function loadSessionsAhead(competitionId: string, venueId: string | null, competition: SessionCompetition | null) {
+  if (loadedAhead.has(competitionId)) return;
+  loadedAhead.add(competitionId);
+  const { data: nights } = await supabase.from("nights").select("*").eq("competition_id", competitionId);
+  const ids = ((nights ?? []) as Night[]).map((n) => n.id).filter((id) => !seenSessions.has(id));
+  if (ids.length === 0) return;
+  const venueIds = [...new Set(((nights ?? []) as Night[]).map((n) => n.venue_id ?? venueId).filter((v): v is string => Boolean(v)))];
+  const [{ data: playerData }, { data: matchData }, { data: slotData }, { data: venueData }] = await Promise.all([
+    supabase.from("players").select("*").in("night_id", ids),
+    supabase.from("matches").select("*").in("night_id", ids),
+    supabase.from("time_slots").select("night_id, from_number, to_number, start_time").in("night_id", ids),
+    venueIds.length ? supabase.from("venues").select("*").in("id", venueIds) : Promise.resolve({ data: [] as Venue[] }),
+  ]);
+  if (!playerData || !matchData || !slotData) {
+    loadedAhead.delete(competitionId);
+    return;
+  }
+  const draws = drawsBySession(ids, playerData as Player[], matchData as MatchRow[], slotData as (TimeSlot & { night_id: string })[]);
+  for (const n of (nights ?? []) as Night[]) {
+    // Opened in the meantime: what it loaded itself is as fresh or fresher
+    if (!draws[n.id] || seenSessions.has(n.id)) continue;
+    const vId = n.venue_id ?? venueId;
+    seenSessions.set(n.id, {
+      night: n,
+      ...draws[n.id],
+      venue: ((venueData ?? []) as Venue[]).find((v) => v.id === vId) ?? null,
+      competition,
+    });
+  }
+}
 
 // The session's competition, as it comes back with the session
 type CompetitionRow = {
@@ -59,9 +96,12 @@ type CompetitionRow = {
 };
 
 export default function NightPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: nightId } = use(params);
-  // A session seen already shows straight away (then refreshes), so going
-  // back and forth between a competition's tabs is instant
+  const { id: routeId } = use(params);
+  // The tabs change the address in place, so the session shown is the one
+  // in the address (routeId is only the one the page was opened on)
+  const nightId = sessionIdFromPath(usePathname()) ?? routeId;
+  // A session seen (or loaded ahead) already shows straight away, then
+  // refreshes, so moving between a competition's tabs is instant
   const before = seenSessions.get(nightId);
   const [night, setNight] = useState<Night | null>(before?.night ?? null);
   const [players, setPlayers] = useState<Record<string, Player>>(before?.players ?? {});
@@ -74,6 +114,27 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
   const [viewerCount, setViewerCount] = useState(0);
   const [loadError, setLoadError] = useState(false);
   const [connectionLost, setConnectionLost] = useState(false);
+  const [highlightPlayerId, setHighlightPlayerId] = useState<string | null>(null);
+
+  // Another tab chosen: its session in place of this one. The competition
+  // (title, sponsors, background) is the same, so it stays while it loads
+  const [shownId, setShownId] = useState(nightId);
+  if (shownId !== nightId) {
+    setShownId(nightId);
+    setNight(before?.night ?? null);
+    setPlayers(before?.players ?? {});
+    setMatches(before?.matches ?? []);
+    setTimeSlots(before?.timeSlots ?? []);
+    if (before) setVenue(before.venue);
+    setLoadError(false);
+    setHighlightPlayerId(null);
+  }
+
+  // Replaces the address rather than adding to the history, so Back leaves
+  // the competition instead of stepping back through its tabs
+  function selectSession(id: string) {
+    window.history.replaceState(null, "", `/night/${id}`);
+  }
 
   useEffect(() => {
     document.title = night ? `${night.name} · ${SITE_NAME}` : `${SITE_NAME}`;
@@ -147,6 +208,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         };
         setCompetition(shown);
       }
+      if (nightRow.competition_id) loadSessionsAhead(nightRow.competition_id, comp?.venue_id ?? null, shown);
       seenSessions.set(nightId, {
         night: nightRow as Night,
         players: Object.fromEntries((playerData ?? []).map((p) => [p.id, p])),
@@ -226,7 +288,6 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
     return startViewerPings(nightId);
   }, [nightId, Boolean(night), nightFinished]);
 
-  const [highlightPlayerId, setHighlightPlayerId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "bracket">("list");
 
   function toggleHighlight(playerId: string) {
@@ -341,7 +402,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
       )}
       {competition && <SponsorPanel sponsors={competition.sponsors} />}
 
-      <NightNav competitionId={night?.competition_id ?? null} currentId={nightId} />
+      <NightNav competitionId={night?.competition_id ?? null} currentId={nightId} onSelect={selectSession} />
 
       <div className="night-header-card">
         {night && (

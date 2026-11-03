@@ -49,8 +49,13 @@ export default function SiteHeader({ compact = false, back = "/" }: { compact?: 
   const pathname = usePathname();
   const router = useRouter();
   const [cameFromSite, setCameFromSite] = useState(false);
+  // Decided once, as the page opens: a session page's tabs change the
+  // address in place, and that mustn't count as having come from the site
   useEffect(() => {
     setCameFromSite(visited !== null && visited !== pathname);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
     visited = pathname;
   }, [pathname]);
   const [open, setOpen] = useState(false);

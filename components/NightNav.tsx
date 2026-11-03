@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { shortDate } from "@/lib/publicCompetitions";
+import { switchesInPlace } from "@/lib/sessionTabs";
 import type { Night } from "@/lib/types";
 
 const KIND_LABEL: Record<string, string> = { finals: "Finals", final: "Final", single_day: "One day" };
@@ -12,11 +12,20 @@ const KIND_LABEL: Record<string, string> = { finals: "Finals", final: "Final", s
 // sessions. Once a session has a date, its tab shows the day and date
 // ("Fri" over "23 Apr"; Finals Day as "Finals · Sat" over "1 May"); until
 // then "Session 1" ... "Finals Day". Only that competition's sessions are
-// loaded, and a one-session competition has no tabs at all.
+// loaded, and a one-session competition has no tabs at all. A tab switches
+// the session on the page itself (onSelect) rather than opening a new page.
 // Kept between tabs, so the tabs are there straight away on the next one
 const seen = new Map<string, Night[]>();
 
-export default function NightNav({ competitionId, currentId }: { competitionId: string | null; currentId: string }) {
+export default function NightNav({
+  competitionId,
+  currentId,
+  onSelect,
+}: {
+  competitionId: string | null;
+  currentId: string;
+  onSelect: (id: string) => void;
+}) {
   const [nights, setNights] = useState<Night[]>(() => (competitionId ? (seen.get(competitionId) ?? []) : []));
 
   useEffect(() => {
@@ -42,14 +51,19 @@ export default function NightNav({ competitionId, currentId }: { competitionId: 
   return (
     <nav className="night-nav" aria-label="This competition's sessions">
       {nights.map((n) => (
-        <Link
+        <a
           key={n.id}
           href={`/night/${n.id}`}
           className={`night-pill night-pill-${n.kind} ${n.id === currentId ? "active" : ""}`}
           aria-current={n.id === currentId ? "page" : undefined}
+          onClick={(e) => {
+            if (!switchesInPlace(e)) return;
+            e.preventDefault();
+            if (n.id !== currentId) onSelect(n.id);
+          }}
         >
           <TabLabel night={n} />
-        </Link>
+        </a>
       ))}
     </nav>
   );
