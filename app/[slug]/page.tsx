@@ -152,17 +152,21 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
         </div>
       )}
 
-      {c.sessions.length === 0 ? (
-        <p className="quiet-line">Dates to be confirmed</p>
-      ) : (
-        <div className="card comp-schedule">
-          {c.sessions.map((s) => (
-            <ScheduleRow key={s.id} session={s} competition={c} today={today} venues={venues} />
-          ))}
-        </div>
-      )}
+      {/* The dates and the prize money only as wide as their text, and the
+          same width as each other */}
+      <div className="comp-fit">
+        {c.sessions.length === 0 ? (
+          <p className="quiet-line">Dates to be confirmed</p>
+        ) : (
+          <div className="card comp-schedule">
+            {c.sessions.map((s) => (
+              <ScheduleRow key={s.id} session={s} competition={c} today={today} venues={venues} />
+            ))}
+          </div>
+        )}
 
-      <PrizeMoney prizes={c.prizes} note={c.prize_note} />
+        <PrizeMoney prizes={c.prizes} note={c.prize_note} />
+      </div>
 
       {c.entry_method === "qualification" && <HowToQualify competitionId={c.id} all={all} />}
 
