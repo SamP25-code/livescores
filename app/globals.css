@@ -65,8 +65,8 @@ body {
   z-index: -1;
   background-color: var(--cream);
   /* A competition's or event's own background, else the site's general one
-     (chosen in admin), else the built-in photo (lib/backgrounds.ts) */
-  background-image: var(--page-background, var(--site-background, url("/bowls-background.jpg")));
+     (chosen in admin), else the built-in county flag (lib/backgrounds.ts) */
+  background-image: var(--page-background, var(--site-background, url("/north-lancs-fylde-background.jpg")));
   background-size: cover;
   background-position: center 20%;
   background-repeat: no-repeat;

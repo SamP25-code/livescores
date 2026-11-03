@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 1180" width="1680" height="1180">
+  <title>North Lancs &amp; Fylde Ladies County Bowling Association</title>
+  <defs>
+    <path id="top" d="M434.4,478.9 A418,418 0 0,1 1245.6,478.9"/>
+    <path id="bottom" d="M358.7,512.4 A486,486 0 1,0 1321.3,512.4"/>
+  </defs>
+  <rect width="1680" height="1180" fill="#1f6a47"/>
+
+  <g fill="#f4c21b" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="86" letter-spacing="3">
+    <text><textPath href="#top" startOffset="50%" text-anchor="middle">NORTH LANCS &amp; FYLDE</textPath></text>
+    <text><textPath href="#bottom" startOffset="50%" text-anchor="middle">LADIES COUNTY BOWLING ASSOC</textPath></text>
+  </g>
+
+  <g>
+    <rect x="500" y="539" width="680" height="54" fill="#fff" transform="rotate(43 840 566)"/>
+    <rect x="500" y="539" width="680" height="54" fill="#fff" transform="rotate(-43 840 566)"/>
+    <polygon points="840,404 742,556 938,556" fill="#fff"/>
+    <polygon points="752,556 928,556 978,972 702,972" fill="#fff"/>
+    <rect x="742" y="556" width="196" height="9" fill="#1f6a47"/>
+  </g>
+
+  <g>
+    <circle cx="840.0" cy="254.0" r="30.0" fill="#e23b1f"/>
+    <circle cx="796.3" cy="285.8" r="30.0" fill="#e23b1f"/>
+    <circle cx="813.0" cy="337.2" r="30.0" fill="#e23b1f"/>
+    <circle cx="867.0" cy="337.2" r="30.0" fill="#e23b1f"/>
+    <circle cx="883.7" cy="285.8" r="30.0" fill="#e23b1f"/>
+    <circle cx="840" cy="300" r="62.0" fill="#e23b1f"/>
+    <circle cx="840" cy="300" r="40.0" fill="none" stroke="#a9230f" stroke-width="7.0"/>
+    <circle cx="840" cy="300" r="15.0" fill="#1f6a47"/>
+    <circle cx="552.0" cy="522.0" r="30.0" fill="#e23b1f"/>
+    <circle cx="508.3" cy="553.8" r="30.0" fill="#e23b1f"/>
+    <circle cx="525.0" cy="605.2" r="30.0" fill="#e23b1f"/>
+    <circle cx="579.0" cy="605.2" r="30.0" fill="#e23b1f"/>
+    <circle cx="595.7" cy="553.8" r="30.0" fill="#e23b1f"/>
+    <circle cx="552" cy="568" r="62.0" fill="#e23b1f"/>
+    <circle cx="552" cy="568" r="40.0" fill="none" stroke="#a9230f" stroke-width="7.0"/>
+    <circle cx="552" cy="568" r="15.0" fill="#1f6a47"/>
+    <circle cx="1128.0" cy="522.0" r="30.0" fill="#e23b1f"/>
+    <circle cx="1084.3" cy="553.8" r="30.0" fill="#e23b1f"/>
+    <circle cx="1101.0" cy="605.2" r="30.0" fill="#e23b1f"/>
+    <circle cx="1155.0" cy="605.2" r="30.0" fill="#e23b1f"/>
+    <circle cx="1171.7" cy="553.8" r="30.0" fill="#e23b1f"/>
+    <circle cx="1128" cy="568" r="62.0" fill="#e23b1f"/>
+    <circle cx="1128" cy="568" r="40.0" fill="none" stroke="#a9230f" stroke-width="7.0"/>
+    <circle cx="1128" cy="568" r="15.0" fill="#1f6a47"/>
+  </g>
+</svg>
