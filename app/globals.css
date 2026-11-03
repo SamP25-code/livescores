@@ -1,4 +1,7 @@
 :root {
+  /* Always the light look, even on a phone set to dark mode - and tells
+     browsers that darken pages themselves to leave it be */
+  color-scheme: only light;
   --green-deep: #1f3d2b;
   --green-mid: #3d6b4a;
   --green-pale: #e4ecdf;
@@ -18,8 +21,8 @@
   --lawn-dark: #22704c;
   --lawn-stripe: rgba(255, 255, 255, 0.05);
   /* Colours that fill a shape (buttons, pills, bars) rather than colour
-     text - the same as their text colour here, but kept apart so dark mode
-     can lighten the text without washing out the buttons */
+     text - the same as their text colour for now, but kept apart so a dark
+     look could lighten the text without washing out the buttons */
   --green-fill: var(--green-deep);
   --green-mid-fill: var(--green-mid);
   --maroon-fill: var(--maroon);
@@ -33,31 +36,6 @@
   --section-gap: 24px;
 }
 
-/* Dark mode, following the phone's or computer's own setting */
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --green-deep: #a8d8b6;
-    --green-mid: #79b991;
-    --green-pale: #1f3428;
-    --green-highlight: #2a4a36;
-    --cream: #1a211d;
-    --maroon: #ee9f97;
-    --ink: #e4e9e5;
-    --ink-soft: #a7b2aa;
-    --line: #34403a;
-    --gold-deep: #e6c36e;
-    --gold-pale: #3a2f15;
-    --lawn-light: #1d4d35;
-    --lawn-dark: #143726;
-    --lawn-stripe: rgba(255, 255, 255, 0.04);
-    --green-fill: #2b6646;
-    --green-mid-fill: #4f8a63;
-    --maroon-fill: #973838;
-    --surface: #222a25;
-    --page: #111613;
-  }
-}
 
 * {
   box-sizing: border-box;
