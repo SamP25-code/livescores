@@ -1,8 +1,7 @@
 :root {
-  /* Light or dark, following the phone's or computer's own setting (dark
-     colours below) - and tells browsers that darken pages themselves to
-     leave it be */
-  color-scheme: light dark;
+  /* Always the light look, even on a phone set to dark mode - and tells
+     browsers that darken pages themselves to leave it be */
+  color-scheme: only light;
   --green-deep: #1f3d2b;
   --green-mid: #3d6b4a;
   --green-pale: #e4ecdf;
@@ -20,7 +19,7 @@
   --gold-pale: #fbf1d6;
   /* The light page behind everything, under a band of county-flag green
      mown into stripes at the top */
-  --page-light: #eef1ec;
+  --page-light: #dad9cc;
   --lawn-light: #2f8a5f;
   --lawn-dark: #2a7f57;
   /* Things sitting straight on the page rather than in a card: titles,
@@ -36,8 +35,8 @@
   --chip-on-line: var(--green-fill);
   --chip-on-text: #fff;
   /* Colours that fill a shape (buttons, pills, bars) rather than colour
-     text - the same as their text colour here, but kept apart so dark mode
-     can lighten the text without washing out the buttons */
+     text - the same as their text colour for now, but kept apart so a dark
+     look could lighten the text without washing out the buttons */
   --green-fill: var(--green-deep);
   --green-mid-fill: var(--green-mid);
   --maroon-fill: var(--maroon);
@@ -68,37 +67,6 @@
   --chip-on-text: var(--green-deep);
 }
 
-/* Dark mode: a near-black page and dark cards under a deeper green band.
-   Text colours lighten; fills (buttons, pills) keep their own, so they
-   don't wash out. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --green-deep: #a8d8b6;
-    --green-mid: #79b991;
-    --green-pale: #1f3428;
-    --green-highlight: #2a4a36;
-    --cream: #1c2420;
-    --maroon: #ee9f97;
-    --ink: #e4e9e5;
-    --ink-soft: #a7b2aa;
-    --line: #34403a;
-    --gold-deep: #e6c36e;
-    --gold-pale: #3a2f15;
-    --page-light: #111613;
-    --lawn-light: #1f5a3d;
-    --lawn-dark: #1b5037;
-    --green-fill: #2b6646;
-    --green-mid-fill: #4f8a63;
-    --maroon-fill: #973838;
-    --surface: #222a25;
-  }
-
-  /* Dark cards over a photo too */
-  :root[data-site-photo],
-  :root[data-page-photo] {
-    --cream: #1c2420;
-  }
-}
 
 
 * {
