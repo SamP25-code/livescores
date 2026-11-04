@@ -4582,7 +4582,7 @@ a.info-pill-club:focus-visible {
   font-size: 0.85rem;
 }
 
-/* A competition's page: honours, other years, where it's played and Share
+/* A competition's page: honours, other years and where it's played
    together at the foot, well clear of the list above (which grows as
    qualifying competitions are added) */
 .comp-page-foot {
@@ -4770,6 +4770,19 @@ a.info-pill-club:focus-visible {
 .event-places {
   font-size: 0.92rem;
   color: var(--ink-soft);
+}
+
+/* The event page's qualifying box: one tap to the list of who's in */
+.event-qualified {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.event-qualified-more {
+  display: block;
+  font-weight: 700;
+  color: var(--green-deep);
 }
 
 /* A hint with no space around it (inside a row or a tight card) */

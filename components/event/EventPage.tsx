@@ -156,7 +156,11 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
               </Link>
             )}
           </div>
-          <div className="card">
+          {/* Taps through to the list of who's in */}
+          <Link
+            href={qualifyingComps[0] ? `${competitionPath(qualifyingComps[0], all)}#qualified` : "#"}
+            className="card event-qualified"
+          >
             {qualified.next && (
               <strong className="event-next-final">
                 Next final: {qualified.next.name} &middot; {shortDate(qualified.next.date)}
@@ -168,7 +172,10 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
             <div className="qualifying-meter" aria-hidden="true">
               <i style={{ width: `${(qualified.done / qualified.total) * 100}%` }} />
             </div>
-          </div>
+            <span className="event-qualified-more">
+              {qualified.done > 0 ? "See who’s qualified" : "How to qualify"} &rsaquo;
+            </span>
+          </Link>
         </section>
       )}
 

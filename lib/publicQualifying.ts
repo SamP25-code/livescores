@@ -15,6 +15,8 @@ export type PublicPlace = {
   wasSource: string | null; // a wildcard that was once a qualifying place
   wildcard: boolean;
   who: string | null;
+  // The person behind it, for their player page
+  whoId: string | null;
   finalDate: string | null;
   // Where the source's results are: its own page on this site, or the
   // qualifier results page
@@ -36,12 +38,14 @@ export async function loadPublicQualifying(competitionId: string): Promise<Publi
     const event = p.qualifier_event_id ? data.events.get(p.qualifier_event_id) : undefined;
     const entry = p.entry_id ? data.entries.get(p.entry_id) : undefined;
     let who = entry ? (data.names.get(entry.person_id) ?? "Withdrawn player") : null;
+    let whoId = entry?.person_id ?? null;
     // On this site: the champion, as soon as the final's decided
     if (!who && p.source !== "wildcard" && event?.source_competition_id && placeView(p).state !== "flagged") {
       const champ = await championPerson(event.source_competition_id);
       if (champ) {
         const { data: person } = await supabase.from("people").select("full_name").eq("id", champ).maybeSingle();
         who = person?.full_name ?? null;
+        whoId = who ? champ : null;
       }
     }
     const hasResults = event && !event.source_competition_id && (data.matches.get(event.id)?.length || event.winner_person_id);
@@ -54,6 +58,7 @@ export async function loadPublicQualifying(competitionId: string): Promise<Publi
       wasSource: p.source === "wildcard" ? (p.original_source_label?.replace(/^Winner · /, "") ?? null) : null,
       wildcard: p.source === "wildcard",
       who,
+      whoId,
       finalDate: event?.final_date ?? null,
       link: event?.source_competition_id
         ? { competitionId: event.source_competition_id }

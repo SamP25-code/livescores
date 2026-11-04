@@ -8,10 +8,11 @@ import { competitionPath, shortDate, todayIso, type PublicCompetition } from "@/
 import MonthGroups from "@/components/home/MonthGroups";
 
 // How to get into a competition entered by qualification (the Masters
-// Invitation): a bar of its places, filling in as each is won, then each
-// qualifying competition as a row - the date of its final, where it's
-// played, and its winner once decided - soonest first, so it's clear when
-// every place will be in. Then the wildcards, dates to follow.
+// Invitation): who's qualified so far, in the order they won, under a bar of
+// its places filling in as each is won; then each qualifying competition as
+// a row - the date of its final, where it's played, and its winner once
+// decided - soonest first, so it's clear when every place will be in. Then
+// the wildcards, dates to follow.
 export default function HowToQualify({ competitionId, all }: { competitionId: string; all: PublicCompetition[] }) {
   const [places, setPlaces] = useState<PublicPlace[] | null>(null);
 
@@ -20,6 +21,12 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
       .then(setPlaces)
       .catch(() => setPlaces([]));
   }, [competitionId]);
+
+  // Arriving from the event page's "Who's qualified": the list loads after
+  // the page, so scroll to it once it's there
+  useEffect(() => {
+    if (places && window.location.hash === "#qualified") document.getElementById("qualified")?.scrollIntoView();
+  }, [places]);
 
   if (places === null) return null;
   if (places.length === 0) {
@@ -43,6 +50,11 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
   const today = todayIso();
   const next = qualifying.find((p) => !p.who && p.finalDate && p.finalDate >= today)?.finalDate ?? null;
   const allDecided = decided === qualifying.length;
+  // Everyone in so far: by the date they won their way in, wildcards last
+  const qualified = [
+    ...qualifying.filter((p) => p.who).sort((a, b) => (a.finalDate ?? "9999").localeCompare(b.finalDate ?? "9999") || a.number - b.number),
+    ...wildcards.filter((p) => p.who),
+  ];
   const placesLine = allDecided
     ? `All ${qualifying.length} place${qualifying.length === 1 ? "" : "s"} decided`
     : `${decided} of ${qualifying.length} place${qualifying.length === 1 ? "" : "s"} decided`;
@@ -58,9 +70,9 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
   return (
     <>
       {qualifying.length > 0 && (
-        <section className="home-section">
+        <section className="home-section" id="qualified">
           <div className="home-section-head">
-            <h2>Qualifying competitions</h2>
+            <h2>Who&rsquo;s qualified</h2>
           </div>
           <div className="qualify-progress">
             <p className="qualify-progress-head">
@@ -74,6 +86,31 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
               ))}
             </div>
             {!allDecided && last && <p className="qualify-progress-by">All decided by {shortDate(last)}</p>}
+          </div>
+          {qualified.length === 0 ? (
+            <p className="quiet-line">
+              No one yet{next ? ` – the first final is ${shortDate(next)}` : ""}
+            </p>
+          ) : (
+            <div className="card home-rows">
+              {qualified.map((p) => (
+                <CompetitionRow
+                  key={p.number}
+                  date={p.wildcard ? false : p.finalDate}
+                  title={p.who!}
+                  href={p.whoId ? `/player/${p.whoId}` : undefined}
+                  line={p.wildcard ? "Wildcard" : p.name}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {qualifying.length > 0 && (
+        <section className="home-section">
+          <div className="home-section-head">
+            <h2>Qualifying competitions</h2>
           </div>
           <MonthGroups
             items={qualifying}
