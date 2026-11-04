@@ -21,10 +21,11 @@ import type { PublicQualifier } from "@/lib/publicQualifying";
 
 // The month calendar: a dot under a qualifying session's date, the
 // competition's colour in a gold ring for a trophy day (Finals Day or a
-// single day), today ringed, "LIVE" under tonight. Below it, one row per
+// single day, or a qualifier's final), today ringed, "LIVE" under tonight. Below it, one row per
 // competition in view - tap one to open it; tap a date to see what's on. Days either side of the month are shown faded but still marked.
-// Qualifying competitions not run on this site (the Masters') are a dot on
-// the day of their final, in one colour for all those for one competition.
+// Qualifying competitions not run on this site (the Masters') are a ring on
+// the day of their final - a final, like any other - in one colour for all
+// those for one competition.
 export default function HomeCalendar({
   competitions,
   qualifiers = [],
@@ -59,7 +60,7 @@ export default function HomeCalendar({
   const marks = marksByDay(competitions);
   for (const q of qualifiers) {
     if (!marks.has(q.finalDate!)) marks.set(q.finalDate!, []);
-    marks.get(q.finalDate!)!.push({ competitionId: q.id, trophy: false, live: false });
+    marks.get(q.finalDate!)!.push({ competitionId: q.id, trophy: true, live: false });
   }
   const nameOf = new Map([...competitions.map((c) => [c.id, c.name] as const), ...qualifiers.map((q) => [q.id, q.name] as const)]);
   // Every session dated in this month (not the faded days either side)
@@ -223,7 +224,7 @@ export default function HomeCalendar({
           <span className="cal-dot cal-key-dot" /> Qualifying session
         </span>
         <span>
-          <span className="cal-key-ring" /> Finals Day / one day
+          <span className="cal-key-ring" /> A final / Finals Day
         </span>
       </div>
 
