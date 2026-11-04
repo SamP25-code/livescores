@@ -1,18 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import PlayerName from "@/components/PlayerName";
+import Link from "next/link";
 import CompetitionRow from "@/components/home/CompetitionRow";
 import { loadPublicQualifying, type PublicPlace } from "@/lib/publicQualifying";
 import { competitionPath, shortDate, todayIso, type PublicCompetition } from "@/lib/publicCompetitions";
 import MonthGroups from "@/components/home/MonthGroups";
 
 // How to get into a competition entered by qualification (the Masters
-// Invitation): who's qualified so far, in the order they won, under a bar of
-// its places filling in as each is won; then each qualifying competition as
-// a row - the date of its final, where it's played, and its winner once
-// decided - soonest first, so it's clear when every place will be in. Then
-// the wildcards, dates to follow.
+// Invitation): who's qualified so far, in the order they won - each with
+// the competition they won, opening its results - under a bar of its places
+// filling in as each is won; then the qualifying competitions still to play,
+// soonest first, so it's clear when every place will be in (each moves up
+// to Who's qualified once it has a winner). Then the wildcards, dates to
+// follow.
 export default function HowToQualify({ competitionId, all }: { competitionId: string; all: PublicCompetition[] }) {
   const [places, setPlaces] = useState<PublicPlace[] | null>(null);
 
@@ -50,6 +51,7 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
   const today = todayIso();
   const next = qualifying.find((p) => !p.who && p.finalDate && p.finalDate >= today)?.finalDate ?? null;
   const allDecided = decided === qualifying.length;
+  const toPlay = qualifying.filter((p) => !p.who);
   // Everyone in so far: by the date they won their way in, wildcards last
   const qualified = [
     ...qualifying.filter((p) => p.who).sort((a, b) => (a.finalDate ?? "9999").localeCompare(b.finalDate ?? "9999") || a.number - b.number),
@@ -99,7 +101,18 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
                   date={p.wildcard ? false : p.finalDate}
                   title={p.who!}
                   href={p.whoId ? `/player/${p.whoId}` : undefined}
-                  line={p.wildcard ? "Wildcard" : p.name}
+                  pill={!p.wildcard && p.location ? { label: p.location, href: p.locationHref } : null}
+                  line={
+                    p.wildcard ? (
+                      "Wildcard"
+                    ) : href(p) ? (
+                      <Link href={href(p)!} className="home-row-line-link">
+                        Won {p.name}
+                      </Link>
+                    ) : (
+                      `Won ${p.name}`
+                    )
+                  }
                 />
               ))}
             </div>
@@ -107,13 +120,13 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
         </section>
       )}
 
-      {qualifying.length > 0 && (
+      {toPlay.length > 0 && (
         <section className="home-section">
           <div className="home-section-head">
-            <h2>Qualifying competitions</h2>
+            <h2>Still to play</h2>
           </div>
           <MonthGroups
-            items={qualifying}
+            items={toPlay}
             dateOf={(p) => p.finalDate}
             render={(p) => (
               <CompetitionRow
@@ -122,15 +135,7 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
                 title={p.name}
                 href={href(p)}
                 pill={p.location ? { label: p.location, href: p.locationHref } : null}
-                line={
-                  p.who ? (
-                    <>
-                      Won by <PlayerName name={p.who} className="home-row-champion" />
-                    </>
-                  ) : (
-                    "Winner to be decided"
-                  )
-                }
+                line="Winner to be decided"
               />
             )}
           />

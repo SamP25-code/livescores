@@ -4210,6 +4210,17 @@ a.info-pill-club:focus-visible {
   font-size: 0.8rem;
 }
 
+/* A second link in a row's line (a qualifier's results under the player
+   who won it), above the row's own */
+.home-row-line-link {
+  position: relative;
+  z-index: 1;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
 .home-row-champion {
   font-weight: 700;
   color: var(--gold-deep);
