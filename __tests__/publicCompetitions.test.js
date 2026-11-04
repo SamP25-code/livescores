@@ -192,6 +192,20 @@ describe("calendar", () => {
     expect(colours.has("march")).toBe(false);
   });
 
+  test("two on the same day never share a colour, even past the sixth", () => {
+    const days = monthGrid(2027, 5).flat().map((d) => d.iso);
+    // Six on their own days, then a seventh on the first one's day: the
+    // seventh would come round to the first's colour, so it takes the next
+    const six = Array.from({ length: 6 }, (_, i) => comp({ id: `c${i}`, sessions: [session({ date: `2027-06-0${i + 1}` })] }));
+    const clash = comp({ id: "clash", sessions: [session({ date: "2027-06-28" }), session({ date: "2027-06-01" })] });
+    const colours = coloursFor([...six, clash], days);
+    expect(colours.get("c0")).toBe(PALETTE[0]);
+    expect(colours.get("clash")).not.toBe(PALETTE[0]);
+    // With no clash, the usual turn
+    const free = comp({ id: "free", sessions: [session({ date: "2027-06-28" })] });
+    expect(coloursFor([...six, free], days).get("free")).toBe(PALETTE[0]);
+  });
+
   test("marks: dots for qualifying, rings for trophy days", () => {
     const marks = marksByDay([floodlit]);
     expect(marks.get("2027-06-07")).toEqual([{ competitionId: "floodlit", trophy: false, live: false }]);

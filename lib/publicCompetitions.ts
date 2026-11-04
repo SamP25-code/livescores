@@ -355,20 +355,33 @@ export function monthGrid(year: number, month: number /* 0-11 */): CalendarDay[]
 // anyway, so beyond these the list carries it.
 export const PALETTE = ["#2f7d4a", "#2f63a8", "#c2477f", "#1f7a7a", "#8a5a2b", "#5b6577"];
 
-// Colours for the competitions with a date in view, in date order
+// Colours for the competitions with a date in view, in date order - each
+// the next colour round, unless something on one of its days already has
+// that one, then the next that's free, so two on the same day are never
+// the same colour (and two finals on one day always split the ring). Only
+// with more than six on one day does a colour repeat.
 export function coloursFor(list: Pick<PublicCompetition, "id" | "sessions">[], days: string[]): Map<string, string> {
   const inView = new Set(days);
-  const firsts = list
+  const dated = list
     .map((c) => ({
       id: c.id,
-      first: c.sessions
-        .map((s) => s.date)
-        .filter((d): d is string => Boolean(d && inView.has(d)))
-        .sort()[0],
+      dates: [...new Set(c.sessions.map((s) => s.date).filter((d): d is string => Boolean(d && inView.has(d))))].sort(),
     }))
-    .filter((x) => x.first)
-    .sort((a, b) => a.first!.localeCompare(b.first!) || a.id.localeCompare(b.id));
-  return new Map(firsts.map((x, i) => [x.id, PALETTE[i % PALETTE.length]]));
+    .filter((x) => x.dates.length > 0)
+    .sort((a, b) => a.dates[0].localeCompare(b.dates[0]) || a.id.localeCompare(b.id));
+  const colours = new Map<string, string>();
+  const usedOn = new Map<string, Set<string>>(); // day -> colours on it
+  dated.forEach((x, i) => {
+    const taken = new Set(x.dates.flatMap((d) => [...(usedOn.get(d) ?? [])]));
+    const order = PALETTE.map((_, k) => PALETTE[(i + k) % PALETTE.length]);
+    const colour = order.find((c) => !taken.has(c)) ?? order[0];
+    colours.set(x.id, colour);
+    for (const d of x.dates) {
+      if (!usedOn.has(d)) usedOn.set(d, new Set());
+      usedOn.get(d)!.add(colour);
+    }
+  });
+  return colours;
 }
 
 export type DayMark = { competitionId: string; trophy: boolean; live: boolean };

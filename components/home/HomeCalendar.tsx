@@ -24,8 +24,7 @@ import type { PublicQualifier } from "@/lib/publicQualifying";
 // single day, or a qualifier's final), today ringed, "LIVE" under tonight. Below it, one row per
 // competition in view - tap one to open it; tap a date to see what's on. Days either side of the month are shown faded but still marked.
 // Qualifying competitions not run on this site (the Masters') are a ring on
-// the day of their final - a final, like any other - in one colour for all
-// those for one competition.
+// the day of their final - a final, like any other - each its own colour.
 export default function HomeCalendar({
   competitions,
   qualifiers = [],

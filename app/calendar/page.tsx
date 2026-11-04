@@ -25,19 +25,12 @@ export default function CalendarPage() {
     () => (loadedQualifiers ?? []).filter((q) => q.finalDate && !q.sourceCompetitionId),
     [loadedQualifiers]
   );
-  // One colour for all the qualifiers for the same competition
-  const colours = useMemo(() => {
-    const groups = [...new Set(qualifiers.map((q) => q.qualifiesFor))].map((id) => ({
-      id: `qualifiers:${id}`,
-      sessions: qualifiers.filter((q) => q.qualifiesFor === id).map((q) => ({ date: q.finalDate })),
-    }));
-    const map = coloursFor([...all, ...(groups as Parameters<typeof coloursFor>[0])], gridDays);
-    for (const q of qualifiers) {
-      const colour = map.get(`qualifiers:${q.qualifiesFor}`);
-      if (colour) map.set(q.id, colour);
-    }
-    return map;
-  }, [all, qualifiers, gridDays]);
+  // Each qualifier its own colour, like any competition, so two finals on
+  // one day always show as two
+  const colours = useMemo(
+    () => coloursFor([...all, ...qualifiers.map((q) => ({ id: q.id, sessions: [{ date: q.finalDate }] }))] as Parameters<typeof coloursFor>[0], gridDays),
+    [all, qualifiers, gridDays]
+  );
 
   return (
     <PublicPage title="Calendar" loading={competitions === null || loadedQualifiers === null} failed={failed}>
