@@ -4211,14 +4211,14 @@ a.info-pill-club:focus-visible {
 }
 
 /* A second link in a row's line (a qualifier's results under the player
-   who won it), above the row's own */
+   who won it), above the row's own: bold in the link green, as a winner's
+   name is bold in gold, rather than underlined */
 .home-row-line-link {
   position: relative;
   z-index: 1;
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
+  font-weight: 700;
+  color: var(--green-deep);
+  text-decoration: none;
 }
 
 .home-row-champion {

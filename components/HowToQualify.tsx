@@ -9,7 +9,7 @@ import MonthGroups from "@/components/home/MonthGroups";
 
 // How to get into a competition entered by qualification (the Masters
 // Invitation): who's qualified so far, in the order they won - each with
-// the competition they won, opening its results - under a bar of its places
+// the competition they won (just its name), opening its results - under a bar of its places
 // filling in as each is won; then the qualifying competitions still to play,
 // soonest first, so it's clear when every place will be in (each moves up
 // to Who's qualified once it has a winner). Then the wildcards, dates to
@@ -107,10 +107,10 @@ export default function HowToQualify({ competitionId, all }: { competitionId: st
                       "Wildcard"
                     ) : href(p) ? (
                       <Link href={href(p)!} className="home-row-line-link">
-                        Won {p.name}
+                        {p.name}
                       </Link>
                     ) : (
-                      `Won ${p.name}`
+                      p.name
                     )
                   }
                 />
