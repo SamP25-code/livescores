@@ -47,6 +47,19 @@ describe("side menu search", () => {
     ]);
   });
 
+  test("a club also counts the qualifying competitions on its green, once each, not those already listed", () => {
+    const meole = { id: "mb", name: "Meole Brace BC", short_name: "Meole Brace", slug: "meole-brace", venue_id: "v-meole" };
+    const qualifiers = [
+      { venueId: "v-meole", name: "Coors Meole Brace Open", sourceCompetitionId: null },
+      { venueId: "v-meole", name: "Coors Meole Brace Open ", sourceCompetitionId: null },
+      { venueId: "v-other", name: "Fylde Classic", sourceCompetitionId: null },
+    ];
+    expect(clubs(all, [meole], qualifiers).find((x) => x.id === "mb").count).toBe(1);
+    // Run on this site and played there: counted once, as the competition
+    const atMeole = all.map((x) => (x.id === "jr" ? { ...x, venue_id: "v-meole" } : x));
+    expect(clubs(atMeole, [meole], [{ venueId: "v-meole", name: "Jack Rees", sourceCompetitionId: "jr" }]).find((x) => x.id === "mb").count).toBe(1);
+  });
+
   test("the menu's events: name and dates", () => {
     expect(menuEvents(all)).toEqual([{ title: "Blackpool Masters", dates: "Sat 18 – Sun 19 Sep", href: "/blackpool-masters" }]);
   });

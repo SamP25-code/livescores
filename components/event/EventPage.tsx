@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import PublicPage from "@/components/PublicPage";
-import ShareButton from "@/components/ShareButton";
 import VenueCard from "@/components/VenueCard";
 import { SponsorPanel, type SponsorShown } from "@/components/Sponsors";
 import { listEventSponsors } from "@/lib/competitionsApi";
@@ -30,7 +29,7 @@ import type { Venue } from "@/lib/types";
 // An event with several competitions (the Blackpool Masters), all on one
 // page: how long to go, its days (each opens that competition - the
 // Invitation's page lists its qualifying competitions), who's qualified so
-// far, adverts and every news post - then where it's played, and Share.
+// far, adverts and every news post - then where it's played.
 export default function EventPage({ event, all }: { event: EventRef; all: PublicCompetition[] }) {
   // The event's own background on its page
   usePageBackground(event.organiser.background_image ?? null);
@@ -186,19 +185,6 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
         </section>
       )}
 
-      <ShareButton
-        label="Share"
-        title={`${event.organiser.name} ${event.year}`}
-        text={() =>
-          [
-            `${event.organiser.name} ${event.year}`,
-            firstDate ? `${dateRange(firstDate, dates[dates.length - 1])} ${event.year}` : null,
-            window.location.href,
-          ]
-            .filter(Boolean)
-            .join("\n")
-        }
-      />
       {venues.length > 0 && (
         <div className="venue-pills">
           {venues.map((v) => (

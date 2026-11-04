@@ -4545,21 +4545,6 @@ a.info-pill-club:focus-visible {
   color: var(--maroon);
 }
 
-/* Share results: a button, and "Copied" beside it on a computer */
-.share-results {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-  margin: var(--section-gap) 0 0;
-}
-
-.share-results-done {
-  color: var(--on-page);
-  font-size: 0.9rem;
-  text-shadow: var(--on-page-shadow);
-}
-
 /* A qualification competition: its places filling in as each is won */
 .qualify-progress {
   margin-bottom: 4px;
@@ -4608,10 +4593,6 @@ a.info-pill-club:focus-visible {
 
 .comp-page-foot > :first-child {
   margin-top: 0;
-}
-
-.comp-page-foot .share-results {
-  justify-content: center;
 }
 
 /* Choosing a background photo */

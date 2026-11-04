@@ -2,7 +2,7 @@
 // needs attention (the live one, or the next one), where its draw has got
 // to, and how many are entered - so an organiser sees what to do next.
 import { entryCapacity } from "@/lib/people";
-import { nextSession, type PublicCompetition, type PublicSession } from "@/lib/publicCompetitions";
+import { drawOut, nextSession, type PublicCompetition, type PublicSession } from "@/lib/publicCompetitions";
 
 export type DrawState = "not_made" | "made_hidden" | "published";
 
@@ -18,7 +18,7 @@ export type CardSummary = {
 export function drawState(s: Pick<PublicSession, "matchCount" | "draw_published" | "kind">): DrawState {
   if (!s.matchCount) return "not_made";
   // Finals Day fills itself and always shows
-  return s.draw_published || s.kind === "finals" ? "published" : "made_hidden";
+  return drawOut(s) ? "published" : "made_hidden";
 }
 
 export const DRAW_LABEL: Record<DrawState, string> = {

@@ -91,10 +91,16 @@ export function organiserPill(c: PublicCompetition, all: PublicCompetition[]) {
   return { label: c.organiser.kind === "event" ? c.organiser.name : c.organiser.short_name, href: organiserPath(c, all) };
 }
 
-// Where a session's row goes: its draw once there is one (or it's under
-// way), otherwise the competition's page
+// Whether a session's draw is out: its matches are made and showing (Finals
+// Day always shows). Published with nothing in it doesn't count.
+export function drawOut(s: Pick<PublicSession, "matchCount" | "draw_published" | "kind">): boolean {
+  return Boolean(s.matchCount) && (s.draw_published || s.kind === "finals");
+}
+
+// Where a session's row goes, from any list: its draw once it's out (or the
+// session's under way or played), otherwise the competition's page
 export function sessionPath(c: PublicCompetition, s: PublicSession, all: PublicCompetition[]): string {
-  return s.draw_published || s.status !== "upcoming" ? `/night/${s.id}` : competitionPath(c, all);
+  return drawOut(s) || s.status !== "upcoming" ? `/night/${s.id}` : competitionPath(c, all);
 }
 
 // Just the start time for a list row: "10am" (practice is on its page)
@@ -252,6 +258,12 @@ export function rowState(c: PublicCompetition, today: string): RowState {
   const dated = c.sessions.filter((s) => s.date).sort((a, b) => a.date!.localeCompare(b.date!))[0];
   if (dated) return { kind: "next", date: dated.date!, session: dated };
   return { kind: "tbc", date: null };
+}
+
+// Where a competition's row in a list goes: the session it's showing, by the
+// same rule as every other list - or the competition's page once it's won
+export function rowPath(c: PublicCompetition, state: RowState, all: PublicCompetition[]): string {
+  return "session" in state ? sessionPath(c, state.session, all) : competitionPath(c, all);
 }
 
 function lastDate(c: Pick<PublicCompetition, "sessions">): string {

@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import CompetitionRow from "@/components/home/CompetitionRow";
-import { useClubOrganisers, usePublicCompetitions } from "@/lib/usePublicCompetitions";
+import { useClubOrganisers, useClubQualifiers, usePublicCompetitions } from "@/lib/usePublicCompetitions";
 import { useVenues } from "@/lib/useVenues";
 import { directionsUrl } from "@/lib/venues";
 import { clubs } from "@/lib/siteMenu";
@@ -13,11 +13,12 @@ import PublicPage from "@/components/PublicPage";
 export default function ClubsPage() {
   const { competitions, failed } = usePublicCompetitions();
   const { organisers, failed: clubsFailed } = useClubOrganisers();
-  const list = useMemo(() => clubs(competitions ?? [], organisers ?? []), [competitions, organisers]);
+  const qualifiers = useClubQualifiers();
+  const list = useMemo(() => clubs(competitions ?? [], organisers ?? [], qualifiers ?? []), [competitions, organisers, qualifiers]);
   const venues = useVenues(list.map((c) => c.venueId));
 
   return (
-    <PublicPage title="Clubs" loading={competitions === null || (organisers === null && !clubsFailed)} failed={failed || clubsFailed}>
+    <PublicPage title="Clubs" loading={competitions === null || qualifiers === null || (organisers === null && !clubsFailed)} failed={failed || clubsFailed}>
       {competitions !== null && list.length === 0 && <p className="quiet-line">No clubs yet</p>}
       {list.length > 0 && (
         <div className="card home-rows">

@@ -2,7 +2,7 @@
 // and who's qualified. Read only - a competition on this site shows its
 // champion as soon as its final is decided.
 import { supabase } from "@/lib/supabaseClient";
-import { placeView, type QualifierMatch } from "@/lib/qualifying";
+import { placeView, type QualifierEvent, type QualifierMatch } from "@/lib/qualifying";
 import { championPerson, loadQualifying } from "@/lib/qualifyingApi";
 
 export type PublicPlace = {
@@ -63,6 +63,56 @@ export async function loadPublicQualifying(competitionId: string): Promise<Publi
     });
   }
   return out;
+}
+
+// A qualifying competition played on a club's green, for that club's page
+export type ClubQualifier = {
+  id: string;
+  name: string; // "Coors Meole Brace Open"
+  venueId: string;
+  finalDate: string | null;
+  qualifiesFor: string; // the competition its winner goes into
+  // Run on this site: that competition (its own page and champion)
+  sourceCompetitionId: string | null;
+  // Not on this site: who won, once entered, and whether there are results
+  who: string | null;
+  hasResults: boolean;
+};
+
+// Every qualifying competition played at a club from Clubs
+export async function loadClubQualifiers(): Promise<ClubQualifier[]> {
+  const { data: events, error } = await supabase.from("qualifier_events").select("*").not("venue_id", "is", null);
+  if (error) throw error;
+  const list = (events ?? []) as QualifierEvent[];
+  if (list.length === 0) return [];
+  const { data: finals } = await supabase
+    .from("qualifier_matches")
+    .select("*")
+    .in("qualifier_event_id", list.map((e) => e.id));
+  const matches = (finals ?? []) as (QualifierMatch & { qualifier_event_id: string })[];
+  // The winner: entered as just the winner, or from the final's score
+  const winnerOf = new Map<string, string>();
+  for (const e of list) if (e.winner_person_id) winnerOf.set(e.id, e.winner_person_id);
+  for (const m of matches) {
+    if (m.stage !== 1 || winnerOf.has(m.qualifier_event_id) || m.score_a == null || m.score_b == null || m.score_a === m.score_b) continue;
+    const id = m.score_a > m.score_b ? m.person_a_id : m.person_b_id;
+    if (id) winnerOf.set(m.qualifier_event_id, id);
+  }
+  const names = new Map<string, string>();
+  if (winnerOf.size) {
+    const { data: people } = await supabase.from("people").select("id, full_name").in("id", [...new Set(winnerOf.values())]);
+    for (const p of people ?? []) names.set(p.id, p.full_name);
+  }
+  return list.map((e) => ({
+    id: e.id,
+    name: e.name,
+    venueId: e.venue_id!,
+    finalDate: e.final_date,
+    qualifiesFor: e.competition_id,
+    sourceCompetitionId: e.source_competition_id,
+    who: winnerOf.has(e.id) ? (names.get(winnerOf.get(e.id)!) ?? "Withdrawn player") : null,
+    hasResults: winnerOf.has(e.id) || matches.some((m) => m.qualifier_event_id === e.id),
+  }));
 }
 
 export type QualifierResults = {

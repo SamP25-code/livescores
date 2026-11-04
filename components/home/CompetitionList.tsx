@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { matchesSearch } from "@/lib/people";
 import {
-  competitionPath,
   dateRange,
   eventDates,
   eventPath,
   filterList,
+  rowPath,
   rowState,
   publicStatus,
   sortForList,
@@ -171,7 +171,7 @@ export default function CompetitionList({
               key={c.id}
               date={state.date}
               title={c.name}
-              href={competitionPath(c, all)}
+              href={rowPath(c, state, all)}
               // A club's own competitions don't need its name on every row
               pill={c.organiser.id === organiserId || organiserKind ? null : organiserPill(c, all)}
               line={<RowLine competition={c} state={state} />}

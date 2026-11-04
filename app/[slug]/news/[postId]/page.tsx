@@ -4,7 +4,6 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import PlayerName from "@/components/PlayerName";
 import PublicPage from "@/components/PublicPage";
-import ShareButton from "@/components/ShareButton";
 import { Advert } from "@/components/event/EventPage";
 import { longDate } from "@/lib/competitionSetup";
 import { getPost, listPosts, POST_KIND_LABEL, type EventPost } from "@/lib/postsApi";
@@ -15,8 +14,8 @@ import { SITE_NAME } from "@/lib/site";
 export const dynamic = "force-dynamic";
 
 // One post on an event's page: picture, headline, date and words; for a
-// qualifier update, who qualified and a link to the results; an advert
-// underneath; and a way to share it.
+// qualifier update, who qualified and a link to the results; and an advert
+// underneath.
 export default function PostPage({ params }: { params: Promise<{ slug: string; postId: string }> }) {
   const { slug, postId } = use(params);
   const [post, setPost] = useState<EventPost | null | undefined>(undefined);
@@ -86,14 +85,6 @@ export default function PostPage({ params }: { params: Promise<{ slug: string; p
         </article>
       )}
       {post && advert && <Advert post={advert} />}
-      {post && (
-        <ShareButton
-          label="Share this post"
-          title={post.title}
-          text={() => `${post.title}
-${window.location.href}`}
-        />
-      )}
     </PublicPage>
   );
 }

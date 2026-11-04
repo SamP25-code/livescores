@@ -8,7 +8,6 @@ import { loadHonours, loadPublicCompetitionsShared, type HonoursRow } from "@/li
 import {
   eventPath,
   competitionPath,
-  nextSession,
   publicStatus,
   resolveCompetition,
   resolveEvent,
@@ -31,8 +30,6 @@ import type { Venue } from "@/lib/types";
 import PublicPage from "@/components/PublicPage";
 import VenueCard from "@/components/VenueCard";
 import { usePageBackground } from "@/lib/backgrounds";
-import ShareButton from "@/components/ShareButton";
-import { competitionShareText } from "@/lib/shareResults";
 import LivePill from "@/components/home/LivePill";
 
 export const dynamic = "force-dynamic";
@@ -170,8 +167,8 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
 
       {c.entry_method === "qualification" && <HowToQualify competitionId={c.id} all={all} />}
 
-      {/* At the foot, clear of the list above: honours, other years, where
-          it's played and Share */}
+      {/* At the foot, clear of the list above: honours, other years and where
+          it's played */}
       <div className="comp-page-foot">
         {honours.length > 0 && (
           <section className="home-section">
@@ -218,21 +215,6 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
           </p>
         )}
 
-        <ShareButton
-          label="Share"
-          title={`${c.name} ${c.year}`}
-          text={() => {
-            const next = nextSession(c, today);
-            return competitionShareText({
-              title: `${c.name} ${c.year}`,
-              runBy,
-              champion: c.champion?.name ?? null,
-              runnerUp: c.champion?.runnerUp ?? null,
-              next: next ? [sessionTitle(next), next.date ? shortDate(next.date) : null, sessionTimes(next)].filter(Boolean).join(" · ") : null,
-              url: window.location.href,
-            });
-          }}
-        />
         {/* Where it's played: small, at the foot, out of the way */}
         {venues.length > 0 && (
           <div className="venue-pills">

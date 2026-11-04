@@ -3,6 +3,7 @@
 // matching brings in all its competitions.
 import { matchesSearch } from "@/lib/people";
 import { clubPath, competitionPath, dateRange, eventDates, eventPath, type PublicCompetition } from "@/lib/publicCompetitions";
+import type { ClubQualifier } from "@/lib/publicQualifying";
 
 export type MenuItem = {
   kind: "competition" | "event" | "club";
@@ -91,7 +92,11 @@ export function playedByOrAt(club: { id: string; venueId: string | null }, c: Pu
 // counted once, however many years) and its green - its own venue, or the
 // one its competitions are played at most - for its directions
 export type ClubSummary = { id: string; name: string; short_name: string; href: string; count: number; venueId: string | null };
-export function clubs(all: PublicCompetition[], organisers: ClubOrganiser[] = []): ClubSummary[] {
+export function clubs(
+  all: PublicCompetition[],
+  organisers: ClubOrganiser[] = [],
+  qualifiers: Pick<ClubQualifier, "venueId" | "name" | "sourceCompetitionId">[] = []
+): ClubSummary[] {
   const found = new Map<string, { id: string; name: string; short_name: string; href: string; venueId: string | null }>();
   for (const o of organisers) {
     const href = clubPath(o);
@@ -111,8 +116,16 @@ export function clubs(all: PublicCompetition[], organisers: ClubOrganiser[] = []
         for (const c of all) if (c.organiser.id === club.id && c.venue_id) used.set(c.venue_id, (used.get(c.venue_id) ?? 0) + 1);
         venueId = [...used.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
       }
-      const slugs = new Set(all.filter((c) => playedByOrAt({ id: club.id, venueId: club.venueId }, c)).map((c) => c.slug));
-      return { ...club, count: slugs.size, venueId };
+      const mine = all.filter((c) => playedByOrAt({ id: club.id, venueId: club.venueId }, c));
+      const slugs = new Set(mine.map((c) => c.slug));
+      // And the qualifying competitions on its green not run on this site
+      // (or run here but listed elsewhere), each counted once by name
+      const others = new Set(
+        qualifiers
+          .filter((q) => q.venueId === club.venueId && !mine.some((c) => c.id === q.sourceCompetitionId))
+          .map((q) => q.name.trim().toLowerCase())
+      );
+      return { ...club, count: slugs.size + others.size, venueId };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 }

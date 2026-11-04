@@ -21,9 +21,6 @@ import PublicFooter from "@/components/PublicFooter";
 import SiteHeader from "@/components/SiteHeader";
 import VenueCard from "@/components/VenueCard";
 import { usePageBackground } from "@/lib/backgrounds";
-import ShareButton from "@/components/ShareButton";
-import { sessionShareText } from "@/lib/shareResults";
-import { longDate } from "@/lib/competitionSetup";
 
 type SessionCompetition = {
   name: string;
@@ -582,31 +579,6 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
             ))}
           </div>
         </section>
-      )}
-
-      {!loadError && showDraw && matches.length > 0 && night && (
-        <ShareButton
-          title={night.name}
-          text={() => {
-            const names = Object.fromEntries(Object.values(players).map((p) => [p.id, p.name]));
-            const top = rounds.length ? rounds[rounds.length - 1][1] : [];
-            const final = top.length === 1 && top[0].status === "complete" ? top[0] : null;
-            const loser = final ? (final.winner_id === final.player_a_id ? final.player_b_id : final.player_a_id) : null;
-            return sessionShareText({
-              title: competition
-                ? `${competition.name} ${competition.year} – ${sessionTitle(night as Parameters<typeof sessionTitle>[0])}`
-                : night.name,
-              date: night.date ? longDate(night.date) : null,
-              kind: night.kind,
-              matches,
-              names,
-              champion: champion?.name ?? null,
-              runnerUp: champion && loser ? (names[loser] ?? null) : null,
-              through: qualifiers.filter((p): p is NonNullable<typeof p> => Boolean(p)).map((p) => p.name),
-              url: window.location.href,
-            });
-          }}
-        />
       )}
 
       {!loadError && venue && (
