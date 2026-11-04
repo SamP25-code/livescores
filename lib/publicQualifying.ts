@@ -70,11 +70,14 @@ export async function loadPublicQualifying(competitionId: string): Promise<Publi
   return out;
 }
 
-// A qualifying competition played on a club's green, for that club's page
-export type ClubQualifier = {
+// A qualifying competition (the Masters' qualifiers), for the calendar and
+// the page of the club whose green it's played on
+export type PublicQualifier = {
   id: string;
   name: string; // "Coors Meole Brace Open"
-  venueId: string;
+  location: string | null; // "Meole Brace"
+  // The club it's played at, from Clubs
+  venueId: string | null;
   finalDate: string | null;
   qualifiesFor: string; // the competition its winner goes into
   // Run on this site: that competition (its own page and champion)
@@ -84,9 +87,9 @@ export type ClubQualifier = {
   hasResults: boolean;
 };
 
-// Every qualifying competition played at a club from Clubs
-export async function loadClubQualifiers(): Promise<ClubQualifier[]> {
-  const { data: events, error } = await supabase.from("qualifier_events").select("*").not("venue_id", "is", null);
+// Every qualifying competition
+export async function loadPublicQualifiers(): Promise<PublicQualifier[]> {
+  const { data: events, error } = await supabase.from("qualifier_events").select("*");
   if (error) throw error;
   const list = (events ?? []) as QualifierEvent[];
   if (list.length === 0) return [];
@@ -111,7 +114,8 @@ export async function loadClubQualifiers(): Promise<ClubQualifier[]> {
   return list.map((e) => ({
     id: e.id,
     name: e.name,
-    venueId: e.venue_id!,
+    location: e.location,
+    venueId: e.venue_id ?? null,
     finalDate: e.final_date,
     qualifiesFor: e.competition_id,
     sourceCompetitionId: e.source_competition_id,

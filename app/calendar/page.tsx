@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { usePublicCompetitions } from "@/lib/usePublicCompetitions";
+import { usePublicCompetitions, usePublicQualifiers } from "@/lib/usePublicCompetitions";
 import { coloursFor, monthGrid, todayIso } from "@/lib/publicCompetitions";
 import PublicPage from "@/components/PublicPage";
 import HomeCalendar from "@/components/home/HomeCalendar";
 
 // The calendar on its own page: step a month at a time or jump to any month
-// and year; tap a date to see what's on, or a competition to open it
+// and year; tap a date to see what's on, or a competition to open it. The
+// Masters' qualifying competitions are on it too, on the day of their final.
 export default function CalendarPage() {
   const { competitions, failed } = usePublicCompetitions();
   const today = todayIso();
@@ -17,14 +18,34 @@ export default function CalendarPage() {
   });
   const all = useMemo(() => competitions ?? [], [competitions]);
   const gridDays = useMemo(() => monthGrid(view.year, view.month).flat().map((d) => d.iso), [view]);
-  const colours = useMemo(() => coloursFor(all, gridDays), [all, gridDays]);
+  const loadedQualifiers = usePublicQualifiers();
+  // Those not run on this site (one that is shows as its own competition),
+  // with a date for their final
+  const qualifiers = useMemo(
+    () => (loadedQualifiers ?? []).filter((q) => q.finalDate && !q.sourceCompetitionId),
+    [loadedQualifiers]
+  );
+  // One colour for all the qualifiers for the same competition
+  const colours = useMemo(() => {
+    const groups = [...new Set(qualifiers.map((q) => q.qualifiesFor))].map((id) => ({
+      id: `qualifiers:${id}`,
+      sessions: qualifiers.filter((q) => q.qualifiesFor === id).map((q) => ({ date: q.finalDate })),
+    }));
+    const map = coloursFor([...all, ...(groups as Parameters<typeof coloursFor>[0])], gridDays);
+    for (const q of qualifiers) {
+      const colour = map.get(`qualifiers:${q.qualifiesFor}`);
+      if (colour) map.set(q.id, colour);
+    }
+    return map;
+  }, [all, qualifiers, gridDays]);
 
   return (
-    <PublicPage title="Calendar" loading={competitions === null} failed={failed}>
+    <PublicPage title="Calendar" loading={competitions === null || loadedQualifiers === null} failed={failed}>
       {competitions !== null && (
         <section className="home-section">
           <HomeCalendar
             competitions={all}
+            qualifiers={qualifiers}
             all={all}
             colours={colours}
             year={view.year}

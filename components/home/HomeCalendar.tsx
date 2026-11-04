@@ -16,13 +16,18 @@ import {
   organiserPill,
 } from "@/lib/publicCompetitions";
 import LivePill from "@/components/home/LivePill";
+import QualifierRow from "@/components/home/QualifierRow";
+import type { PublicQualifier } from "@/lib/publicQualifying";
 
 // The month calendar: a dot under a qualifying session's date, the
 // competition's colour in a gold ring for a trophy day (Finals Day or a
 // single day), today ringed, "LIVE" under tonight. Below it, one row per
 // competition in view - tap one to open it; tap a date to see what's on. Days either side of the month are shown faded but still marked.
+// Qualifying competitions not run on this site (the Masters') are a dot on
+// the day of their final, in one colour for all those for one competition.
 export default function HomeCalendar({
   competitions,
+  qualifiers = [],
   colours,
   year,
   month,
@@ -31,6 +36,8 @@ export default function HomeCalendar({
   all,
 }: {
   competitions: PublicCompetition[];
+  // Each with a date for its final; its colour is under its own id
+  qualifiers?: PublicQualifier[];
   colours: Map<string, string>;
   year: number;
   month: number;
@@ -44,15 +51,28 @@ export default function HomeCalendar({
   const [choosing, setChoosing] = useState(false);
   const [pickYear, setPickYear] = useState(year);
   // Months with a session in them, for the dots in the chooser
-  const monthsWithBowls = new Set(competitions.flatMap((c) => c.sessions.map((s) => s.date?.slice(0, 7)).filter((d): d is string => Boolean(d))));
+  const monthsWithBowls = new Set([
+    ...competitions.flatMap((c) => c.sessions.map((s) => s.date?.slice(0, 7)).filter((d): d is string => Boolean(d))),
+    ...qualifiers.map((q) => q.finalDate!.slice(0, 7)),
+  ]);
   const weeks = monthGrid(year, month);
   const marks = marksByDay(competitions);
-  const byId = new Map(competitions.map((c) => [c.id, c]));
+  for (const q of qualifiers) {
+    if (!marks.has(q.finalDate!)) marks.set(q.finalDate!, []);
+    marks.get(q.finalDate!)!.push({ competitionId: q.id, trophy: false, live: false });
+  }
+  const nameOf = new Map([...competitions.map((c) => [c.id, c.name] as const), ...qualifiers.map((q) => [q.id, q.name] as const)]);
   // Every session dated in this month (not the faded days either side)
   const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
-  const monthSessions = competitions
-    .flatMap((c) => c.sessions.filter((s) => s.date?.startsWith(monthKey)).map((s) => ({ competition: c, session: s })))
-    .sort((a, b) => a.session.date!.localeCompare(b.session.date!) || a.competition.name.localeCompare(b.competition.name));
+  type Item = { kind: "session"; competition: PublicCompetition; session: PublicCompetition["sessions"][number] } | { kind: "qualifier"; qualifier: PublicQualifier };
+  const dateOf = (x: Item) => (x.kind === "session" ? x.session.date! : x.qualifier.finalDate!);
+  const nameOfItem = (x: Item) => (x.kind === "session" ? x.competition.name : x.qualifier.name);
+  const monthSessions: Item[] = [
+    ...competitions.flatMap((c) =>
+      c.sessions.filter((s) => s.date?.startsWith(monthKey)).map((s) => ({ kind: "session" as const, competition: c, session: s }))
+    ),
+    ...qualifiers.filter((q) => q.finalDate!.startsWith(monthKey)).map((q) => ({ kind: "qualifier" as const, qualifier: q })),
+  ].sort((a, b) => dateOf(a).localeCompare(dateOf(b)) || nameOfItem(a).localeCompare(nameOfItem(b)));
 
 
   function step(by: number) {
@@ -67,9 +87,12 @@ export default function HomeCalendar({
 
 
   const pickedList = picked
-    ? competitions.flatMap((c) =>
-        c.sessions.filter((s) => s.date === picked).map((s) => ({ competition: c, session: s }))
-      )
+    ? [
+        ...competitions.flatMap((c) =>
+          c.sessions.filter((s) => s.date === picked).map((s) => ({ key: s.id, name: c.name, what: sessionTitle(s) }))
+        ),
+        ...qualifiers.filter((q) => q.finalDate === picked).map((q) => ({ key: q.id, name: q.name, what: "Qualifier final" })),
+      ]
     : [];
 
   return (
@@ -150,7 +173,7 @@ export default function HomeCalendar({
           const dots = dayMarks.filter((m) => !m.trophy).slice(0, 3);
           const live = dayMarks.some((m) => m.live);
           const what = dayMarks
-            .map((m) => byId.get(m.competitionId)?.name)
+            .map((m) => nameOf.get(m.competitionId))
             .filter(Boolean)
             .join(", ");
           return (
@@ -206,9 +229,9 @@ export default function HomeCalendar({
 
       {picked && pickedList.length > 0 && (
         <div className="cal-picked-list">
-          {pickedList.map(({ competition, session }) => (
-            <p key={session.id}>
-              <strong>{competition.name}</strong> &middot; {sessionTitle(session)}
+          {pickedList.map((x) => (
+            <p key={x.key}>
+              <strong>{x.name}</strong> &middot; {x.what}
             </p>
           ))}
         </div>
@@ -219,7 +242,20 @@ export default function HomeCalendar({
       {monthSessions.length > 0 && <p className="cal-rows-head">On in {MONTH_NAMES[month]}</p>}
       {monthSessions.length > 0 && (
         <div className="home-rows cal-rows">
-          {monthSessions.map(({ competition: c, session: s }) => {
+          {monthSessions.map((item) => {
+            if (item.kind === "qualifier") {
+              const q = item.qualifier;
+              return (
+                <QualifierRow
+                  key={q.id}
+                  qualifier={q}
+                  all={all}
+                  colour={colours.get(q.id)}
+                  pill={q.location ? { label: q.location, href: null } : null}
+                />
+              );
+            }
+            const { competition: c, session: s } = item;
             const won = s.status === "complete" && isTrophyDay(s.kind) && c.champion;
             const start = startTime(s);
             return (

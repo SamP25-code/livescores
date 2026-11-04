@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import CompetitionRow from "@/components/home/CompetitionRow";
-import { useClubOrganisers, useClubQualifiers, usePublicCompetitions } from "@/lib/usePublicCompetitions";
+import { useClubOrganisers, usePublicQualifiers, usePublicCompetitions } from "@/lib/usePublicCompetitions";
 import { useVenues } from "@/lib/useVenues";
 import { directionsUrl } from "@/lib/venues";
 import { clubs } from "@/lib/siteMenu";
@@ -13,7 +13,7 @@ import PublicPage from "@/components/PublicPage";
 export default function ClubsPage() {
   const { competitions, failed } = usePublicCompetitions();
   const { organisers, failed: clubsFailed } = useClubOrganisers();
-  const qualifiers = useClubQualifiers();
+  const qualifiers = usePublicQualifiers();
   const list = useMemo(() => clubs(competitions ?? [], organisers ?? [], qualifiers ?? []), [competitions, organisers, qualifiers]);
   const venues = useVenues(list.map((c) => c.venueId));
 

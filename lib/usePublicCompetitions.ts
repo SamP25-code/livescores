@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { loadClubOrganisers, loadPublicCompetitionsShared } from "@/lib/publicData";
 import type { ClubOrganiser } from "@/lib/siteMenu";
 import type { PublicCompetition } from "@/lib/publicCompetitions";
-import { loadClubQualifiers, type ClubQualifier } from "@/lib/publicQualifying";
+import { loadPublicQualifiers, type PublicQualifier } from "@/lib/publicQualifying";
 
 // Every public competition, for the Competitions, Calendar and Champions
 // pages. null while loading; failed when the connection let us down.
@@ -23,13 +23,13 @@ export function usePublicCompetitions(): { competitions: PublicCompetition[] | n
   return { competitions, failed };
 }
 
-// Every qualifying competition played at a club (the Clubs page, a club's
-// page). Empty if they don't arrive - the club's own competitions still show.
-export function useClubQualifiers(): ClubQualifier[] | null {
-  const [qualifiers, setQualifiers] = useState<ClubQualifier[] | null>(null);
+// Every qualifying competition (the Calendar, Clubs and a club's page).
+// Empty if they don't arrive - the competitions themselves still show.
+export function usePublicQualifiers(): PublicQualifier[] | null {
+  const [qualifiers, setQualifiers] = useState<PublicQualifier[] | null>(null);
   useEffect(() => {
     let cancelled = false;
-    loadClubQualifiers()
+    loadPublicQualifiers()
       .then((q) => !cancelled && setQualifiers(q))
       .catch(() => !cancelled && setQualifiers([]));
     return () => {

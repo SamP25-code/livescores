@@ -3,7 +3,7 @@
 // matching brings in all its competitions.
 import { matchesSearch } from "@/lib/people";
 import { clubPath, competitionPath, dateRange, eventDates, eventPath, type PublicCompetition } from "@/lib/publicCompetitions";
-import type { ClubQualifier } from "@/lib/publicQualifying";
+import type { PublicQualifier } from "@/lib/publicQualifying";
 
 export type MenuItem = {
   kind: "competition" | "event" | "club";
@@ -95,7 +95,7 @@ export type ClubSummary = { id: string; name: string; short_name: string; href: 
 export function clubs(
   all: PublicCompetition[],
   organisers: ClubOrganiser[] = [],
-  qualifiers: Pick<ClubQualifier, "venueId" | "name" | "sourceCompetitionId">[] = []
+  qualifiers: Pick<PublicQualifier, "venueId" | "name" | "sourceCompetitionId">[] = []
 ): ClubSummary[] {
   const found = new Map<string, { id: string; name: string; short_name: string; href: string; venueId: string | null }>();
   for (const o of organisers) {
@@ -122,7 +122,7 @@ export function clubs(
       // (or run here but listed elsewhere), each counted once by name
       const others = new Set(
         qualifiers
-          .filter((q) => q.venueId === club.venueId && !mine.some((c) => c.id === q.sourceCompetitionId))
+          .filter((q) => club.venueId && q.venueId === club.venueId && !mine.some((c) => c.id === q.sourceCompetitionId))
           .map((q) => q.name.trim().toLowerCase())
       );
       return { ...club, count: slugs.size + others.size, venueId };

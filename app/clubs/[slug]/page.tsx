@@ -2,14 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { useClubOrganisers, useClubQualifiers, usePublicCompetitions } from "@/lib/usePublicCompetitions";
-import { competitionPath, todayIso, type ListFilter, type PublicCompetition } from "@/lib/publicCompetitions";
-import type { ClubQualifier } from "@/lib/publicQualifying";
+import { useClubOrganisers, usePublicQualifiers, usePublicCompetitions } from "@/lib/usePublicCompetitions";
+import { todayIso, type ListFilter, type PublicCompetition } from "@/lib/publicCompetitions";
+import type { PublicQualifier } from "@/lib/publicQualifying";
 import PublicPage from "@/components/PublicPage";
 import CompetitionList from "@/components/home/CompetitionList";
-import CompetitionRow from "@/components/home/CompetitionRow";
 import MonthGroups from "@/components/home/MonthGroups";
-import PlayerName from "@/components/PlayerName";
+import QualifierRow from "@/components/home/QualifierRow";
 import VenueCard from "@/components/VenueCard";
 import { useVenues } from "@/lib/useVenues";
 import { clubs, playedByOrAt } from "@/lib/siteMenu";
@@ -26,7 +25,7 @@ export default function ClubPage() {
   const all = useMemo(() => competitions ?? [], [competitions]);
   const { organisers: loadedOrganisers, failed: clubsFailed } = useClubOrganisers();
   const organisers = useMemo(() => loadedOrganisers ?? [], [loadedOrganisers]);
-  const loadedQualifiers = useClubQualifiers();
+  const loadedQualifiers = usePublicQualifiers();
   const summary = useMemo(
     () => clubs(all, organisers, loadedQualifiers ?? []).find((x) => x.href === `/clubs/${slug}`),
     [all, organisers, loadedQualifiers, slug]
@@ -72,10 +71,8 @@ export default function ClubPage() {
   );
 }
 
-// Each qualifying competition on the green: the date of its final, what
-// it qualifies for, and its winner once decided - opening its results, or
-// the competition it qualifies for until there are some
-function Qualifiers({ qualifiers, all }: { qualifiers: ClubQualifier[]; all: PublicCompetition[] }) {
+// Each qualifying competition on the green
+function Qualifiers({ qualifiers, all }: { qualifiers: PublicQualifier[]; all: PublicCompetition[] }) {
   // Soonest first, as on the competition's How to qualify
   const sorted = [...qualifiers].sort((a, b) => (a.finalDate ?? "9999").localeCompare(b.finalDate ?? "9999"));
   return (
@@ -86,38 +83,7 @@ function Qualifiers({ qualifiers, all }: { qualifiers: ClubQualifier[]; all: Pub
       <MonthGroups
         items={sorted}
         dateOf={(q) => q.finalDate}
-        render={(q) => {
-          const into = all.find((c) => c.id === q.qualifiesFor);
-          const source = q.sourceCompetitionId ? all.find((c) => c.id === q.sourceCompetitionId) : undefined;
-          const who = source ? (source.champion?.name ?? null) : q.who;
-          const href = source
-            ? competitionPath(source, all)
-            : q.hasResults
-              ? `/qualifier/${q.id}`
-              : into
-                ? competitionPath(into, all)
-                : undefined;
-          return (
-            <CompetitionRow
-              key={q.id}
-              date={q.finalDate}
-              title={q.name}
-              href={href}
-              line={
-                <>
-                  {into ? `Qualifier for ${into.name} ${into.year} · ` : ""}
-                  {who ? (
-                    <>
-                      Won by <PlayerName name={who} className="home-row-champion" />
-                    </>
-                  ) : (
-                    "Winner to be decided"
-                  )}
-                </>
-              }
-            />
-          );
-        }}
+        render={(q) => <QualifierRow key={q.id} qualifier={q} all={all} />}
       />
     </section>
   );
