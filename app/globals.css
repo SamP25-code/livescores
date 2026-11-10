@@ -4952,3 +4952,10 @@ a.info-pill-club:focus-visible {
   color: var(--on-page);
   text-shadow: var(--on-page-shadow);
 }
+
+/* "Add to calendar" under a competition's dates, centred like the venue */
+.calendar-pill-row {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0 4px;
+}

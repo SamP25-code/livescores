@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { buildFinalsSlots, computeNightStatus, isWalkover, roundLabel } from "@/lib/bracket";
 import { roundOneTime, type TimeSlot } from "@/lib/timeSlots";
 import { originalDateLabel, postponedLabel } from "@/lib/venues";
-import { sessionTimes, sessionTitle, shortDate } from "@/lib/publicCompetitions";
+import { sessionTimes, sessionTitle, shortDate, todayIso } from "@/lib/publicCompetitions";
 import { startViewerPings } from "@/lib/viewerLog";
 import { drawsBySession, sessionIdFromPath } from "@/lib/sessionTabs";
 import NightNav from "@/components/NightNav";
@@ -20,6 +20,7 @@ import { SITE_NAME } from "@/lib/site";
 import PublicFooter from "@/components/PublicFooter";
 import SiteHeader from "@/components/SiteHeader";
 import VenueCard from "@/components/VenueCard";
+import AddToCalendar from "@/components/AddToCalendar";
 import { usePageBackground } from "@/lib/backgrounds";
 
 type SessionCompetition = {
@@ -320,6 +321,8 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
   const playStarted = matches.some(
     (m) => m.status === "live" || (m.status === "complete" && m.player_a_id && m.player_b_id && !isWalkover(m))
   );
+  // A session still to come, with its date set, can go into a calendar
+  const canAddToCalendar = Boolean(night?.competition_id && night.date && night.date >= todayIso() && !playStarted);
 
   // "10:45" on each first-round match not yet started; "Time to follow" on
   // later ones - only when the session has start times at all
@@ -581,9 +584,10 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         </section>
       )}
 
-      {!loadError && venue && (
+      {!loadError && (venue || canAddToCalendar) && (
         <div className="venue-pills">
-          <VenueCard venue={venue} slim />
+          {venue && <VenueCard venue={venue} slim />}
+          {canAddToCalendar && night?.competition_id && <AddToCalendar competitionId={night.competition_id} sessionId={night.id} />}
         </div>
       )}
 

@@ -31,6 +31,8 @@ import PublicPage from "@/components/PublicPage";
 import VenueCard from "@/components/VenueCard";
 import { usePageBackground } from "@/lib/backgrounds";
 import LivePill from "@/components/home/LivePill";
+import AddToCalendar from "@/components/AddToCalendar";
+import { calendarSessions } from "@/lib/calendar";
 
 export const dynamic = "force-dynamic";
 
@@ -159,6 +161,16 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
             {c.sessions.map((s) => (
               <ScheduleRow key={s.id} session={s} competition={c} today={today} venues={venues} />
             ))}
+          </div>
+        )}
+
+        {/* The dates still to come, into the phone's calendar in one go */}
+        {calendarSessions(c, today).length > 0 && (
+          <div className="calendar-pill-row">
+            <AddToCalendar
+              competitionId={c.id}
+              label={calendarSessions(c, today).length > 1 ? "Add the dates to your calendar" : "Add to calendar"}
+            />
           </div>
         )}
 
