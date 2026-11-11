@@ -22,7 +22,7 @@ import { SITE_NAME } from "@/lib/site";
 import { originalDateLabel, postponedLabel } from "@/lib/venues";
 import PlayerLinks from "@/components/PlayerLinks";
 import CompetitionRow from "@/components/home/CompetitionRow";
-import { SponsorPanel } from "@/components/Sponsors";
+import CompetitionSponsors from "@/components/CompetitionSponsors";
 import HowToQualify from "@/components/HowToQualify";
 import PrizeMoney from "@/components/PrizeMoney";
 import EventPage from "@/components/event/EventPage";
@@ -138,7 +138,11 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
           )}{" "}
           {[runBy, settingsSummary(c).replace(", one day", "")].join(" · ")}
         </p>
-        <SponsorPanel sponsors={c.sponsors} />
+        <CompetitionSponsors
+          sponsors={c.sponsors}
+          eventId={c.organiser.kind === "event" ? c.organiser.id : null}
+          year={c.year}
+        />
       </header>
 
       {c.champion && (

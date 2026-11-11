@@ -3,6 +3,23 @@
 
 export type SponsorShown = { name: string; url: string | null; logo_url: string | null };
 
+// An event's sponsor, as main or associate (part 24)
+export type EventSponsorShown = SponsorShown & { tier?: "main" | "associate" | null };
+
+// An event's main sponsors and anyone else's (its competitions'), once each,
+// then its associate sponsors apart - shown smaller underneath
+export function splitSponsors(eventSponsors: EventSponsorShown[], others: SponsorShown[]) {
+  const associates = eventSponsors.filter((s) => s.tier === "associate");
+  const main = [...eventSponsors.filter((s) => s.tier !== "associate"), ...others]
+    .filter((s, i, list) => list.findIndex((x) => x.name === s.name) === i)
+    .filter((s) => !associates.some((a) => a.name === s.name));
+  return { main, associates };
+}
+
+export function associateLabel(associates: SponsorShown[]): string {
+  return associates.length > 1 ? "Associate sponsors" : "Associate sponsor";
+}
+
 function Linked({ sponsor, className, children }: { sponsor: SponsorShown; className?: string; children: React.ReactNode }) {
   return sponsor.url ? (
     <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className={className}>

@@ -3093,6 +3093,15 @@ label {
 }
 
 /* An event's associate sponsors: under the main one, smaller */
+.sponsor-panel-small .sponsor-panel-item {
+  min-height: 28px;
+  font-size: 0.95rem;
+}
+
+.sponsor-panel-small .sponsor-panel-logo {
+  max-height: 28px;
+}
+
 .sponsor-panel-bare.sponsor-panel-small .sponsor-panel-logo {
   max-height: 48px;
   max-width: 160px;

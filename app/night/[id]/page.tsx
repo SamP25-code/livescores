@@ -10,7 +10,8 @@ import { sessionTimes, sessionTitle, shortDate, todayIso } from "@/lib/publicCom
 import { startViewerPings } from "@/lib/viewerLog";
 import { drawsBySession, sessionIdFromPath } from "@/lib/sessionTabs";
 import NightNav from "@/components/NightNav";
-import { SponsorPanel, type SponsorShown } from "@/components/Sponsors";
+import { type SponsorShown } from "@/components/Sponsors";
+import CompetitionSponsors from "@/components/CompetitionSponsors";
 import Avatar from "@/components/Avatar";
 import PlayerName from "@/components/PlayerName";
 import MatchCard from "@/components/MatchCard";
@@ -29,6 +30,8 @@ type SessionCompetition = {
   slug: string;
   latest: boolean;
   sponsors: SponsorShown[];
+  // The organiser when it's an event (the Blackpool Masters), for its sponsors
+  eventId: string | null;
   finalsSize: number;
   background: string | null;
 };
@@ -89,7 +92,7 @@ type CompetitionRow = {
   format: string;
   draw_size: number | null;
   background_url: string | null;
-  series: { name: string; slug: string; organiser: { background_image: string | null } | null };
+  series: { name: string; slug: string; organiser: { id: string; kind: string; background_image: string | null } | null };
   sponsors: (SponsorShown & { position: number })[] | null;
 };
 
@@ -154,7 +157,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
         supabase
           .from("nights")
           .select(
-            "*, competition:competition_id(venue_id, year, series_id, format, draw_size, background_url, series:series_id(name, slug, organiser:organiser_id(background_image)), sponsors:competition_sponsors(*))"
+            "*, competition:competition_id(venue_id, year, series_id, format, draw_size, background_url, series:series_id(name, slug, organiser:organiser_id(id, kind, background_image)), sponsors:competition_sponsors(*))"
           )
           .eq("id", nightId)
           .single(),
@@ -201,6 +204,7 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
           slug: series.slug,
           latest: Math.max(...(years ?? []).map((y) => y.year), comp.year) === comp.year,
           sponsors,
+          eventId: series.organiser?.kind === "event" ? series.organiser.id : null,
           finalsSize: comp.format === "qualifying_and_finals" && comp.draw_size ? comp.draw_size : 16,
           background: comp.background_url ?? series.organiser?.background_image ?? null,
         };
@@ -400,7 +404,9 @@ export default function NightPage({ params }: { params: Promise<{ id: string }> 
           {competition.name} {competition.year}
         </p>
       )}
-      {competition && <SponsorPanel sponsors={competition.sponsors} />}
+      {competition && (
+        <CompetitionSponsors sponsors={competition.sponsors} eventId={competition.eventId} year={competition.year} />
+      )}
 
       <NightNav competitionId={night?.competition_id ?? null} currentId={nightId} onSelect={selectSession} />
 
