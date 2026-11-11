@@ -3715,6 +3715,25 @@ label {
   background: var(--green-fill);
 }
 
+/* A qualifier's results page: the picture from its qualifier update, and a
+   link to the article */
+.card.qualifier-post {
+  padding: 0;
+  overflow: hidden;
+}
+
+.qualifier-post .event-article-image-link {
+  margin: 0;
+}
+
+.qualifier-post-link {
+  display: block;
+  padding: 10px 14px;
+  font-weight: 600;
+  color: var(--green-deep);
+  text-decoration: none;
+}
+
 .event-article-image-hint {
   display: block;
   padding: 4px 16px 0;
