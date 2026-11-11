@@ -2,6 +2,7 @@
 // played and won (put together by lib/playerRecord.ts). Someone who's asked
 // to be taken off the site can't be read here, so their page doesn't exist.
 import { supabase } from "@/lib/supabaseClient";
+import { buildPlayerQualifiers, type PlayerQualifier } from "@/lib/playerQualifiers";
 import { loadPublicCompetitionsShared } from "@/lib/publicData";
 import { todayIso, type PublicCompetition } from "@/lib/publicCompetitions";
 import {
@@ -20,7 +21,43 @@ export type PlayerPerson = {
   club: { id: string; name: string; short_name: string; slug: string | null } | null;
 };
 
-export type PlayerPage = { person: PlayerPerson; record: PlayerRecord; all: PublicCompetition[] };
+export type PlayerPage = {
+  person: PlayerPerson;
+  record: PlayerRecord;
+  // Qualifying competitions not run on this site (the Masters' qualifiers)
+  qualifiers: PlayerQualifier[];
+  all: PublicCompetition[];
+};
+
+// Their results in qualifying competitions entered by an organiser rather
+// than run on this site. A failure here leaves them out rather than the page.
+async function loadQualifiers(id: string): Promise<PlayerQualifier[]> {
+  const [{ data: mineRows }, { data: wonRows }] = await Promise.all([
+    supabase.from("qualifier_matches").select("qualifier_event_id").or(`person_a_id.eq.${id},person_b_id.eq.${id}`),
+    supabase.from("qualifier_events").select("id").eq("winner_person_id", id),
+  ]);
+  const eventIds = [
+    ...new Set([...(mineRows ?? []).map((m) => m.qualifier_event_id as string), ...(wonRows ?? []).map((e) => e.id as string)]),
+  ];
+  if (eventIds.length === 0) return [];
+  const [{ data: events }, { data: matches }] = await Promise.all([
+    supabase.from("qualifier_events").select("id, name, location, final_date, results_depth, winner_person_id").in("id", eventIds),
+    supabase.from("qualifier_matches").select("*").in("qualifier_event_id", eventIds),
+  ]);
+  const opponentIds = [
+    ...new Set(
+      (matches ?? [])
+        .filter((m) => m.person_a_id === id || m.person_b_id === id)
+        .flatMap((m) => [m.person_a_id, m.person_b_id])
+        .filter((p): p is string => Boolean(p) && p !== id)
+    ),
+  ];
+  const { data: people } = opponentIds.length
+    ? await supabase.from("people").select("id, full_name").in("id", opponentIds)
+    : { data: [] };
+  const names = new Map(((people ?? []) as { id: string; full_name: string }[]).map((p) => [p.id, p.full_name]));
+  return buildPlayerQualifiers({ personId: id, events: events ?? [], matches: matches ?? [], names });
+}
 
 // null: no such player (or taken off). { mergedInto }: the same person under
 // another record now - open theirs instead.
@@ -34,7 +71,7 @@ export async function loadPlayer(id: string): Promise<PlayerPage | { mergedInto:
   if (!person) return null;
   if (person.merged_into_id) return { mergedInto: person.merged_into_id };
 
-  const [{ data: entryRows, error: entryError }, all, { data: honourRows }] = await Promise.all([
+  const [{ data: entryRows, error: entryError }, all, { data: honourRows }, qualifiers] = await Promise.all([
     supabase.from("entries").select("id, competition_id, person_id, partner_id, status").or(`person_id.eq.${id},partner_id.eq.${id}`),
     loadPublicCompetitionsShared(),
     supabase
@@ -45,6 +82,7 @@ export async function loadPlayer(id: string): Promise<PlayerPage | { mergedInto:
       .or(
         `winner_person_id.eq.${id},winner_partner_id.eq.${id},runner_up_person_id.eq.${id},runner_up_partner_id.eq.${id}`
       ),
+    loadQualifiers(id).catch(() => [] as PlayerQualifier[]),
   ]);
   if (entryError) throw entryError;
   const entries = (entryRows ?? []) as RecordEntry[];
@@ -100,6 +138,7 @@ export async function loadPlayer(id: string): Promise<PlayerPage | { mergedInto:
   return {
     person: { id: person.id, full_name: person.full_name, note: person.note, club: (person.club as unknown as PlayerPerson["club"]) ?? null },
     record,
+    qualifiers,
     all,
   };
 }

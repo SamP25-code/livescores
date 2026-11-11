@@ -51,6 +51,10 @@ export default function PlayerPage() {
   const person = page?.person;
   const record = page?.record;
   const club = person?.club ? clubPath(person.club) : null;
+  // Matches in qualifiers count towards the totals at the top too
+  const qualifierMatches = (page?.qualifiers ?? []).flatMap((q) => q.matches);
+  const played = (record?.played ?? 0) + qualifierMatches.filter((m) => m.result !== "upcoming").length;
+  const won = (record?.won ?? 0) + qualifierMatches.filter((m) => m.result === "won").length;
 
   return (
     <PublicPage title={person?.full_name ?? "Player"} loading={page === undefined} failed={failed} back="/players">
@@ -69,8 +73,8 @@ export default function PlayerPage() {
             <span>
               {[
                 person.note,
-                `${record.played} match${record.played === 1 ? "" : "es"} played`,
-                record.played > 0 ? `${record.won} won` : null,
+                `${played} match${played === 1 ? "" : "es"} played`,
+                played > 0 ? `${won} won` : null,
               ]
                 .filter(Boolean)
                 .join(" · ")}
@@ -155,6 +159,58 @@ export default function PlayerPage() {
               </div>
             ))}
           </section>
+
+          {/* Qualifying competitions not run on this site (the Masters'
+              qualifiers), as the organiser entered them */}
+          {page.qualifiers.length > 0 && (
+            <section className="home-section">
+              <div className="home-section-head">
+                <h2>Qualifiers</h2>
+              </div>
+              {page.qualifiers.map((q) => (
+                <div key={q.id} className="card home-rows player-comp">
+                  <CompetitionRow
+                    date={q.date}
+                    title={q.name}
+                    href={`/qualifier/${q.id}`}
+                    line={
+                      q.finish ? (
+                        <strong className={q.finish === "Winner" ? "home-row-champion" : undefined}>{q.finish}</strong>
+                      ) : (
+                        q.location ?? ""
+                      )
+                    }
+                  />
+                  {q.matches.length > 0 && (
+                    <details className="player-matches-fold">
+                      <summary>
+                        <span className="player-matches-show">Show matches</span>
+                        <span className="player-matches-hide">Hide matches</span>
+                        <span className="player-matches-count">{matchCount(q.matches)}</span>
+                      </summary>
+                      <ul className="player-matches">
+                        {q.matches.map((m, i) => (
+                          <li key={i} className={`player-match player-match-${m.result}`}>
+                            <Link href={`/qualifier/${q.id}`} className="player-match-round">
+                              {m.round}
+                            </Link>
+                            <span className="player-match-who">
+                              v{" "}
+                              <PlayerLinks name={m.opponent} ids={[m.opponentId]} className="" />
+                            </span>
+                            <span className="player-match-score">
+                              {m.result === "upcoming" ? "" : `${m.mine}–${m.theirs} `}
+                              <strong>{RESULT[m.result]}</strong>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </div>
+              ))}
+            </section>
+          )}
         </>
       )}
     </PublicPage>
