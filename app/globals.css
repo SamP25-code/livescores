@@ -4507,6 +4507,57 @@ a.info-pill-club:focus-visible {
   margin-bottom: var(--gap);
 }
 
+/* A competition's matches on a player's page: folded until tapped */
+.player-matches-fold > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  border-top: 1px solid var(--line);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--green-mid);
+  cursor: pointer;
+  list-style: none;
+}
+
+.player-matches-fold > summary::-webkit-details-marker {
+  display: none;
+}
+
+.player-matches-fold > summary::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin: -3px 2px 0 auto;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.player-matches-fold[open] > summary::after {
+  margin-top: 3px;
+  transform: rotate(-135deg);
+}
+
+.player-matches-count {
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.player-matches-hide,
+.player-matches-fold[open] .player-matches-show {
+  display: none;
+}
+
+.player-matches-fold[open] .player-matches-hide {
+  display: inline;
+}
+
+.player-matches-fold .player-matches {
+  border-top: 0;
+}
+
 .player-matches {
   margin: 0 0 8px;
   padding: 0;

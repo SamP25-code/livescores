@@ -12,6 +12,19 @@ import PlayerLinks from "@/components/PlayerLinks";
 
 const RESULT: Record<string, string> = { won: "Won", lost: "Lost", walkover: "Walkover", live: "Live", upcoming: "To play" };
 
+// "6 matches · 5 won" (played ones only; still to play counted apart)
+function matchCount(matches: { result: string }[]): string {
+  const played = matches.filter((m) => m.result === "won" || m.result === "lost").length;
+  const won = matches.filter((m) => m.result === "won").length;
+  const toPlay = matches.filter((m) => m.result === "upcoming" || m.result === "live").length;
+  return [
+    played ? `${played} match${played === 1 ? "" : "es"} · ${won} won` : null,
+    toPlay ? `${toPlay} to play` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 // A player's own page: what they've won, then every competition they've
 // entered - newest first - with each match they've played or have to come
 export default function PlayerPage() {
@@ -112,6 +125,14 @@ export default function PlayerPage() {
                   }
                 />
                 {c.matches.length > 0 && (
+                  // Folded away until tapped, so the list of competitions stays
+                  // short; open already while one of their matches is live
+                  <details className="player-matches-fold" open={c.matches.some((m) => m.result === "live")}>
+                    <summary>
+                      <span className="player-matches-show">Show matches</span>
+                      <span className="player-matches-hide">Hide matches</span>
+                      <span className="player-matches-count">{matchCount(c.matches)}</span>
+                    </summary>
                   <ul className="player-matches">
                     {c.matches.map((m) => (
                       // The row opens the session; the opponent's name opens their page
@@ -129,6 +150,7 @@ export default function PlayerPage() {
                       </li>
                     ))}
                   </ul>
+                  </details>
                 )}
               </div>
             ))}
