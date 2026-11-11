@@ -227,7 +227,9 @@ function PostList({ posts, slug, year, all }: { posts: EventPost[]; slug: string
             <span className="event-post-pic event-post-pic-empty" aria-hidden="true" />
           )}
           <span className="event-post-text">
+            {p.kind !== "news" && (
             <span className={`event-post-tag event-post-tag-${p.kind}`}>{POST_KIND_LABEL[p.kind]}</span>
+          )}
             <strong>{p.title}</strong>
             <span className="hint">{shortDate(p.show_from)}</span>
           </span>

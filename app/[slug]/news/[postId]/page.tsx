@@ -46,7 +46,9 @@ export default function PostPage({ params }: { params: Promise<{ slug: string; p
       {post === null && <p className="quiet-line">This post isn&rsquo;t available</p>}
       {post && (
         <article className="card event-article">
-          <span className={`event-post-tag event-post-tag-${post.kind}`}>{POST_KIND_LABEL[post.kind]}</span>
+          {post.kind !== "news" && (
+            <span className={`event-post-tag event-post-tag-${post.kind}`}>{POST_KIND_LABEL[post.kind]}</span>
+          )}
           <h1 className="event-article-title">{post.title}</h1>
           <p className="hint">{longDate(post.show_from)}</p>
           {/* Under the headline, so the first screen says what it is; tap for full size */}
