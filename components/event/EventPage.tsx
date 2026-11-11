@@ -24,7 +24,7 @@ import { loadPublicQualifying } from "@/lib/publicQualifying";
 import { SITE_NAME } from "@/lib/site";
 import { supabase } from "@/lib/supabaseClient";
 import { usePageBackground } from "@/lib/backgrounds";
-import type { Venue } from "@/lib/types";
+import type { SponsorTier, Venue } from "@/lib/types";
 
 // An event with several competitions (the Blackpool Masters), all on one
 // page: how long to go, its days (each opens that competition - the
@@ -35,7 +35,7 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
   usePageBackground(event.organiser.background_image ?? null);
   const [posts, setPosts] = useState<EventPost[]>([]);
   // Sponsors of the whole event (set up on its admin page)
-  const [eventSponsors, setEventSponsors] = useState<SponsorShown[]>([]);
+  const [eventSponsors, setEventSponsors] = useState<(SponsorShown & { tier?: SponsorTier })[]>([]);
   // Qualifying for the event: places decided so far, and the next final
   const [qualified, setQualified] = useState<{
     done: number;
@@ -88,10 +88,13 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event.organiser.id, event.year]);
 
-  // The event's sponsors: its own first, then everyone sponsoring any of its
-  // competitions, once each
-  const sponsors = [...eventSponsors, ...comps.flatMap((c) => c.sponsors)]
-    .filter((s, i, list) => list.findIndex((x) => x.name === s.name) === i);
+  // The event's sponsors: its own main sponsors first, then everyone
+  // sponsoring any of its competitions, once each; its associate sponsors
+  // go smaller underneath
+  const associates = eventSponsors.filter((s) => s.tier === "associate");
+  const sponsors = [...eventSponsors.filter((s) => s.tier !== "associate"), ...comps.flatMap((c) => c.sponsors)]
+    .filter((s, i, list) => list.findIndex((x) => x.name === s.name) === i)
+    .filter((s) => !associates.some((a) => a.name === s.name));
   const adverts = posts.filter((p) => p.kind === "advert");
   const news = posts.filter((p) => p.kind !== "advert");
   const live = comps.some((c) => publicStatus(c, today) === "live");
@@ -115,6 +118,12 @@ export default function EventPage({ event, all }: { event: EventRef; all: Public
             .join(" · ")}
         </p>
         <SponsorPanel sponsors={sponsors} bare />
+        <SponsorPanel
+          sponsors={associates}
+          bare
+          small
+          label={associates.length > 1 ? "Associate sponsors" : "Associate sponsor"}
+        />
       </header>
 
       {liveSessions.map(({ c, s }) => (

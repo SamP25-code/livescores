@@ -19,12 +19,24 @@ function Linked({ sponsor, className, children }: { sponsor: SponsorShown; class
 // "Sponsored by" small, then each sponsor's name in white, with its logo
 // on a small white backing of its own when there is one (logos often have
 // dark writing). "bare" (an event's page) shows just the logos, with no
-// heading.
-export function SponsorPanel({ sponsors, bare = false }: { sponsors: SponsorShown[]; bare?: boolean }) {
+// heading. "label" puts a heading on anyway ("Associate sponsor"), and
+// "small" shows the logos smaller, under the main ones.
+export function SponsorPanel({
+  sponsors,
+  bare = false,
+  small = false,
+  label,
+}: {
+  sponsors: SponsorShown[];
+  bare?: boolean;
+  small?: boolean;
+  label?: string;
+}) {
   if (sponsors.length === 0) return null;
+  const heading = label ?? (bare ? null : "Sponsored by");
   return (
-    <div className={bare ? "sponsor-panel sponsor-panel-bare" : "sponsor-panel"}>
-      {!bare && <span className="sponsor-panel-label">Sponsored by</span>}
+    <div className={["sponsor-panel", bare && "sponsor-panel-bare", small && "sponsor-panel-small"].filter(Boolean).join(" ")}>
+      {heading && <span className="sponsor-panel-label">{heading}</span>}
       <div className="sponsor-panel-list">
         {sponsors.map((s) => (
           <Linked key={s.name} sponsor={s} className="sponsor-panel-item">

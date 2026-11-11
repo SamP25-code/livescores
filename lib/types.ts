@@ -76,8 +76,12 @@ export type EventSponsor = {
   name: string;
   url: string | null;
   logo_url: string | null;
+  // Part 24: shown large at the top ("main") or smaller underneath ("associate")
+  tier?: SponsorTier;
   created_at: string;
 };
+
+export type SponsorTier = "main" | "associate";
 
 export type Competition = {
   id: string;

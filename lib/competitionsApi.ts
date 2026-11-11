@@ -3,14 +3,15 @@
 // a Super login can do any of this.
 import { supabase } from "@/lib/supabaseClient";
 import { planSessions, sessionName, slugify, type SessionKind } from "@/lib/competitionSetup";
-import type { Competition, CompetitionSponsor, EventSponsor, Night, Organiser, Series, Venue } from "@/lib/types";
+import type { Competition, CompetitionSponsor, EventSponsor, Night, Organiser, Series, SponsorTier, Venue } from "@/lib/types";
 
 export type CompetitionWithSeries = Competition & {
   series: Series & { organiser: Organiser };
   sponsors: CompetitionSponsor[];
 };
 
-export type SponsorInput = { name: string; url: string; logo_url?: string | null };
+// tier: an event's sponsors only (a competition's are all just sponsors)
+export type SponsorInput = { name: string; url: string; logo_url?: string | null; tier?: SponsorTier };
 
 const WITH_SERIES = "*, series:series_id(*, organiser:organiser_id(*)), sponsors:competition_sponsors(*)";
 
@@ -144,7 +145,13 @@ export async function listEventSponsors(organiserId: string, year: number): Prom
 
 // Replaces an event's sponsors for the year with this list, in this order
 export async function saveEventSponsors(organiserId: string, year: number, sponsors: SponsorInput[]): Promise<void> {
-  const rows = sponsorRows(sponsors).map((s) => ({ ...s, organiser_id: organiserId, year }));
+  const named = sponsors.filter((s) => s.name.trim());
+  const rows = sponsorRows(named).map((s, i) => ({
+    ...s,
+    organiser_id: organiserId,
+    year,
+    tier: named[i].tier ?? "main",
+  }));
   const { error: removeError } = await supabase
     .from("event_sponsors")
     .delete()

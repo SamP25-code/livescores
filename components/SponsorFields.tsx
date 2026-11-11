@@ -9,17 +9,19 @@ export const EMPTY_SPONSOR: SponsorInput = { name: "", url: "", logo_url: null }
 // The sponsor rows in a set-up form (a competition's or an event's): name,
 // website and logo for each, in the order shown. Logos upload straight away
 // (so they can be seen) and are saved against the sponsor with the rest of
-// the form.
+// the form. "tiers" (an event's sponsors) adds a Main / Associate choice.
 export default function SponsorFields({
   id,
   sponsors,
   onChange,
   onError,
+  tiers = false,
 }: {
   id: string;
   sponsors: SponsorInput[];
   onChange: (sponsors: SponsorInput[]) => void;
   onError: (message: string | null) => void;
+  tiers?: boolean;
 }) {
   const [uploading, setUploading] = useState<number | null>(null);
 
@@ -44,7 +46,7 @@ export default function SponsorFields({
     <div className="comp-form-sponsors">
       <span className="comp-form-sponsors-title">Sponsors (optional)</span>
       {sponsors.map((sponsor, i) => (
-        <div key={i} className="comp-form-sponsor">
+        <div key={i} className={tiers ? "comp-form-sponsor comp-form-sponsor-tiered" : "comp-form-sponsor"}>
           <div className="field">
             <label htmlFor={`${id}-${i}`}>{sponsors.length > 1 ? `Sponsor ${i + 1}` : "Sponsor"}</label>
             <input id={`${id}-${i}`} value={sponsor.name} onChange={(e) => setSponsor(i, "name", e.target.value)} />
@@ -59,6 +61,19 @@ export default function SponsorFields({
               onChange={(e) => setSponsor(i, "url", e.target.value)}
             />
           </div>
+          {tiers && (
+            <div className="field">
+              <label htmlFor={`${id}-tier-${i}`}>Sponsor type</label>
+              <select
+                id={`${id}-tier-${i}`}
+                value={sponsor.tier ?? "main"}
+                onChange={(e) => setSponsor(i, "tier", e.target.value)}
+              >
+                <option value="main">Main sponsor</option>
+                <option value="associate">Associate sponsor</option>
+              </select>
+            </div>
+          )}
           {sponsors.length > 1 && (
             <button
               type="button"

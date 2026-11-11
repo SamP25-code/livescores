@@ -80,7 +80,7 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
       setPosts(await listPosts(id, year));
       const saved = await listEventSponsors(id, year);
       setSponsors(
-        saved.length ? saved.map((s) => ({ name: s.name, url: s.url ?? "", logo_url: s.logo_url })) : [EMPTY_SPONSOR]
+        saved.length ? saved.map((s) => ({ name: s.name, url: s.url ?? "", logo_url: s.logo_url, tier: s.tier ?? "main" })) : [EMPTY_SPONSOR]
       );
       const { data: comps } = await supabase
         .from("competitions")
@@ -307,7 +307,7 @@ export default function AdminEventPage({ params }: { params: Promise<{ id: strin
           <p className="hint">
             Shown at the top of the event&rsquo;s page. A competition&rsquo;s own sponsors are set up in its settings.
           </p>
-          <SponsorFields id="event-sponsor" sponsors={sponsors} onChange={setSponsors} onError={setError} />
+          <SponsorFields id="event-sponsor" sponsors={sponsors} onChange={setSponsors} onError={setError} tiers />
           <button type="submit" disabled={savingSponsors}>
             {savingSponsors ? "Saving…" : "Save sponsors"}
           </button>

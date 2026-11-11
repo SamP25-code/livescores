@@ -1889,6 +1889,11 @@ label {
   width: 100%;
 }
 
+/* An event's sponsors also have "Main" or "Associate" */
+.comp-form-sponsor-tiered {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
+}
+
 .comp-form-remove {
   margin-bottom: 18px;
   color: var(--maroon);
@@ -3085,6 +3090,12 @@ label {
   max-height: 72px;
   max-width: 220px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+/* An event's associate sponsors: under the main one, smaller */
+.sponsor-panel-bare.sponsor-panel-small .sponsor-panel-logo {
+  max-height: 48px;
+  max-width: 160px;
 }
 
 /* Set-up form: a sponsor's logo */
