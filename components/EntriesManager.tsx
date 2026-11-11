@@ -86,6 +86,13 @@ export default function EntriesManager({ competition, sessions }: { competition:
 
   useEffect(() => {
     load();
+    // A safeguard: every session not yet drawn is brought into step with its
+    // entries each time this opens (normally already done as entries change,
+    // but a session missed once would otherwise show no players until its
+    // own page was opened). Drawn sessions are left alone.
+    (async () => {
+      for (const s of drawSessions) await syncSessionPlaces(s.id);
+    })().catch((err) => setError(errorMessage(err)));
     listClubs()
       .then(setClubs)
       .catch((err) => setError(errorMessage(err)));
