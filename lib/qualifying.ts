@@ -2,7 +2,7 @@
 // Masters Invitation 32): its places, each filled by the winner of a
 // qualifying competition or as a wildcard. The rules, without the database.
 
-export type ResultsDepth = "winner" | "final" | "semis" | "quarters" | "last16";
+export type ResultsDepth = "winner" | "final" | "semis" | "quarters" | "last16" | "last32";
 
 export const DEPTH_LABEL: Record<ResultsDepth, string> = {
   winner: "Just the winner (no scores)",
@@ -10,10 +10,11 @@ export const DEPTH_LABEL: Record<ResultsDepth, string> = {
   semis: "Semi-finals and final",
   quarters: "Quarter-finals onwards",
   last16: "Last 16 onwards",
+  last32: "Last 32 onwards",
 };
 
 // Stage numbers: 1 is the final, 2 the semi-finals, 3 the quarter-finals, 4 the last 16
-export const STAGE_LABEL: Record<number, string> = { 1: "Final", 2: "Semi-finals", 3: "Quarter-finals", 4: "Last 16" };
+export const STAGE_LABEL: Record<number, string> = { 1: "Final", 2: "Semi-finals", 3: "Quarter-finals", 4: "Last 16", 5: "Last 32" };
 
 export type QualifierEvent = {
   id: string;
@@ -26,6 +27,8 @@ export type QualifierEvent = {
   source_competition_id: string | null;
   results_depth: ResultsDepth;
   winner_person_id: string | null;
+  // Part 25: a photo shown under its results (the winner with the trophy)
+  photo_url?: string | null;
 };
 
 export type QualifierMatch = {
@@ -51,7 +54,7 @@ export type Place = {
 
 // The rounds to enter, earliest first: semi-finals then final, and so on
 export function stagesFor(depth: ResultsDepth): number[] {
-  return { winner: [], final: [1], semis: [2, 1], quarters: [3, 2, 1], last16: [4, 3, 2, 1] }[depth];
+  return { winner: [], final: [1], semis: [2, 1], quarters: [3, 2, 1], last16: [4, 3, 2, 1], last32: [5, 4, 3, 2, 1] }[depth];
 }
 
 export function matchesInStage(stage: number): number {
@@ -95,8 +98,8 @@ export function resultsProblem(depth: ResultsDepth, matches: QualifierMatch[], w
       const name =
         stage === 1
           ? "the final"
-          : stage === 4
-            ? `last 16 match ${slot + 1}`
+          : stage >= 4
+            ? `${STAGE_LABEL[stage].toLowerCase()} match ${slot + 1}`
             : `${STAGE_LABEL[stage].toLowerCase().replace(/s$/, "")} ${slot + 1}`;
       if (!m || !m.person_a_id || !m.person_b_id) {
         // Earlier rounds can be left empty; the final can't

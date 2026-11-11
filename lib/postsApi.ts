@@ -53,23 +53,6 @@ export async function getPost(id: string): Promise<EventPost | null> {
   return (data as EventPost | null) ?? null;
 }
 
-// Published qualifier updates about one qualifier (newest first), with the
-// event's address for the link to each
-export async function listQualifierPosts(qualifierId: string, today: string): Promise<(EventPost & { eventSlug: string | null })[]> {
-  const { data, error } = await supabase
-    .from("event_posts")
-    .select("*, organiser:organiser_id(slug)")
-    .eq("qualifier_event_id", qualifierId)
-    .eq("published", true)
-    .lte("show_from", today)
-    .order("show_from", { ascending: false });
-  if (error) throw error;
-  return ((data ?? []) as (EventPost & { organiser: { slug: string | null } | null })[]).map(({ organiser, ...p }) => ({
-    ...p,
-    eventSlug: organiser?.slug ?? null,
-  }));
-}
-
 export function postProblem(p: Pick<PostInput, "kind" | "title" | "link_url">): string | null {
   if (!p.title.trim()) return p.kind === "advert" ? "Enter the advertiser's name." : "Enter a headline.";
   if (p.link_url && !/^https:\/\//.test(p.link_url)) return "The link should start with https://";

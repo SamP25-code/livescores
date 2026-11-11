@@ -130,6 +130,8 @@ export type QualifierResults = {
   finalDate: string | null;
   qualifiesFor: { competitionId: string; title: string } | null;
   winner: string | null;
+  // A photo under the results (the winner with the trophy)
+  photoUrl: string | null;
   stages: { stage: number; matches: { a: string; b: string; sa: number | null; sb: number | null; aWon: boolean; bWon: boolean }[] }[];
 };
 
@@ -168,6 +170,7 @@ export async function loadQualifierResults(qualifierId: string): Promise<Qualifi
       ? { competitionId: comp.id, title: `${(comp.series as unknown as { name: string } | null)?.name ?? "Competition"} ${comp.year}` }
       : null,
     winner,
+    photoUrl: (event as { photo_url?: string | null }).photo_url ?? null,
     stages: [...byStage.entries()]
       .sort((a, b) => b[0] - a[0])
       .map(([stage, list]) => ({

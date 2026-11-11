@@ -1,34 +1,27 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import Link from "next/link";
 import PlayerName from "@/components/PlayerName";
 import PublicPage from "@/components/PublicPage";
 import { longDate } from "@/lib/competitionSetup";
 import { STAGE_LABEL } from "@/lib/qualifying";
 import { loadQualifierResults, type QualifierResults } from "@/lib/publicQualifying";
 import { SITE_NAME } from "@/lib/site";
-import { listQualifierPosts, type EventPost } from "@/lib/postsApi";
-import { todayIso } from "@/lib/publicCompetitions";
 
 export const dynamic = "force-dynamic";
 
 // The results of a qualifying competition that isn't run on this site, as
 // entered by the organiser: its final (and semi-finals, quarter-finals if
-// recorded), and who it sent through - with the picture from any qualifier
-// update posted about it on the event's page, and a link to the article.
+// recorded), who it sent through, and a photo under the results if one was
+// added.
 export default function QualifierPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [data, setData] = useState<QualifierResults | null | undefined>(undefined);
-  const [posts, setPosts] = useState<(EventPost & { eventSlug: string | null })[]>([]);
 
   useEffect(() => {
     loadQualifierResults(id)
       .then(setData)
       .catch(() => setData(null));
-    listQualifierPosts(id, todayIso())
-      .then(setPosts)
-      .catch(() => setPosts([]));
   }, [id]);
 
   useEffect(() => {
@@ -55,24 +48,6 @@ export default function QualifierPage({ params }: { params: Promise<{ id: string
               </span>
             </div>
           )}
-          {posts.map((p) => {
-            const href = p.eventSlug ? `/${p.eventSlug}/news/${p.id}` : null;
-            return (
-              <div key={p.id} className="card qualifier-post">
-                {p.image_url && (
-                  <a href={p.image_url} target="_blank" rel="noopener noreferrer" className="event-article-image-link">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.image_url} alt="" className="event-article-image" />
-                  </a>
-                )}
-                {href && (
-                  <Link href={href} className="qualifier-post-link">
-                    {p.title} &rsaquo;
-                  </Link>
-                )}
-              </div>
-            );
-          })}
           {data.stages.map((st) => (
             <section key={st.stage}>
               <div className="round-heading">
@@ -101,6 +76,12 @@ export default function QualifierPage({ params }: { params: Promise<{ id: string
               </div>
             </section>
           ))}
+          {data.photoUrl && (
+            <a href={data.photoUrl} target="_blank" rel="noopener noreferrer" className="card qualifier-photo">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={data.photoUrl} alt={data.winner ? `${data.winner}, winner of the ${data.name}` : ""} />
+            </a>
+          )}
           {!data.winner && data.stages.length === 0 && (
             <p className="quiet-line">No results yet{data.finalDate ? ` - the final is on ${longDate(data.finalDate)}` : ""}</p>
           )}

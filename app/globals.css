@@ -3077,8 +3077,8 @@ label {
 }
 
 .sponsor-panel-logo {
-  max-height: 36px;
-  max-width: 120px;
+  max-height: 44px;
+  max-width: 150px;
   width: auto;
   object-fit: contain;
   padding: 4px 6px;
@@ -3715,23 +3715,28 @@ label {
   background: var(--green-fill);
 }
 
-/* A qualifier's results page: the picture from its qualifier update, and a
-   link to the article */
-.card.qualifier-post {
+/* A qualifier's results page: a photo under the results (the winner with
+   the trophy), tap for full size */
+.card.qualifier-photo {
+  display: block;
+  margin-top: var(--gap);
   padding: 0;
   overflow: hidden;
 }
 
-.qualifier-post .event-article-image-link {
-  margin: 0;
+.qualifier-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+  object-fit: contain;
+  background: var(--green-fill);
 }
 
-.qualifier-post-link {
-  display: block;
-  padding: 10px 14px;
-  font-weight: 600;
-  color: var(--green-deep);
-  text-decoration: none;
+/* Its set-up form: the photo, small */
+.qualifier-photo-thumb {
+  max-height: 72px;
+  border-radius: 4px;
 }
 
 .event-article-image-hint {

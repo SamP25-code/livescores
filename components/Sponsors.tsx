@@ -33,9 +33,9 @@ function Linked({ sponsor, className, children }: { sponsor: SponsorShown; class
 // A competition's or an event's sponsors, the same on every public page
 // (competition, session and event pages) - change them here and in the
 // .sponsor-panel styles and every page follows. Straight on the photo:
-// "Sponsored by" small, then each sponsor's name in white, with its logo
-// on a small white backing of its own when there is one (logos often have
-// dark writing). "bare" (an event's page) shows just the logos, with no
+// "Sponsored by" small, then each sponsor's logo on a small white backing of
+// its own (logos often have dark writing), or its name when it has no logo -
+// never both. "bare" (an event's page) shows just the logos, with no
 // heading. "label" puts a heading on anyway ("Associate sponsor"), and
 // "small" shows the logos smaller, under the main ones.
 export function SponsorPanel({
@@ -59,9 +59,9 @@ export function SponsorPanel({
           <Linked key={s.name} sponsor={s} className="sponsor-panel-item">
             {s.logo_url && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={s.logo_url} alt={bare ? s.name : ""} className="sponsor-panel-logo" />
+              <img src={s.logo_url} alt={s.name} className="sponsor-panel-logo" />
             )}
-            {(!bare || !s.logo_url) && <strong>{s.name}</strong>}
+            {!s.logo_url && <strong>{s.name}</strong>}
           </Linked>
         ))}
       </div>

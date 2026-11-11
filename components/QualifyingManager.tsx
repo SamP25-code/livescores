@@ -6,6 +6,7 @@ import { listCompetitions, type CompetitionWithSeries } from "@/lib/competitions
 import { errorMessage } from "@/lib/errors";
 import type { PersonDetails } from "@/lib/people";
 import { listClubs } from "@/lib/peopleApi";
+import { uploadEventImage } from "@/lib/postsApi";
 import {
   DEPTH_LABEL,
   STAGE_LABEL,
@@ -201,7 +202,9 @@ export default function QualifyingManager({ competitionId }: { competitionId: st
                   clubs={clubs}
                   busy={busy}
                   onCancel={() => setOpen(null)}
-                  onSave={(matches, winner) => run(() => saveResults(event, matches, winner), `${event.name} results saved.`)}
+                  onSave={(matches, winner, photo) =>
+                    run(() => saveResults(event, matches, winner, photo), `${event.name} results saved.`)
+                  }
                 />
               )}
               {open === `edit:${p.id}` && event && (
@@ -430,7 +433,7 @@ function ResultsEditor({
   names: Map<string, string>;
   clubs: Organiser[];
   busy: boolean;
-  onSave: (matches: QualifierMatch[], winner: string | null) => void;
+  onSave: (matches: QualifierMatch[], winner: string | null, photo: string | null) => void;
   onCancel: () => void;
 }) {
   const asPerson = (id: string | null): PersonDetails | null =>
@@ -452,6 +455,23 @@ function ResultsEditor({
   });
   const [winner, setWinner] = useState<PersonDetails | null>(asPerson(event.winner_person_id));
   const [problem, setProblem] = useState<string | null>(null);
+  // A photo under the results on the public page, uploaded straight away
+  // (so it can be seen) and saved with the results
+  const [photo, setPhoto] = useState<string | null>(event.photo_url ?? null);
+  const [uploading, setUploading] = useState(false);
+
+  async function choosePhoto(file: File | undefined) {
+    if (!file) return;
+    setProblem(null);
+    setUploading(true);
+    try {
+      setPhoto(await uploadEventImage(file));
+    } catch (err) {
+      setProblem(errorMessage(err));
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function set(key: string, patch: Partial<Slot>) {
     setSlots((current) => ({ ...current, [key]: { ...current[key], ...patch } }));
@@ -471,7 +491,7 @@ function ResultsEditor({
     });
     const p = resultsProblem(event.results_depth, list, winner?.id ?? null);
     setProblem(p);
-    if (!p) onSave(list, winner?.id ?? null);
+    if (!p) onSave(list, winner?.id ?? null, photo);
   }
 
   return (
@@ -513,10 +533,34 @@ function ResultsEditor({
           </div>
         ))
       )}
+      <div className="comp-form-logo">
+        {photo && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photo} alt="" className="qualifier-photo-thumb" />
+        )}
+        <label className="link-button comp-form-logo-pick">
+          {uploading ? "Uploading…" : photo ? "Change photo" : "Add a photo (optional)"}
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            className="visually-hidden"
+            disabled={uploading}
+            onChange={(e) => {
+              choosePhoto(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
+        </label>
+        {photo && (
+          <button type="button" className="link-button" onClick={() => setPhoto(null)}>
+            Remove photo
+          </button>
+        )}
+      </div>
       {problem && <p className="error">{problem}</p>}
       <p className="hint">The winner fills this competition&rsquo;s place in the list straight away.</p>
       <div className="person-check-actions">
-        <button type="button" disabled={busy} onClick={save}>
+        <button type="button" disabled={busy || uploading} onClick={save}>
           {busy ? "Saving…" : "Save results"}
         </button>
         <button type="button" className="link-button" onClick={onCancel}>

@@ -18,7 +18,8 @@ describe("rounds to enter", () => {
     expect(stagesFor("semis")).toEqual([2, 1]);
     expect(stagesFor("quarters")).toEqual([3, 2, 1]);
     expect(stagesFor("last16")).toEqual([4, 3, 2, 1]);
-    expect([1, 2, 3, 4].map(matchesInStage)).toEqual([1, 2, 4, 8]);
+    expect(stagesFor("last32")).toEqual([5, 4, 3, 2, 1]);
+    expect([1, 2, 3, 4, 5].map(matchesInStage)).toEqual([1, 2, 4, 8, 16]);
   });
 });
 

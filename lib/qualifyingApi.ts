@@ -236,7 +236,8 @@ export async function addWildcardPlace(competitionId: string): Promise<void> {
 export async function saveResults(
   event: QualifierEvent,
   matches: QualifierMatch[],
-  winnerPersonId: string | null
+  winnerPersonId: string | null,
+  photoUrl: string | null
 ): Promise<void> {
   const { error: removeError } = await supabase.from("qualifier_matches").delete().eq("qualifier_event_id", event.id);
   if (removeError) throw removeError;
@@ -249,7 +250,7 @@ export async function saveResults(
   }
   const { error } = await supabase
     .from("qualifier_events")
-    .update({ winner_person_id: event.results_depth === "winner" ? winnerPersonId : null })
+    .update({ winner_person_id: event.results_depth === "winner" ? winnerPersonId : null, photo_url: photoUrl })
     .eq("id", event.id);
   if (error) throw error;
   await log(event.competition_id, "qualifier_results", { qualifier: event.name });
