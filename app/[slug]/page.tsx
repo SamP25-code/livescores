@@ -116,6 +116,7 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
   const status = publicStatus(c, today);
   const otherYears = all.filter((x) => x.slug === c.slug && x.year !== c.year).sort((a, b) => b.year - a.year);
   const runBy = c.organiser.kind === "event" ? c.organiser.name : c.organiser.short_name;
+  const datesToCome = calendarSessions(c, today).length;
 
   return (
     <Shell
@@ -165,11 +166,11 @@ export default function CompetitionPage({ params }: { params: Promise<{ slug: st
         )}
 
         {/* The dates still to come, into the phone's calendar in one go */}
-        {calendarSessions(c, today).length > 0 && (
+        {datesToCome > 0 && (
           <div className="calendar-pill-row">
             <AddToCalendar
               competitionId={c.id}
-              label={calendarSessions(c, today).length > 1 ? "Add the dates to your calendar" : "Add to calendar"}
+              label={datesToCome > 1 ? "Add the dates to your calendar" : "Add to calendar"}
             />
           </div>
         )}

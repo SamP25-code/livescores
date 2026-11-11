@@ -11,7 +11,7 @@ export default function AddToCalendar({
 }) {
   const href = `/api/calendar/${competitionId}${sessionId ? `?session=${sessionId}` : ""}`;
   return (
-    <a className="venue-pill calendar-pill" href={href}>
+    <a className="venue-pill" href={href}>
       <svg viewBox="0 0 24 24" width={14} height={14} aria-hidden="true">
         <path
           fill="none"
